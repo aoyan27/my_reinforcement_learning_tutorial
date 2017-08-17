@@ -1,5 +1,5 @@
 # my_reinforcement_learning_tutorial
-Tish repositpry created for "Reinforcement Learning Tutorial". For example, 'Q-Learing', 'Actor-Critic', 'Deep Q-Learing', and 'Deep Actor-Critc'.
+Tish repositpry created for "Reinforcement Learning Tutorial". For example, 'Q-Learing', 'Actor-Critic', 'Deep Q-Learing', and 'Deep Actor-Critic'.
 
 ## Hardware spec
 - PC
