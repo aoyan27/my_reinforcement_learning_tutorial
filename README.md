@@ -1,4 +1,4 @@
-# my_reinforcement_learning_tutorial
+# my\_reinforcement\_learning\_tutorial
 Tish repositpry created for "Reinforcement Learning Tutorial". For example, 'Q-Learing', 'Actor-Critic', 'Deep Q-Learing', and 'Deep Actor-Critic'.
 
 ## Hardware spec
@@ -35,3 +35,6 @@ $ pip install -e '.[all]'
 
 ## How to run
 ### Enviroments
+- Vending machine
+- Maze
+- Pendulum(OpenAI Gym)
