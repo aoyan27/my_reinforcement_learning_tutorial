@@ -16,10 +16,10 @@ from agents.maze_agent import Agent
 
 def main():
     start = (1, 1)
-    rows = 5
-    cols = 5
-    goal = (5, 5)
-    obstacle_num = 5
+    rows = 10
+    cols = 9
+    goal = (8, 6)
+    obstacle_num = 9
     env = Maze(rows, cols, start, goal, obstacle_num)
     
     action_num = 4
