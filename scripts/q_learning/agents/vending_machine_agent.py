@@ -43,5 +43,5 @@ if __name__=="__main__":
     action = test_agent.epsilon_greedy(state)
     print action
     for i in range(10):
-        q_value = test_agent.q_update(0, 0, 1, 10)
+        test_agent.q_update(0, 0, 1, 10)
         test_agent.display_q_table()

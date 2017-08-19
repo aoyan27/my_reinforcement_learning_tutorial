@@ -13,7 +13,7 @@ import numpy as np
 import sys
 sys.path.append('../../')
 from envs.vending_machine import VendingMachine
-from vending_machine_agent import Agent
+from agents.vending_machine_agent import Agent
 
 def main():
     init_state = 1
@@ -46,5 +46,5 @@ def main():
     state = 1
     print "State : ", state, " action : ", agent.epsilon_greedy(state, evoluation=True)
 
-if __name__=="__main__":
+if __name__ == "__main__":
     main()
