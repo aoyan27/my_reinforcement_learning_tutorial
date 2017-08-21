@@ -16,20 +16,16 @@ class Agent:
     GAMMA = 0.9
     
 
-    def __init__(self, env, num_action, ):
-        #  self.__q_table = np.zeros((), dtype=np.float32)
-        print "env.action_space : ", env.action_space
-        print "env.action_space.high : ", env.action_space.high
-        print "env.action_space.low : ", env.action_space.low
-        print "env.observation_space : ", env.observation_space
-        print "env.observation_space.high : ", env.observation_space.high
-        print "env.observation_space.low : ", env.observation_space.low
+    def __init__(self, num_state, num_action, ):
         self.__epsilon = 0.1
         
 
 if __name__=="__main__":
-    import gym
-    env = gym.make('Pendulum-v0')
+    from math import cos, sin
+    theta = 1.0 #[rad]
+    thetadot = 0.5 #[rad/s]
+    num_state = len(np.array([cos(theta), sin(theta), thetadot]))
+    print np.array([cos(theta), sin(theta), thetadot])
     num_action = len(np.arange(-1, 2, 2))
     print np.arange(-1, 2, 2)
-    test_agent = Agent(env, num_action)
+    test_agent = Agent(num_state, num_action)
