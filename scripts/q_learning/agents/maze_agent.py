@@ -23,8 +23,8 @@ class Agent:
     def state2index(self, state):
         return state[0] * len(self._maze[0]) + state[1]
 
-    def epsilon_greedy(self, state, evoluation=False):
-        if not evoluation:
+    def epsilon_greedy(self, state, evaluation=False):
+        if not evaluation:
             if np.random.rand() < self.epsilon:
                 #  print "Random action!!"
                 return int(np.round(np.random.rand() * (self.action_num-1)))
@@ -56,7 +56,7 @@ class Agent:
                 state = [i, j]
                 if self._maze[i][j] == 0:
                     if np.max(self._q_table[self.state2index(state)])  != 0:
-                        action = self.epsilon_greedy(state, evoluation=True)
+                        action = self.epsilon_greedy(state, evaluation=True)
                         print '%2s' % action_display_list[action],
                     else:
                         print '%2d' % self._maze[i][j],

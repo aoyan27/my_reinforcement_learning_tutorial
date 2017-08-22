@@ -24,8 +24,8 @@ class Agent:
 
         self.epsilon = 1.0
 
-    def get_action(self, state, evoluation=False):
-        if not evoluation:
+    def get_action(self, state, evaluation=False):
+        if not evaluation:
             prob =  np.random.rand()
             if self.epsilon > prob:
                 #  print "Random"

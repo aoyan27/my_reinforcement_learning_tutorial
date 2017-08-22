@@ -19,8 +19,8 @@ class Agent:
     def __init__(self):
         self._q_table = np.zeros((2,2), dtype=np.float32)
 
-    def epsilon_greedy(self, state, evoluation=False):
-        if not evoluation:
+    def epsilon_greedy(self, state, evaluation=False):
+        if not evaluation:
             if np.random.rand() < self.EPISILON:
                 print "Random action"
                 return int(np.round(np.random.rand()))
