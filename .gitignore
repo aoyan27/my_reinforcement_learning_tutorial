@@ -1,1 +1,2 @@
 *.pyc
+/models/q_learning/*.npy
