@@ -1,2 +1,3 @@
 *.pyc
 *.npy
+/scripts/q_learning/frozen_lake_taotao_san.py
