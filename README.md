@@ -37,4 +37,5 @@ $ pip install -e '.[all]'
 ### Enviroments
 - Vending machine
 - Maze
+- Frozen lake(OpenAI Gym)
 - Pendulum(OpenAI Gym)
