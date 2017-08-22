@@ -7,6 +7,9 @@
     行動 : トルク--> (-1, 1)
     報酬 : 倒立振子が頂点に来た時を原点として現在の状態のなす角を元に以下の式で算出される
         reward = theta**2 + 0.1 * theta_dot**2 + 0.001*max_toruque**2
+
+    連続な状態空間に対応するための関数近似としてニューラルネットを利用しただけ...
+    DQNの特徴であるExperience Replay, Fixed target Q-Network, Reward clipingは使用していない...
 """
 
 import numpy as np
