@@ -11,24 +11,24 @@
 
 class VendingMachine:
     def __init__(self, state):
-        self.__state = state
+        self._state = state
 
     def step(self, action):
         reward = 0
 
         if action == 0:  #電源のON、OFFを切り替えるボタンを押す行動
-            if self.__state == 0:
-                print "slef.__state : ", self.__state
-                self.__state = 1
+            if self._state == 0:
+                print "slef._state : ", self._state
+                self._state = 1
             else:
-                self.__state = 0
+                self._state = 0
         else:   #チーズを生成するボタンを押す行動
-            if self.__state == 0:
+            if self._state == 0:
                 reward = 10
             else:
                 reward = 0
 
-        return self.__state, reward
+        return self._state, reward
 
         
 if __name__=="__main__":

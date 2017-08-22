@@ -17,7 +17,7 @@ class Agent:
     EPISILON = 0.5
 
     def __init__(self):
-        self.__q_table = np.zeros((2,2), dtype=np.float32)
+        self._q_table = np.zeros((2,2), dtype=np.float32)
 
     def epsilon_greedy(self, state, evoluation=False):
         if not evoluation:
@@ -26,15 +26,15 @@ class Agent:
                 return int(np.round(np.random.rand()))
             else:
                 print "Greedy action"
-                return np.argmax(self.__q_table[state])
+                return np.argmax(self._q_table[state])
         else:
-            return np.argmax(self.__q_table[state])
+            return np.argmax(self._q_table[state])
 
     def q_update(self, state, next_state, action, reward):
-        self.__q_table[state][action] = (1-self.ALPHA)*self.__q_table[state][action] + self.ALPHA*(reward + self.GAMMA*np.max(self.__q_table[next_state]))
+        self._q_table[state][action] = (1-self.ALPHA)*self._q_table[state][action] + self.ALPHA*(reward + self.GAMMA*np.max(self._q_table[next_state]))
 
     def display_q_table(self):
-        print self.__q_table
+        print self._q_table
 
 if __name__=="__main__":
     test_agent = Agent()
