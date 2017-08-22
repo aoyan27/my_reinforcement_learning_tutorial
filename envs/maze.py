@@ -3,7 +3,7 @@
 """
 迷路探索
    5x5の大きさの迷路を探索する
-   状態 : 迷路全体　or 自身のxy座標
+   状態 : 自身のマップ上の位置(Q_tableはマップ全体に確保される)
    行動 : 上下左右の４パターン(上 : a=0 左 : a=1 下 : a=2 右 : a=3)
    報酬 : ゴールに到達した時
 """
@@ -14,14 +14,14 @@ import copy
 
 class Maze:
     def __init__(self, rows, cols, start, goal, obstacle_num):
-        self.__start = start
-        self.__goal = goal
-        self.__rows = rows
-        self.__cols = cols
-        self.maze = np.zeros((self.__cols+2, self.__rows+2), dtype=np.int32)
+        self.start = start
+        self.goal = goal
+        self.rows = rows
+        self.col = cols
+        self.maze = np.zeros((self.col+2, self.rows+2), dtype=np.int32)
         self.create_frame()
-        self.set_start(self.__start)
-        self.set_goal(self.__goal)
+        self.set_start(self.start)
+        self.set_goal(self.goal)
         self.set_obstacles(obstacle_num)
 
         self.__init_maze = copy.deepcopy(self.maze)
@@ -31,11 +31,11 @@ class Maze:
     def create_frame(self):
         for i in xrange(len(self.maze)):
             for j in xrange(len(self.maze[i])):
-                if i == 0 or i == (self.__cols+1):
+                if i == 0 or i == (self.col+1):
                     self.maze[i][j] = -1
                 else:
                     self.maze[i][0] = -1
-                    self.maze[i][self.__rows+1] = -1
+                    self.maze[i][self.rows+1] = -1
     
     def set_start(self, start):
         self.maze[start[0]][start[1]] = 0
@@ -59,7 +59,7 @@ class Maze:
 
     def reset(self):
         self.maze = copy.deepcopy(self.__init_maze)
-        self.__state = self.__start
+        self.__state = self.start
         return self.__state
 
     def get_state(self, action):
