@@ -11,14 +11,11 @@ Frozen lake
 import numpy as np
 
 class Agent:
-    #  ALPHA = 0.5
-    #  GAMMA = 0.9
-    ALPHA = 0.01
-    GAMMA = 0.99
-
-    def __init__(self, env):
+    def __init__(self, env, alpha, gamma):
         #  print "env.onbservation_space.n : ", env.observation_space.n
         #  print "env.action_space.n : ", env.action_space.n
+        self.alpha = alpha
+        self.gamma = gamma
         self.num_state = env.observation_space.n
         self.num_action = env.action_space.n
         self._q_table = np.zeros((self.num_state, self.num_action), dtype=np.float32)
@@ -54,7 +51,7 @@ class Agent:
 
     def q_update(self, state, next_state, action, reward, episode_end):
         #  if not episode_end:
-        self._q_table[state][action] = (1-self.ALPHA)*self._q_table[state][action] + self.ALPHA*(reward+self.GAMMA*np.max(self._q_table[next_state]))
+        self._q_table[state][action] = (1-self.alpha)*self._q_table[state][action] + self.alpha*(reward+self.gamma*np.max(self._q_table[next_state]))
         #  else:
             #  self._q_table[state][action] = reward
 
