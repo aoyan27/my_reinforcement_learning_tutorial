@@ -20,8 +20,8 @@ args = parser.parse_args()
 def main(env_name, gpu, render=False, monitor=True, load=False, evaluation=False, seed=0):
 	env = gym.make(env_name)
 
-        video_path = "/home/amsl/my_reinforcement_learning_tutorial/videos/dqn_" + env_name
-        model_path = "/home/amsl/my_reinforcement_learning_tutorial/models/" + env_name + "_"
+        video_path = "/home/amsl/my_reinforcement_learning_tutorial/videos/trtd56_dqn_" + env_name
+        model_path = "/home/amsl/my_reinforcement_learning_tutorial/models/deep_q_learning/trtd56_" + env_name + "_"
 
         env = gym.wrappers.Monitor(env, video_path, force=True)
 

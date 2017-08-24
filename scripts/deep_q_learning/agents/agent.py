@@ -237,7 +237,7 @@ class Agent():
 
     def save_model(self, model_dir):
         #  print "Now Saving!!!!!"
-        serializers.save_npz(model_dir+"new_model.model", self.model)
+        serializers.save_npz(model_dir+"model.model", self.model)
 
     def load_model(self, model_dir):
         #  print "Now Loading!!!!!"

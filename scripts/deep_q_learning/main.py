@@ -10,7 +10,7 @@ def main(env_name, render=False, monitor=True, load=False, evaluation=False, see
 	env = gym.make(env_name)
 
         video_path = "/home/amsl/my_reinforcement_learning_tutorial/videos/orig_dqn_" + env_name
-        model_path = "/home/amsl/my_reinforcement_learning_tutorial/models/orig_" + env_name + "_"
+        model_path = "/home/amsl/my_reinforcement_learning_tutorial/models/deep_q_learning/orig_" + env_name + "_"
 
         env = gym.wrappers.Monitor(env, video_path, force=True)
 
