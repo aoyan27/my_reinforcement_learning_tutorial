@@ -63,6 +63,7 @@ class Agent:
         self.epsilon_min = 0.1
 
         self.D = self.create_history_memory()
+        
     
     def create_history_memory(self):
         st = np.zeros((self.data_size, 1, self.n_st), dtype=np.float32)
@@ -103,23 +104,38 @@ class Agent:
         Q = self.model(s)
 
         tmp = self.target_model(s_dash)
+        if self.gpu >= 0:
+            tmp = map(np.max, cuda.to_cpu(tmp.data))
+            max_Q_dash = np.array(tmp, dtype=np.float32)
+            max_Q_dash = cuda.to_gpu(max_Q_dash)
+        else:
+            tmp = map(np.max, tmp.data)
+            max_Q_dash = np.array(tmp, dtype=np.float32)
 
-        max_Q_dash = map(np.max, tmp.data)
+        
         #  print "max_Q_dash : ", max_Q_dash, type(max_Q_dash)
+        #  print "max_Q_dash[0] : ", max_Q_dash[0], type(max_Q_dash[0])
         target = copy.deepcopy(Q.data)
 
         for i in xrange(num_batch):
+            #  print "r[i] : ", r[i]
+            #  print "max_Q_dash[i] : ", max_Q_dash[i]
             if not ep_end[i]:
                 tmp_ = r[i] + self.GAMMA*max_Q_dash[i]
+                #  print "tmp_(not ep_end) : ", tmp_
             else:
                 tmp_ = r[i]
+                #  print "tmp_(ep_end) : ", tmp_
 
             action_index = int(act[i][0])
             #  print "action_index : ", action_index
 
             target[i][action_index] = tmp_
 
+        #  print "target : ", target
+        #  print "Q.data : ", Q.data
         td = Variable(target) - Q
+        #  print "td.data : ", td.data
         
         zero_val = np.zeros((self.replay_size, self.n_act), dtype=np.float32)
         if self.gpu >= 0:
