@@ -25,20 +25,25 @@ def main(env_name, gpu, render=False, monitor=True, load=False, evaluation=False
 
         env = gym.wrappers.Monitor(env, video_path, force=True)
 
+        #  print env.observation_space
+        #  print env.action_space
+
         n_st = env.observation_space.shape[0]
 
         max_episode = 2000
         
         #  Pendulum-v0
+        """
         action_list = [np.array([a]) for a in [-2.0, 2.0]]
         n_act = len(action_list)
         max_step = 200
-
-        #  Acrobot-v1
         """
+
+        #  Acrobot-v1, CartPole-v0
         n_act = env.action_space.n
         max_step = 500
-        """
+
+        n_act = env.action_space.n
 
         agent = Agent(n_st, n_act, gpu, seed)
 
@@ -58,14 +63,13 @@ def main(env_name, gpu, render=False, monitor=True, load=False, evaluation=False
                 state = observation.astype(np.float32).reshape((1, n_st))
 
                 #  Pendulum-v0
+                """
                 act_i, q = agent.get_action(state, evaluation)
                 action = action_list[act_i]
-                
+                """
 
-                #  Acrobot-v1
-                """
+                #  Acrobot-v1, CartPole-v0
                 action, q = agent.get_action(state, evaluation)
-                """
 
                 q_list.append(q)
 
@@ -75,14 +79,15 @@ def main(env_name, gpu, render=False, monitor=True, load=False, evaluation=False
                 if not evaluation:
                     #  print "Now learning!!!!"
                     #  Peundulum-v0
+                    """
                     agent.stock_experience(count, state, act_i, reward, state_dash, ep_end)
+                    """
 
-                    #  Acrobot-v1
-                    """
+                    #  Acrobot-v1, CartPole-v0
                     agent.stock_experience(count, state, action, reward, state_dash, ep_end)
-                    """
 
                     agent.train(count)
+                    #  pass
 
                 r_sum += reward
                 #  print "count : ", count % 10
@@ -102,7 +107,7 @@ def main(env_name, gpu, render=False, monitor=True, load=False, evaluation=False
 
             if not evaluation:
                 agent.save_model(model_path)
-                #  pass
+                pass
 
 
 if __name__ == "__main__":
