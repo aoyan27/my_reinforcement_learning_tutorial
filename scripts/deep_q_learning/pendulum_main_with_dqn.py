@@ -19,24 +19,27 @@ from agents.pendulum_agent_with_dqn import Agent
 
 import time
 
-def main(max_episode, gpu, evaluation):
-    env_name = 'Pendulum-v0'
+def main(env_name, gpu, evaluation=False, render=False, monitor=True):
     env = gym.make(env_name)
-    #  env = gym.wrappers.Monitor(env, '/tmp/pendulum-experiment-1')
+    
+    video_path = "/home/amsl/my_reinforcement_learning_tutorial/videos/dqn_" + env_name
+    model_path = "/home/amsl/my_reinforcement_learning_tutorial/models/deep_q_learning/" + env_name
 
+    if monitor:
+        env = gym.wrappers.Monitor(env, video_path, force=True)
+    
+    max_episode = 1000
     max_step= 200
     
     success = 0
     failure = 0
 
     num_state = len(env.observation_space.high)
-    num_action = 2
+    action_list = [np.array([a]) for a in [-2.0, 2.0]]
+    num_action = len(action_list)
 
     agent = Agent(num_state, num_action, gpu)
     
-
-    path = "/home/amsl/my_reinforcement_learning_tutorial/models/deep_q_learning/"
-
     if gpu >= 0:
         print "GPU mode!!"
     else:
@@ -46,59 +49,53 @@ def main(max_episode, gpu, evaluation):
         print "Train mode!!!"
     else:
         print "evaluation mode!!!"
+        agent.load_model(model_path)
     
     t = 0
 
     for i_episode in xrange(max_episode):
         state = env.reset()
+        q_list = []
+        r_sum = 0.0
         for j_step in xrange(max_step):
-            if i_episode%10000 == 0:
+            if render:
                 env.render()
-            
+
             state = np.array([state], dtype=np.float32)
             
             #  action = env.action_space.sample()
-            action, _ = agent.get_action(state)
-            agent.reduce_epsilon()
+            act_i, q = agent.get_action(state, evaluation)
+            q_list.append(q)
+
+            action = action_list[act_i]
+
             next_state, reward, done, _ = env.step(action)
             next_state = np.array([next_state], dtype=np.float32)
-
-            agent.stock_experience(t, state, action, next_state, reward, done)
-
-
+            
             if not evaluation:
-                if t > agent.init_exprolation:
-                    agent.extract_replay_memory()
-                    agent.train()
+                agent.stock_experience(t, state, act_i, next_state, reward, done)
+                agent.train(t)
 
-            agent.target_model_update(t)
+            r_sum += reward
+
+            state = next_state
+
             t += 1
 
             if done:
-                if reward > 0:
-                    success += 1
-                else:
-                    failure += 1
-
-                sys.stdout.write("\repisode : {0:4d} success : {1:4d} failure : {2:4d} success rate : {3:0.3f} epsilon : {4:0.6f} t : {5}".format(i_episode, success, failure, float(success)/float(success+failure), agent.epsilon, t -1))
-                sys.stdout.flush()
                 break
-            else:
-                state = next_state
-
-    print "Success : ", success
-    print "Failure : ", failure
-    print "Success Rate : ", success / float(max_episode)
-
-    agent.save_model(path+"dqn_pendulum.model")
+        print "Episode : %d\t Reward : %f\t Average Q : %f\t Loss : %f\t Epsilon : %f\t t : %d" % (i_episode+1, r_sum, sum(q_list)/float(t+1), agent.loss, agent.epsilon, t)
+        
+        if not evaluation:
+            agent.save_model(model_path)
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='This script is ...')
-    parser.add_argument('-i', '--iteration', help='max iteration of episode', type=int, default=1000000)
+    parser.add_argument('--env', help='environment name', type=str, default='Pendulum-v0')
     parser.add_argument('--gpu', help='gpu mode(0) or cpu mode(-1)', type=int, default=-1)
-    parser.add_argument('-e', '--evaluation', help='evaluation mode', type=bool, default=False)
 
     args = parser.parse_args()
 
-    main(args.iteration, args.gpu, args.evaluation)
+    main(args.env, args.gpu)
+    #  main(args.env, args.gpu, evaluation=True, render=True, monitor=False)
