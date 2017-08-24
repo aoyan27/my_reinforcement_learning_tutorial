@@ -29,14 +29,25 @@ def main(env_name, gpu, evaluation=False, render=False, monitor=True):
         env = gym.wrappers.Monitor(env, video_path, force=True)
     
     max_episode = 1000
+
+    ####  Pendulum-v0  ####
+    """
     max_step= 200
-    
-    success = 0
-    failure = 0
+    """
+
+    ####  Acrobot-v1  ####
+    max_step = 500
 
     num_state = len(env.observation_space.high)
+    
+    ####  Pendulum-v0  ####
+    """
     action_list = [np.array([a]) for a in [-2.0, 2.0]]
     num_action = len(action_list)
+    """
+
+    ####  Acrobot-v1  ####
+    num_action = env.action_space.n
 
     agent = Agent(num_state, num_action, gpu)
     
@@ -63,17 +74,29 @@ def main(env_name, gpu, evaluation=False, render=False, monitor=True):
 
             state = np.array([state], dtype=np.float32)
             
-            #  action = env.action_space.sample()
+            ####  Pendulum-v0  ####
+            """
             act_i, q = agent.get_action(state, evaluation)
-            q_list.append(q)
-
             action = action_list[act_i]
+            """
+            
+            ####  Acrobot-v1  ####
+            action, q = agent.get_action(state, evaluation)
+
+            q_list.append(q)
 
             next_state, reward, done, _ = env.step(action)
             next_state = np.array([next_state], dtype=np.float32)
             
             if not evaluation:
+                ####  Pendulum-v0  ####
+                """
                 agent.stock_experience(t, state, act_i, next_state, reward, done)
+                """
+
+                ####  Acrobot-v1  ####
+                agent.stock_experience(t, state, action, next_state, reward, done)
+
                 agent.train(t)
 
             r_sum += reward
