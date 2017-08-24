@@ -23,7 +23,7 @@ def main(env_name, gpu, evaluation=False, render=False, monitor=True):
     env = gym.make(env_name)
     
     video_path = "/home/amsl/my_reinforcement_learning_tutorial/videos/dqn_" + env_name
-    model_path = "/home/amsl/my_reinforcement_learning_tutorial/models/deep_q_learning/" + env_name
+    model_path = "/home/amsl/my_reinforcement_learning_tutorial/models/deep_q_learning/" + env_name + "_"
 
     if monitor:
         env = gym.wrappers.Monitor(env, video_path, force=True)
