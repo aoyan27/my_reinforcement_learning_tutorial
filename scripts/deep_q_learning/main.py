@@ -17,13 +17,11 @@ def main(env_name, render=False, monitor=True, load=False, evaluation=False, see
         n_st = env.observation_space.shape[0]
         
         #  For Pendulum-v0
-        action_list = [np.array([a]) for a in [-2.0, 2.0]]
-        n_act = len(action_list)
+        #  action_list = [np.array([a]) for a in [-2.0, 2.0]]
+        #  n_act = len(action_list)
 
-        #  For Acrobot-v1
-        """
+        #  For Acrobot-v1, CartPole-v0
         n_act = env.action_space.n
-        """
 
         agent = Agent(n_st, n_act, seed)
 
@@ -43,29 +41,25 @@ def main(env_name, render=False, monitor=True, load=False, evaluation=False, see
                 state = observation.astype(np.float32).reshape((1, n_st))
 
                 #  For Pendulum-v0
-                act_i, q = agent.get_action(state, evaluation)
+                #  act_i, q = agent.get_action(state, evaluation)
                 #  print "type(act_i) : ", type(act_i)
                 #  act_i = 0
                 #  q = 0.0
-                q_list.append(q)
-                action = action_list[act_i]
+                #  action = action_list[act_i]
 
-                #  For Acrobot-v1
-                """
+                #  For Acrobot-v1, CartPole-v0
                 action, q = agent.get_action(state, evaluation)
+
                 q_list.append(q)
-                """
                 observation, reward, ep_end, _ = env.step(action)
                 state_dash = observation.astype(np.float32).reshape((1, n_st))
                 if not evaluation:
                     #  print "Now learning!!!!"
                     #  For Pendulum-v0
-                    agent.stock_experience(count, state, act_i, reward, state_dash, ep_end)
+                    #  agent.stock_experience(count, state, act_i, reward, state_dash, ep_end)
 
-                    #  For Acrobot-v1
-                    """
+                    #  For Acrobot-v1, CartPole-v0
                     agent.stock_experience(count, state, action, reward, state_dash, ep_end)
-                    """
 
                     agent.train(count)
                     #  pass
