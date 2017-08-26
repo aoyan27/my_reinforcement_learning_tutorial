@@ -24,9 +24,9 @@ class Maze:
         self.set_goal(self.goal)
         self.set_obstacles(obstacle_num)
 
-        self.__init_maze = copy.deepcopy(self.maze)
+        self._init_maze = copy.deepcopy(self.maze)
 
-        self.__state = [start[0], start[1]]
+        self._state = [start[0], start[1]]
 
     def create_frame(self):
         for i in xrange(len(self.maze)):
@@ -58,14 +58,14 @@ class Maze:
         print self.maze
 
     def reset(self):
-        self.maze = copy.deepcopy(self.__init_maze)
-        self.__state = self.start
-        return self.__state
+        self.maze = copy.deepcopy(self._init_maze)
+        self._state = self.start
+        return self._state
 
     def get_state(self, action):
         next_state = []
-        x = self.__state[0]
-        y = self.__state[1]
+        x = self._state[0]
+        y = self._state[1]
 
         if action == 0:
             next_state = [x-1, y]
@@ -84,13 +84,14 @@ class Maze:
         reward = 0
         episode_end = False
 
-        if self.maze[next_state[0]][next_state[1]] == -1:
+        if self.maze[next_state[0]][next_state[1]] != 0:
             episode_end = True
             reward = self.maze[next_state[0]][next_state[1]]
         else:
             episode_end = False
             reward = self.maze[next_state[0]][next_state[1]]
-        self.__state = next_state
+
+        self._state = next_state
 
 
         return next_state, reward, episode_end
