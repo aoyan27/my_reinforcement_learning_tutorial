@@ -7,12 +7,14 @@
 #define defsigma 2.0
 #define defval 0.0
 
-double val[6]={0,0,0,0,0,0}, mu[6]={2,2,2,2,2,2}, sigma[6]={2,2,2,2,2,2};
 int actnum=4;
 double min=0, max=4;
 double Alpha=0.5, Gamma=0.9, r, r1=100, r2=0;
 double oldact;
 int i,j,k;
+
+/*状態価値、平均、標準偏差のテーブル(状態の数だけ確保されている) */
+double val[6]={0,0,0,0,0,0}, mu[6]={2,2,2,2,2,2}, sigma[6]={2,2,2,2,2,2};
 
 /*環境 (数は部屋番号)*/
 int status[6][4] ={{0,1,3,0},{1,2,4,0},{2,2,5,1},{0,4,3,3},{1,5,4,3},{0,0,0,0}};
@@ -112,55 +114,9 @@ void Grenew(int now,int before){
 	}
 }
 
-/*
-void report() {
-	int i;
-	for(i=0; i<statenum; i++) {
-		printf("%d:%f==%f_%f¥n",i,val[i],mu[i],sigma[i]);
-	}
-}*/
-/*
-void print_histogram(FILE **fp, double list[100000]){
-	int count = 0;
-	for(int j=0;j<2000;j++){
-		for(int i=0;i<100000;i++){
-			// printf("list[%d] = %f\n", i,list[i]);
-			if(list[i]>(-1.0+0.001*j) && list[i]<(-0.9+0.001*j)){
-				count += 1;
-			}
-		}
-		fprintf(*fp,"%lf, %d\n",(-0.9+0.001*j), count);
-		count = 0;
-	}	
-}*/
-
 
 /* メイン関数*/
 int main(void) {
-	// FILE *fp;
-	// const char *fname = "box_muller.csv";
-	// fp = fopen(fname, "w");
-	// if(fp == NULL){
-		// printf("Can not open %s!!", fname);
-		// return -1;
-	// }
-	
-	// double *list = (double *)malloc(sizeof(double)*100000);
-
-	// printf("rand() = %f\n", NumR());
-	// printf("rand_max = %d\n", RAND_MAX);
-	// for(int i=0;i<100000;i++){
-		// printf("box_muller = %f\n", BoxMuller(0.0,1.0));
-		// list[i] = BoxMuller(0.0, 1.0);
-		// printf("list[%d] = %f\n", i, list[i]);
-		// fprintf(fp, "%f,\n", BoxMuller(0.0,1.0));
-	// }
-	
-	// print_histogram(&fp, list);	
-	// free(list);
-
-
-	// fclose(fp);
 
 	int before=0, now=0;
 	int count=0, nowt;
