@@ -38,9 +38,9 @@ class Agent:
                     return self.action_list[max_index_list[0][0]]
                 else:
                     return self.action_list[self._q_table[state].argmax()]
-
         else:
             return self.action_list[self._q_table[state].argmax()]
+
     def epsilon_decay(self, count):
         if self.epsilon > 0.1:
             if count % 100000:
