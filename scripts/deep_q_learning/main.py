@@ -30,7 +30,7 @@ def main(env_name, render=False, monitor=True, load=False, evaluation=False, see
         
         count = 0
 
-        for i_episode in xrange(5000):
+        for i_episode in xrange(100000):
             observation = env.reset()
             r_sum = 0.0
             q_list = []

@@ -34,10 +34,10 @@ if args_gpu >=0:
 class Network(Chain):
     def __init__(self, n_in, n_out):
         super(Network, self).__init__(
-                l1 = L.Linear(n_in, 100),
-                l2 = L.Linear(100, 100),
-                l3 = L.Linear(100, 100),
-                l4 = L.Linear(100, n_out, initialW=np.zeros((n_out, 100), dtype=np.float32)),
+                l1 = L.Linear(n_in, 300),
+                l2 = L.Linear(300, 300),
+                l3 = L.Linear(300, 300),
+                l4 = L.Linear(300, n_out, initialW=np.zeros((n_out, 300), dtype=np.float32)),
                 )
 
     def __call__(self, x):

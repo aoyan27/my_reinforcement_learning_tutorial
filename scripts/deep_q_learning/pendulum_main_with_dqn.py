@@ -28,14 +28,14 @@ def main(env_name, gpu, evaluation=False, render=False, monitor=True):
     if monitor:
         env = gym.wrappers.Monitor(env, video_path, force=True)
     
-    max_episode = 1000
+    max_episode = 8001
 
     ####  Pendulum-v0  ####
     """
     max_step= 200
     """
 
-    ####  Acrobot-v1  ####
+    ####  Acrobot-v1, CartPole-v0  ####
     max_step = 500
 
     num_state = len(env.observation_space.high)
@@ -46,7 +46,7 @@ def main(env_name, gpu, evaluation=False, render=False, monitor=True):
     num_action = len(action_list)
     """
 
-    ####  Acrobot-v1  ####
+    ####  Acrobot-v1, CartPole-v0  ####
     num_action = env.action_space.n
 
     agent = Agent(num_state, num_action, gpu)
@@ -80,7 +80,7 @@ def main(env_name, gpu, evaluation=False, render=False, monitor=True):
             action = action_list[act_i]
             """
             
-            ####  Acrobot-v1  ####
+            ####  Acrobot-v1, CartPole-v0  ####
             action, q = agent.get_action(state, evaluation)
 
             q_list.append(q)
@@ -94,7 +94,7 @@ def main(env_name, gpu, evaluation=False, render=False, monitor=True):
                 agent.stock_experience(t, state, act_i, next_state, reward, done)
                 """
 
-                ####  Acrobot-v1  ####
+                ####  Acrobot-v1, CartPole-v0  ####
                 agent.stock_experience(t, state, action, next_state, reward, done)
 
                 agent.train(t)

@@ -23,10 +23,10 @@ import copy
 class ActionValueNetwork(Chain):
     def __init__(self, n_state, n_action):
         super(ActionValueNetwork, self).__init__(
-            l1=L.Linear(n_state, 100),
-            l2=L.Linear(100, 100),
-            l3=L.Linear(100, 100),
-            l4=L.Linear(100, n_action, initialW=np.zeros((n_action, 100), dtype=np.float32)),
+            l1=L.Linear(n_state, 300),
+            l2=L.Linear(300, 300),
+            l3=L.Linear(300, 300),
+            l4=L.Linear(300, n_action, initialW=np.zeros((n_action, 300), dtype=np.float32)),
         )
 
     def __call__(self, x):
@@ -37,7 +37,7 @@ class ActionValueNetwork(Chain):
         return y
 
 class Agent:
-    ALPHA = 0.1
+    ALPHA = 1e-6
     GAMMA = 0.9
 
     data_size = 100
@@ -57,6 +57,7 @@ class Agent:
             self.model.to_gpu()
             self.target_model.to_gpu()
         
+        #  self.optimizer = optimizers.SGD(lr=self.ALPHA)
         self.optimizer = optimizers.Adam()
         self.optimizer.setup(self.model)
 
@@ -189,6 +190,7 @@ class Agent:
                 #  print "action : ", action, type(action)
                 return int(action), np.max(Q.data)
         else:
+            print "Greedy!!!"
             state = Variable(state)
             #  print "state.data : ", state.data
             Q = self.model(state)
