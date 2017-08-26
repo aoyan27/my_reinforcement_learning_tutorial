@@ -21,6 +21,8 @@ def main(max_episode, alpha, gamma, evaluation):
     env_name = "FrozenLake-v0"
     env = gym.make(env_name)
 
+    env.is_slippery = False
+
     agent = Agent(env, alpha, gamma)
     
     #  max_episode = 10000000
@@ -50,10 +52,10 @@ def main(max_episode, alpha, gamma, evaluation):
         for t in xrange(max_step):
             #  env.render()
             if not evaluation:
-                action = env.action_space.sample()
-                #  agent.epsilon_decay(count)
-                #  count += 1
-                #  action = agent.get_action(state, evaluation)
+                #  action = env.action_space.sample()
+                agent.epsilon_decay(count)
+                count += 1
+                action = agent.get_action(state, evaluation)
             else:
                 action = agent.get_action(state, evaluation)
 
@@ -72,7 +74,7 @@ def main(max_episode, alpha, gamma, evaluation):
                     success_times += 1
                 else:
                     failure_times += 1
-                sys.stdout.write("\repisode : {0:5d} epsilon : {4:0.3f} success : {1:5d} failure : {2:5d} success rate : {3:0.3f}".format(i_episode, success_times, failure_times, float(success_times)/float(success_times+failure_times), agent.epsilon))
+                sys.stdout.write("\repisode : {0:5d} epsilon : {4:0.3f} success : {1:5d} failure : {2:5d} success rate : {3:0.3f}, info : {5}".format(i_episode, success_times, failure_times, float(success_times)/float(success_times+failure_times), agent.epsilon, info))
                 sys.stdout.flush()
 
                 break
