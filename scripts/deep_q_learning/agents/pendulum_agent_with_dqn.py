@@ -57,7 +57,8 @@ class Agent:
             self.model.to_gpu()
             self.target_model.to_gpu()
         
-        self.optimizer = optimizers.Adam()
+        self.optimizer = optimizers.RMSpropGraves(lr=0.00025, alpha=0.95, eps=0.0001)
+        #  self.optimizer = optimizers.Adam()
         self.optimizer.setup(self.model)
 
         self.D = self.create_history_memory()
