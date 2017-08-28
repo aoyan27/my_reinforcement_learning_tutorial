@@ -23,17 +23,19 @@ import copy
 class ActionValueNetwork(Chain):
     def __init__(self, n_state, n_action):
         super(ActionValueNetwork, self).__init__(
-            l1=L.Linear(n_state, 200),
-            l2=L.Linear(200, 200),
-            l3=L.Linear(200, 200),
-            l4=L.Linear(200, n_action, initialW=np.zeros((n_action, 200), dtype=np.float32)),
+            l1=L.Linear(n_state, 100),
+            l2=L.Linear(100, 200),
+            l3=L.Linear(200, 100),
+            l4=L.Linear(100, 100),
+            l5=L.Linear(100, n_action, initialW=np.zeros((n_action, 100), dtype=np.float32)),
         )
 
     def __call__(self, x):
-        h = F.relu(self.l1(x))
-        h = F.relu(self.l2(h))
-        h = F.relu(self.l3(h))
-        y = self.l4(h)
+        h = F.leaky_relu(self.l1(x))
+        h = F.leaky_relu(self.l2(h))
+        h = F.leaky_relu(self.l3(h))
+        h = F.leaky_relu(self.l4(h))
+        y = self.l5(h)
         return y
 
 class Agent:

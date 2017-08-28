@@ -1,7 +1,7 @@
 *.pyc
 *.npy
 *.model
-/scripts/q_learning/frozen_lake_taotao_san.py
+*.npz
 /videos/*
 !.gitkeep
 /bin/*

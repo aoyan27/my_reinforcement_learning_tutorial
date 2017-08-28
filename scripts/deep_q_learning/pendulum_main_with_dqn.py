@@ -28,7 +28,7 @@ def main(env_name, gpu, evaluation=False, render=False, monitor=True):
     if monitor:
         env = gym.wrappers.Monitor(env, video_path, force=True)
     
-    max_episode = 8001
+    max_episode = 5001
 
     ####  Pendulum-v0  ####
     """
