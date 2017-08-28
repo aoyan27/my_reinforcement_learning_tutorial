@@ -66,9 +66,14 @@ class Agent:
             return int(action)
 
     def critic(self, state, next_state, reward):
+        #  print "state : ", state
+        #  print "next_state : ", next_state
+        #  print "self._v_table[", state, "] : ", self._v_table[state]
+        #  print "self._v_table[", next_state, "] : ", self._v_table[next_state]
         td_error = reward + self.gamma*self._v_table[next_state] - self._v_table[state]
+        #  print "td_error : ", td_error
         self._v_table[state] = self._v_table[state] + self.alpha*td_error
-        #  print "self._v_table[state] : ", self._v_table[state]
+        #  print "self._v_table[", state, "] : ", self._v_table[state]
         return td_error
 
     def mu_update(self, state, action):
@@ -89,6 +94,7 @@ class Agent:
     def train(self, state, action, next_state, reward, episode_end):
         td_error = self.critic(state, next_state, reward)
         if td_error > 0:
+            #  print "Update!!!"
             self.mu_update(state, action)
             self.sigma_update(state, action)
 

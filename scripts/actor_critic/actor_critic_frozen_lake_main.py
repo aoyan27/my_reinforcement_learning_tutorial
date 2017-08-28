@@ -13,6 +13,7 @@ import argparse
 import numpy as np
 import gym
 import sys
+import copy
 
 from agents.actor_critic_frozen_lake_agent import Agent
 
@@ -43,18 +44,18 @@ def main(max_episode, alpha, gamma, evaluation):
         for t in xrange(max_step):
             #  env.render()
 
-            if not evaluation:
-                #  action = env.action_space.sample()
-                action = agent.actor(state, evaluation)
-            else:
-                action = agent.actor(state, evaluation)
+            #  action = env.action_space.sample()
+            action = agent.actor(state, evaluation)
+            #  print "action : ", action
 
             next_state, reward, episode_end, info = env.step(action)
             
             if not evaluation:
-                agent.train(state, next_state, action, reward, episode_end)
+                agent.train(state, action, next_state, reward, episode_end)
+            #  print "\repisode : {0:5d}, state : {1:2d},  action : {2:1d}, next_state : {3:2d}, reward : {4:0.1f}, episode_end : {5}.".format(i_episode, state, action, next_state, reward, episode_end)
             
 
+            #  state = copy.deepcopy(next_state)
             state = next_state
 
             #  print "agent._mu_table : ", agent._mu_table
@@ -68,8 +69,12 @@ def main(max_episode, alpha, gamma, evaluation):
                     failure += 1
                 break
 
-        sys.stdout.write("\repisode : {0:5d}, state : {1:2d},  action : {2:1d}, next_state : {3:2d}, reward : {4:0.1f}, episode_end : {5}, success : {6:5d}, failure : {7:5d}, success_rate : {8:0.3f}.".format(i_episode, state, action, next_state, reward, episode_end, success, failure, float(success)/float(success+failure)))
-        sys.stdout.flush()
+        #  sys.stdout.write("\repisode : {0:5d}, state : {1:2d},  action : {2:1d}, next_state : {3:2d}, reward : {4:0.1f}, episode_end : {5}, success : {6:5d}, failure : {7:5d}, success_rate : {8:0.3f}.".format(i_episode, state, action, next_state, reward, episode_end, success, failure, float(success)/float(success+failure)))
+        #  sys.stdout.flush()
+        print "\repisode : {0:5d}, state : {1:2d},  action : {2:1d}, next_state : {3:2d}, reward : {4:0.1f}, episode_end : {5}, success : {6:5d}, failure : {7:5d}, success_rate : {8:0.3f}.".format(i_episode, state, action, next_state, reward, episode_end, success, failure, float(success)/float(success+failure))
+        print "agent._mu_table : ", agent._mu_table
+        print "agent._sigma_table : ", agent._sigma_table
+        print "agent._v_table : ", agent._v_table
 
 
 if __name__ == "__main__":
