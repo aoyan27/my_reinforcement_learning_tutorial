@@ -59,15 +59,15 @@ class Agent:
             self.model.to_gpu()
             self.target_model.to_gpu()
         
-        self.optimizer = optimizers.RMSpropGraves(lr=0.00025, alpha=0.95, eps=0.0001)
-        #  self.optimizer = optimizers.Adam()
+        #  self.optimizer = optimizers.RMSpropGraves(lr=0.00025, alpha=0.95, eps=0.0001)
+        self.optimizer = optimizers.Adam()
         self.optimizer.setup(self.model)
 
         self.D = self.create_history_memory()
 
         self.epsilon = 1.0
         self.epsilon_decay = 0.00001
-        self.min_epsilon = 0.1
+        self.min_epsilon = 0.05
 
         self.loss = 0.0
         self.step = 0
