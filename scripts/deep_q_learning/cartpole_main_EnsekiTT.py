@@ -75,7 +75,13 @@ class Agent():
         max_q_dash = np.asanyarray(tmp, dtype=np.float32)
         target = np.asanyarray(copy.deepcopy(q_action.data), dtype=np.float32)
 
+        #  print "self.replay_size : ", self.replay_size
         for i in range(self.replay_size):
+            #  print "self.replay_size : ", self.replay_size
+            #  print "reward[", i, "] : ", exp["reward"][i]
+            #  print "action [", i, "] : ", exp["action"][i]
+            #  print "max_q_dash[", i, "] : ", max_q_dash[i]
+            #  print "exp[epend][", i, "] : ", exp["ep_end"][i]
             target[i, exp["action"][i]] = exp["reward"][i] \
                 + (self.gamma * max_q_dash[i]) * (not exp["ep_end"][i])
         loss = F.mean_squared_error(q_action, Variable(target))
@@ -177,11 +183,17 @@ def main():
 
     # Gymの環境要素を取得する（State, Action，Seed(再現性のため)）
     n_state = env.observation_space.shape[0]
-    n_action = env.action_space.n
+    #  CartPole-v0
+    #  n_action = env.action_space.n
+
+    #  Pendulum-v0
+    action_list = [np.array([a]) for a in [-2.0, 2.0]]
+    n_action = len(action_list)
+
     seed = 114514
     # Agentを作成する
     agent = Agent(n_state, n_action, seed)
-    action_list = [i for i in range(0, n_action)]
+    #  action_list = [i for i in range(0, n_action)]
 
     # 人がGymを見るためのモニタを開始する
     view_path = "/home/amsl/my_reinforcement_learning_tutorial/videos/EnsekiTT_dqn_" + args.env
@@ -199,13 +211,27 @@ def main():
             # 状態を観察
             state = observation.astype(np.float32).reshape((1, n_state))
             # Agentは行動を選択する
-            action = action_list[agent.action(state)]
+            # CartPole-v0
+            #  action = action_list[agent.action(state)]
+
+            # Pendulum-v0
+            action_i = agent.action(state)
+            action = action_list[action_i]
+
+            #  print "action_i : ", action_i
             # 環境で上記の行動を実効
             observation, reward, ep_end, _ = env.step(action)
             reward_sum += reward
             state_dash = observation.astype(np.float32).reshape((1, n_state))
+
+            # CartPole-v0
             experience = {"state":state, "action":action, \
                 "reward":reward, "state_dash":state_dash, "ep_end":ep_end}
+            
+            # Pendulum-v0
+            experience = {"state":state, "action":action_i, \
+                "reward":reward, "state_dash":state_dash, "ep_end":ep_end}
+
             # Agentは実行結果を経験としてストックする
             agent.stock_experience(experience)
             # Agentは学習する
