@@ -30,6 +30,10 @@ def main(env_name, render=False, monitor=True, load=False, evaluation=False, see
         
         count = 0
 
+        r_sum_list = []
+
+        success = 0
+
         for i_episode in xrange(100000):
             observation = env.reset()
             r_sum = 0.0
@@ -77,6 +81,17 @@ def main(env_name, render=False, monitor=True, load=False, evaluation=False, see
                     break
             print "Episode : %d\t/Reward Sum : %f\t/Epsilon : %f\t/Loss : %f\t/Average Q : %f\t/Time Step : %d" % (i_episode, r_sum, agent.epsilon, agent.loss, sum(q_list)/float(t+1), agent.step)
             #  print "\t".join(map(str, [i_episode, r_sum, agent.epsilon, agent.loss, sum(q_list)/float(t+1), agent.step]))
+            if i_episode < 100:
+                r_sum_list.append(r_sum)
+            else:
+                del r_sum_list[0]
+                r_sum_list.append(r_sum)
+                print "average 100 episode reward : ", sum(r_sum_list) / 100.0
+
+            if r_sum == 200:
+                success += 1
+            print "Success : ", success, "\tSuccess rate : ", float(success)/float(i_episode+1)
+
             if not evaluation:
                 agent.save_model(model_path)
                 #  pass
