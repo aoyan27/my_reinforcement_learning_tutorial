@@ -49,7 +49,7 @@ class Network(Chain):
 
 class Agent():
     ALPHA = 1e-6
-    GAMMA = 0.9
+    GAMMA = 0.99
 
     #  data_size = 10
     #  replay_size = 2
@@ -71,16 +71,16 @@ class Agent():
             self.target_model.to_gpu()
 
 
-        #  self.optimizer = optimizers.Adam()
-        self.optimizer = optimizers.RMSpropGraves(lr=0.00025, alpha=0.95, eps=0.0001)
+        self.optimizer = optimizers.Adam()
+        #  self.optimizer = optimizers.RMSpropGraves(lr=0.00025, alpha=0.95, eps=0.0001)
         self.optimizer.setup(self.model)
         
         self.loss = 0
         self.step = 0
         
-        self.epsilon = 1.0
+        self.epsilon = 0.05
         self.epsilon_decay = 0.000001
-        self.epsilon_min = 0.1
+        self.epsilon_min = 0.05
 
         self.D = [xp.zeros((self.data_size, 1, self.n_st), dtype=np.float32),
                   xp.zeros(self.data_size, dtype=np.float32),
@@ -230,7 +230,7 @@ class Agent():
     def train(self, t):
         if self.initial_exploration < t:
             self.experience_replay(t)
-            self.reduce_epsilon()
+            #  self.reduce_epsilon()
         if t % self.target_update_freq == 0:
             self.target_model = copy.deepcopy(self.model)
         self.step += 1
