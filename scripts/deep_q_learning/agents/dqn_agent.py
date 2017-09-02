@@ -120,11 +120,8 @@ class Agent:
         tmp = self.target_model.q_func(next_state)
         #  print "tmp.data : ", tmp.data, type(tmp.data)
 
-        #  tmp = map(xp.max, tmp.data)
-        #  print "tmp : ", tmp, type(tmp)
         tmp = list(map(xp.max, tmp.data))
         #  print "tmp : ", tmp, type(tmp)
-        #  max_Q_dash = xp.array(tmp, dtype=xp.float32)
         max_Q_dash = xp.asanyarray(tmp, dtype=xp.float32)
         #  print "max_Q_dash : ", max_Q_dash, type(max_Q_dash)
         
@@ -132,9 +129,6 @@ class Agent:
         #  print "target : ", target, type(target)
 
         for i in xrange(num_batch):
-            #  print "reward[i] : ", reward[i], type(reward[i])
-            #  print "self.GAMMA : ", self.GAMMA, type(self.GAMMA)
-            #  print "max_Q_dash[i] : ", max_Q_dash[i], type(max_Q_dash[i])
             if not episode_end[i]:
                 tmp_ = reward[i] + self.GAMMA*max_Q_dash[i]
                 #  print "tmp_(not episode_end) : ", tmp_, type(tmp_)
@@ -149,13 +143,6 @@ class Agent:
 
         #  print "target(after) : ", target
 
-        #  td = Variable(target) - Q
-        #  print "td.data : ", td.data
-
-        #  zero_val = Variable(xp.zeros((num_batch, self.n_action), dtype=xp.float32))
-        #  print "zero_val.data : ", zero_val.data, type(zero_val.data)
-
-        #  loss = F.mean_squared_error(td, zero_val)
         loss = F.mean_squared_error(Q, Variable(target))
         #  print "loss.data : ", loss.data
 
@@ -170,12 +157,6 @@ class Agent:
         replay_index_list = np.random.permutation(index_list)
         #  print "replay_index_list : ", replay_index_list 
         index = replay_index_list[0:self.replay_size]
-        #  print "index : ", index
-        #  print "self.D[0][index[0] : ", self.D[0][index[0]]
-        #  print "self.D[1][index[0] : ", self.D[1][index[0]]
-        #  print "self.D[2][index[0] : ", self.D[2][index[0]]
-        #  print "self.D[3][index[0] : ", self.D[3][index[0]]
-        #  print "self.D[4][index[0] : ", self.D[4][index[0]]
 
         state_replay = self.D[0][index]
         action_replay = self.D[1][index]
@@ -183,25 +164,8 @@ class Agent:
         reward_replay = self.D[3][index]
         episode_end_replay = self.D[4][index]
 
-        #  state_replay = xp.ndarray(shape=(self.replay_size, 1, self.n_state), dtype=xp.float32)
-        #  action_replay = xp.ndarray(shape=(self.replay_size, 1), dtype=xp.float32)
-        #  next_state_replay = xp.ndarray(shape=(self.replay_size, 1, self.n_state), dtype=xp.float32)
-        #  reward_replay = xp.ndarray(shape=(self.replay_size, 1), dtype=xp.float32)
-        #  episode_end_replay = xp.ndarray(shape=(self.replay_size, 1), dtype=xp.float32)
-        
-        #  for i in xrange(self.replay_size):
-            #  state_replay[i] = self.D[0][index[i]]
-            #  action_replay[i] = self.D[1][index[i]]
-            #  next_state_replay[i] = self.D[2][index[i]]
-            #  reward_replay[i] = self.D[3][index[i]]
-            #  episode_end_replay[i] = self.D[4][index[i]]
-        #  #  print "state_replay : ", state_replay, type(state_replay)
-        #  print "action_replay : ", action_replay, type(action_replay)
-        #  print "next_state_replay : ", next_state_replay, type(next_state_replay)
-        #  print "reward_replay : ", reward_replay, type(reward_replay)
-        #  print "episode_end_replay : ", episode_end_replay, type(episode_end_replay)
-
-        self.model.zerograds()
+        #  self.model.zerograds()
+        self.model.cleargrads()
         loss, _ = self.forward(state_replay, action_replay, next_state_replay, reward_replay, episode_end_replay)
         loss.backward()
         self.optimizer.update()

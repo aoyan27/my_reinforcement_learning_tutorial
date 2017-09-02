@@ -127,5 +127,5 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    #  main(args.env, args.gpu)
-    main(args.env, args.gpu, evaluation=True, monitor=False)
+    main(args.env, args.gpu)
+    #  main(args.env, args.gpu, evaluation=True, monitor=False)
