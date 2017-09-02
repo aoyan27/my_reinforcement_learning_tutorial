@@ -6,7 +6,7 @@ import argparse
 import gym
 import numpy as np
 
-from agents.pendulum_agent_trtd56_san import Agent
+from agents.dqn_agent_based_cupy import Agent
 
 parser = argparse.ArgumentParser(description='Chainer example: test')
 parser.add_argument('--env', '-e', default='Pendulum-v0', type=str,

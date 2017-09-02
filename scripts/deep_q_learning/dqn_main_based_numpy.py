@@ -17,7 +17,7 @@ import argparse
 import numpy as np
 import gym
 import sys
-from agents.pendulum_agent import Agent
+from agents.dqn_agent_based_numpy import Agent
 
 import time
 

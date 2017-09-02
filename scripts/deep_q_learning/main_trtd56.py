@@ -4,7 +4,7 @@
 import gym, sys
 import numpy as np
 
-from agents.agent import Agent
+from agents.agent_trtd56 import Agent
 
 def main(env_name, render=False, monitor=True, load=False, evaluation=False, seed=0):
 	env = gym.make(env_name)
