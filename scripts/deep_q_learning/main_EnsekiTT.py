@@ -207,6 +207,8 @@ def main():
 
     r_sum_list = []
 
+    success = 0
+
     # エピソード回数分のループ
     for _episode in range(10000):
         # Gymの環境をリセットする
@@ -215,7 +217,7 @@ def main():
         reward_sum = 0.0
         for _times in range(2000):
             # 環境をレンダリング
-            env.render()
+            #  env.render()
             # 状態を観察
             state = observation.astype(np.float32).reshape((1, n_state))
             # Agentは行動を選択する
@@ -251,12 +253,17 @@ def main():
                 break
 
         print "episode : {0}, epsilon : {1}, reward sum : {2}, loss : {4}, step : {3}".format(_episode, agent.epsilon, reward_sum, _times, agent.loss)
+
         if _episode < 100:
             r_sum_list.append(reward_sum)
         else:
             del r_sum_list[0]
             r_sum_list.append(reward_sum)
             print "average 100 episode reward : ", sum(r_sum_list) / 100.0
+
+        if reward_sum == 200:
+            success += 1
+        print "Success : ", success, "\tSuccess rate : ", float(success)/float(_episode+1)
 
         agent.save_model('/home/amsl/my_reinforcement_learning_tutorial/models/deep_q_learning/', args.env)
 
