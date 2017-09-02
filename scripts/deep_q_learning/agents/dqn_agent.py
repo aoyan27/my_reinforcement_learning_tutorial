@@ -11,6 +11,7 @@
 """
 
 import numpy as np
+import sys
 
 import chainer
 from chainer import cuda, Variable, optimizers, serializers
@@ -30,24 +31,25 @@ class ActionValueNetwork(Chain):
             l5=L.Linear(100, n_action, initialW=np.zeros((n_action, 100), dtype=np.float32)),
         )
 
-    def __call__(self, x):
-        h = F.leaky_relu(self.l1(x))
-        h = F.leaky_relu(self.l2(h))
-        h = F.leaky_relu(self.l3(h))
-        h = F.leaky_relu(self.l4(h))
-        y = self.l5(h)
+    def q_func(self, x):
+        h1 = F.leaky_relu(self.l1(x))
+        h2 = F.leaky_relu(self.l2(h1))
+        h3 = F.leaky_relu(self.l3(h2))
+        h4 = F.leaky_relu(self.l4(h3))
+        y = self.l5(h4)
         return y
 
 class Agent:
-    ALPHA = 0.1
-    GAMMA = 0.9
+    GAMMA = 0.99
 
-    data_size = 100
+    data_size = 1000
     replay_size = 100
-    init_exprolation = 100
+    init_exprolation = 1000
     target_update_freq = 20
 
     def __init__(self, n_state, n_action, gpu):
+        np.random.seed(114514)
+        sys.setrecursionlimit(10000)
         self.n_state = n_state
         self.n_action = n_action
 
@@ -65,7 +67,7 @@ class Agent:
 
         self.D = self.create_history_memory()
 
-        self.epsilon = 1.0
+        self.epsilon = 0.05
         self.epsilon_decay = 0.00001
         self.min_epsilon = 0.05
 
@@ -89,6 +91,7 @@ class Agent:
 
     def stock_experience(self, t, state, action, next_state, reward, episode_end):
         index = t % self.data_size
+        #  print "index : ", index
         if self.gpu >= 0:
             state = cuda.to_gpu(state)
             action = cuda.to_gpu(action)
@@ -100,30 +103,37 @@ class Agent:
         self.D[2][index] = next_state
         self.D[3][index] = reward
         self.D[4][index] = episode_end
+        #  print self.D
 
     def forward(self, state, action, next_state, reward, episode_end):
         xp = cuda.get_array_module(state)
+        #  print "state ; ", state
+        #  print "naxt_state : ", next_state
         num_batch = state.shape[0]
         #  print "num_batch : ", num_batch, type(num_batch)
 
         state = Variable(state)
         next_state = Variable(next_state)
 
-        Q = self.model(state)
+        Q = self.model.q_func(state)
         #  print "Q.data : ", Q.data, type(Q.data)
-        tmp = self.target_model(next_state)
+        tmp = self.target_model.q_func(next_state)
         #  print "tmp.data : ", tmp.data, type(tmp.data)
 
-        tmp = map(xp.max, tmp.data)
+        #  tmp = map(xp.max, tmp.data)
         #  print "tmp : ", tmp, type(tmp)
-        max_Q_dash = xp.array(tmp, dtype=xp.float32)
+        tmp = list(map(xp.max, tmp.data))
+        #  print "tmp : ", tmp, type(tmp)
+        #  max_Q_dash = xp.array(tmp, dtype=xp.float32)
+        max_Q_dash = xp.asanyarray(tmp, dtype=xp.float32)
         #  print "max_Q_dash : ", max_Q_dash, type(max_Q_dash)
         
-        target = copy.deepcopy(Q.data)
+        target = xp.asanyarray(copy.deepcopy(Q.data), dtype=xp.float32)
         #  print "target : ", target, type(target)
 
         for i in xrange(num_batch):
             #  print "reward[i] : ", reward[i], type(reward[i])
+            #  print "self.GAMMA : ", self.GAMMA, type(self.GAMMA)
             #  print "max_Q_dash[i] : ", max_Q_dash[i], type(max_Q_dash[i])
             if not episode_end[i]:
                 tmp_ = reward[i] + self.GAMMA*max_Q_dash[i]
@@ -135,16 +145,18 @@ class Agent:
             action_index = int(action[i])
             #  print "action_index : ", action_index, type(action_index)
             target[i][action_index] = tmp_
+            #  print "target : ", target[i][action_index], type(target[i][action_index])
 
         #  print "target(after) : ", target
 
-        td = Variable(target) - Q
+        #  td = Variable(target) - Q
         #  print "td.data : ", td.data
 
-        zero_val = Variable(xp.zeros((num_batch, self.n_action), dtype=xp.float32))
+        #  zero_val = Variable(xp.zeros((num_batch, self.n_action), dtype=xp.float32))
         #  print "zero_val.data : ", zero_val.data, type(zero_val.data)
 
-        loss = F.mean_squared_error(td, zero_val)
+        #  loss = F.mean_squared_error(td, zero_val)
+        loss = F.mean_squared_error(Q, Variable(target))
         #  print "loss.data : ", loss.data
 
         self.loss = loss.data
@@ -152,23 +164,44 @@ class Agent:
         return loss, Q
 
     def experience_replay(self):
+        xp = cuda.get_array_module(self.D[0][0])
         index_list = np.arange(self.data_size)
         #  print "index_list : ", index_list
-        replay_index_list = np.random.choice(index_list, self.replay_size, replace=False)
+        replay_index_list = np.random.permutation(index_list)
         #  print "replay_index_list : ", replay_index_list 
+        index = replay_index_list[0:self.replay_size]
+        #  print "index : ", index
+        #  print "self.D[0][index[0] : ", self.D[0][index[0]]
+        #  print "self.D[1][index[0] : ", self.D[1][index[0]]
+        #  print "self.D[2][index[0] : ", self.D[2][index[0]]
+        #  print "self.D[3][index[0] : ", self.D[3][index[0]]
+        #  print "self.D[4][index[0] : ", self.D[4][index[0]]
 
-        state_replay = self.D[0][replay_index_list][:]
-        #  print "state_replay : ", state_replay, type(state_replay)
-        action_replay = self.D[1][replay_index_list]
+        state_replay = self.D[0][index]
+        action_replay = self.D[1][index]
+        next_state_replay = self.D[2][index]
+        reward_replay = self.D[3][index]
+        episode_end_replay = self.D[4][index]
+
+        #  state_replay = xp.ndarray(shape=(self.replay_size, 1, self.n_state), dtype=xp.float32)
+        #  action_replay = xp.ndarray(shape=(self.replay_size, 1), dtype=xp.float32)
+        #  next_state_replay = xp.ndarray(shape=(self.replay_size, 1, self.n_state), dtype=xp.float32)
+        #  reward_replay = xp.ndarray(shape=(self.replay_size, 1), dtype=xp.float32)
+        #  episode_end_replay = xp.ndarray(shape=(self.replay_size, 1), dtype=xp.float32)
+        
+        #  for i in xrange(self.replay_size):
+            #  state_replay[i] = self.D[0][index[i]]
+            #  action_replay[i] = self.D[1][index[i]]
+            #  next_state_replay[i] = self.D[2][index[i]]
+            #  reward_replay[i] = self.D[3][index[i]]
+            #  episode_end_replay[i] = self.D[4][index[i]]
+        #  #  print "state_replay : ", state_replay, type(state_replay)
         #  print "action_replay : ", action_replay, type(action_replay)
-        next_state_replay = self.D[2][replay_index_list][:]
         #  print "next_state_replay : ", next_state_replay, type(next_state_replay)
-        reward_replay = self.D[3][replay_index_list]
         #  print "reward_replay : ", reward_replay, type(reward_replay)
-        episode_end_replay = self.D[4][replay_index_list]
         #  print "episode_end_replay : ", episode_end_replay, type(episode_end_replay)
 
-        self.model.cleargrads()
+        self.model.zerograds()
         loss, _ = self.forward(state_replay, action_replay, next_state_replay, reward_replay, episode_end_replay)
         loss.backward()
         self.optimizer.update()
@@ -187,16 +220,18 @@ class Agent:
                 #  print "Greedy!!"
                 state = Variable(state)
                 #  print "state.data : ", state.data
-                Q = self.model(state)
+                Q = self.model.q_func(state)
                 action = np.argmax(Q.data)
+                #  print "Q.data : ", Q.data
                 #  print "action : ", action, type(action)
                 return int(action), np.max(Q.data)
         else:
-            print "Greedy!!!"
+            #  print "Greedy!!!"
             state = Variable(state)
             #  print "state.data : ", state.data
-            Q = self.model(state)
+            Q = self.model.q_func(state)
             action = np.argmax(Q.data)
+            #  print "Q.data : ", Q.data
             #  print "action : ", action, type(action)
             return int(action), np.max(Q.data)
     
@@ -206,22 +241,22 @@ class Agent:
         else:
             self.epsilon = self.min_epsilon
 
-    def train(self, t):
-        if t > self.init_exprolation:
+    def train(self):
+        if self.step > self.init_exprolation:
             self.experience_replay()
-            self.reduce_epsilon()
-
-        if t > self.target_update_freq:
-            self.target_model = copy.deepcopy(self.model)
+            #  self.reduce_epsilon()
+            if self.step % self.target_update_freq == 0:
+                self.target_model = copy.deepcopy(self.model)
 
         self.step += 1
 
-    def save_model(self, model_dir):
-        file_name = model_dir + "model.model"
+    def save_model(self, model_dir, i_episode):
+        file_name = model_dir + "model_" + str(i_episode) + ".model"
         serializers.save_npz(file_name, self.model)
 
-    def load_model(self, model_dir):
-        file_name = model_dir + "model.model"
+    def load_model(self, model_dir, i_episode):
+        file_name = model_dir + "model_" + str(i_episode)  +  ".model"
+        print "Load {} !!!!".format(file_name)
         serializers.load_npz(file_name, self.model)
 
 

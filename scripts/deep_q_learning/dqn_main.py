@@ -15,30 +15,24 @@ import argparse
 import numpy as np
 import gym
 import sys
-from agents.pendulum_agent_with_dqn import Agent
+from agents.dqn_agent import Agent
 
 import time
 
-def main(env_name, gpu, evaluation=False, render=False, monitor=True):
+def main(env_name, gpu, evaluation=False, monitor=True):
     env = gym.make(env_name)
     
     video_path = "/home/amsl/my_reinforcement_learning_tutorial/videos/dqn_" + env_name
-    model_path = "/home/amsl/my_reinforcement_learning_tutorial/models/deep_q_learning/" + env_name + "_"
+    #  model_path = "/home/amsl/my_reinforcement_learning_tutorial/models/deep_q_learning/my_dqn_" + env_name + "/" + env_name + "_"
+    model_path = "/subhdd/my_reinforcement_learning_tutorial/models/deep_q_learning/my_dqn_" + env_name + "/" + env_name + "_"
 
     if monitor:
         env = gym.wrappers.Monitor(env, video_path, force=True)
     
-    max_episode = 5001
+    max_episode = 1001
+    max_step = 2000
 
-    ####  Pendulum-v0  ####
-    """
-    max_step= 200
-    """
-
-    ####  Acrobot-v1, CartPole-v0  ####
-    max_step = 500
-
-    num_state = len(env.observation_space.high)
+    num_state = env.observation_space.shape[0]
     
     ####  Pendulum-v0  ####
     """
@@ -60,19 +54,21 @@ def main(env_name, gpu, evaluation=False, render=False, monitor=True):
         print "Train mode!!!"
     else:
         print "evaluation mode!!!"
-        agent.load_model(model_path)
+        agent.load_model(model_path, 0)
     
     t = 0
 
+    r_sum_list = []
+
     for i_episode in xrange(max_episode):
-        state = env.reset()
+        observation = env.reset()
         q_list = []
         r_sum = 0.0
         for j_step in xrange(max_step):
-            if render:
-                env.render()
+            env.render()
 
-            state = np.array([state], dtype=np.float32)
+            state = observation.astype(np.float32).reshape((1, num_state))
+            #  print "state : ", state
             
             ####  Pendulum-v0  ####
             """
@@ -82,11 +78,15 @@ def main(env_name, gpu, evaluation=False, render=False, monitor=True):
             
             ####  Acrobot-v1, CartPole-v0  ####
             action, q = agent.get_action(state, evaluation)
+            #  print "action : ", action, type(action)
 
             q_list.append(q)
 
-            next_state, reward, done, _ = env.step(action)
-            next_state = np.array([next_state], dtype=np.float32)
+            observation, reward, done, _ = env.step(action)
+            next_state = observation.astype(np.float32).reshape((1, num_state))
+            #  print "next_state : ", next_state
+            #  print "reward : ", reward
+            #  print "exp_end : ", done
             
             if not evaluation:
                 ####  Pendulum-v0  ####
@@ -97,20 +97,27 @@ def main(env_name, gpu, evaluation=False, render=False, monitor=True):
                 ####  Acrobot-v1, CartPole-v0  ####
                 agent.stock_experience(t, state, action, next_state, reward, done)
 
-                agent.train(t)
+                agent.train()
 
             r_sum += reward
-
-            state = next_state
 
             t += 1
 
             if done:
                 break
         print "Episode : %d\t Reward : %f\t Average Q : %f\t Loss : %f\t Epsilon : %f\t t : %d" % (i_episode+1, r_sum, sum(q_list)/float(t+1), agent.loss, agent.epsilon, t)
-        
+
+        if i_episode < 100:
+            r_sum_list.append(r_sum)
+        else:
+            del r_sum_list[0]
+            r_sum_list.append(r_sum)
+            print "average 100 episode reward : ", sum(r_sum_list) / 100.0
+
         if not evaluation:
-            agent.save_model(model_path)
+            agent.save_model(model_path, i_episode)
+        else:
+            agent.load_model(model_path, i_episode)
 
 
 if __name__ == "__main__":
@@ -120,5 +127,5 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    main(args.env, args.gpu, render=True)
-    #  main(args.env, args.gpu, evaluation=True, render=True, monitor=False)
+    #  main(args.env, args.gpu)
+    main(args.env, args.gpu, evaluation=True, monitor=False)
