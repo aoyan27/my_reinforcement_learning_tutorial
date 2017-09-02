@@ -45,7 +45,7 @@ class Agent():
         self.memory = deque()
         self.loss = 0
         self.step = 0
-        self.train_freq = 10
+        self.train_freq = 1
         self.target_update_freq = 20
 
         self.gamma = 0.99
@@ -78,12 +78,14 @@ class Agent():
         #  print "self.replay_size : ", self.replay_size
         for i in range(self.replay_size):
             #  print "self.replay_size : ", self.replay_size
-            #  print "reward[", i, "] : ", exp["reward"][i]
-            #  print "action [", i, "] : ", exp["action"][i]
-            #  print "max_q_dash[", i, "] : ", max_q_dash[i]
-            #  print "exp[epend][", i, "] : ", exp["ep_end"][i]
+            #  print "reward[", i, "] : ", exp["reward"][i], type(exp["reward"][i])
+            #  print "action [", i, "] : ", exp["action"][i], type(exp["action"][i])
+            #  print "max_q_dash[", i, "] : ", max_q_dash[i], type(max_q_dash[i])
+            #  print "exp[epend][", i, "] : ", exp["ep_end"][i], type(exp["ep_end"][i])
+            #  print "self.gamma : ", self.gamma, type(self.gamma)
             target[i, exp["action"][i]] = exp["reward"][i] \
                 + (self.gamma * max_q_dash[i]) * (not exp["ep_end"][i])
+            #  print "target : ", target[i, exp["action"][i]], type(target[i, exp["action"][i]])
         loss = F.mean_squared_error(q_action, Variable(target))
         self.loss = loss.data
 
@@ -127,7 +129,9 @@ class Agent():
 
     def experience_replay(self):
         mem = np.random.permutation(np.array(self.memory))
+        #  print "mem : ", mem
         perm = np.array([i for i in range(len(mem))])
+        #  print "perm : ", perm
         for start in perm[::self.replay_size]:
             index = perm[start:start+self.replay_size]
             replay = mem[index]
@@ -184,20 +188,24 @@ def main():
     # Gymの環境要素を取得する（State, Action，Seed(再現性のため)）
     n_state = env.observation_space.shape[0]
     #  CartPole-v0
-    #  n_action = env.action_space.n
+    n_action = env.action_space.n
 
     #  Pendulum-v0
-    action_list = [np.array([a]) for a in [-2.0, 2.0]]
-    n_action = len(action_list)
+    #  action_list = [np.array([a]) for a in [-2.0, 2.0]]
+    #  n_action = len(action_list)
 
     seed = 114514
     # Agentを作成する
     agent = Agent(n_state, n_action, seed)
-    #  action_list = [i for i in range(0, n_action)]
+    action_list = [i for i in range(0, n_action)]
+    #  print "action_list : ", action_list, type(action_list)
+    #  print "action_list[0] : ", action_list[0], type(action_list[0])
 
     # 人がGymを見るためのモニタを開始する
     view_path = "/home/amsl/my_reinforcement_learning_tutorial/videos/EnsekiTT_dqn_" + args.env
     env = gym.wrappers.Monitor(env, view_path, video_callable=None, force=True)
+
+    r_sum_list = []
 
     # エピソード回数分のループ
     for _episode in range(10000):
@@ -212,11 +220,12 @@ def main():
             state = observation.astype(np.float32).reshape((1, n_state))
             # Agentは行動を選択する
             # CartPole-v0
-            #  action = action_list[agent.action(state)]
+            #  print "agent.action(state) : ", agent.action(state), type(agent.action(state))
+            action = action_list[agent.action(state)]
 
             # Pendulum-v0
-            action_i = agent.action(state)
-            action = action_list[action_i]
+            #  action_i = agent.action(state)
+            #  action = action_list[action_i]
 
             #  print "action_i : ", action_i
             # 環境で上記の行動を実効
@@ -229,17 +238,26 @@ def main():
                 "reward":reward, "state_dash":state_dash, "ep_end":ep_end}
             
             # Pendulum-v0
-            experience = {"state":state, "action":action_i, \
-                "reward":reward, "state_dash":state_dash, "ep_end":ep_end}
+            #  experience = {"state":state, "action":action_i, \
+                #  "reward":reward, "state_dash":state_dash, "ep_end":ep_end}
 
             # Agentは実行結果を経験としてストックする
             agent.stock_experience(experience)
+            #  print agent.memory
             # Agentは学習する
             agent.train()
             # もし環境が終了判定をしていたらループを抜ける
             if ep_end:
                 break
-        print "episode : {0}, epsilon : {1}, reward sum : {2}, step : {3}".format(_episode, agent.epsilon, reward_sum, _times)
+
+        print "episode : {0}, epsilon : {1}, reward sum : {2}, loss : {4}, step : {3}".format(_episode, agent.epsilon, reward_sum, _times, agent.loss)
+        if _episode < 100:
+            r_sum_list.append(reward_sum)
+        else:
+            del r_sum_list[0]
+            r_sum_list.append(reward_sum)
+            print "average 100 episode reward : ", sum(r_sum_list) / 100.0
+
         agent.save_model('/home/amsl/my_reinforcement_learning_tutorial/models/deep_q_learning/', args.env)
 
 if __name__ == "__main__":
