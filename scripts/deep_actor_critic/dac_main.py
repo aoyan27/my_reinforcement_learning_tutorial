@@ -44,7 +44,7 @@ def main(env_name, gpu, render=False, monitor=True, evaluation=False, seed=0):
             #  print "state : ", state, type(state)
 
             #  action = env.action_space.sample()
-            action, a = agent.get_action(state)
+            action, a = agent.get_action(state, evaluation)
             a_list.append(a)
             #  print "action : ", action, type(state)
             #  print "a : ", a
@@ -54,11 +54,12 @@ def main(env_name, gpu, render=False, monitor=True, evaluation=False, seed=0):
             #  print "next_state : ", next_state, type(next_state)
             
             r_sum += reward
-
-            if t < agent.initial_exploration:
-                print "Initial exploration for critic(%d / %d)!!!!!!!!!!!" % (t, agent.initial_exploration)
-            if agent.data_index_actor < agent.initial_exploration:
-                print "Initial exploration for actor(%d / %d)!!!!!!!!!!!" % (agent.data_index_actor, agent.initial_exploration)
+            
+            if not evaluation:
+                if t < agent.initial_exploration:
+                    print "Initial exploration for critic(%d / %d)!!!!!!!!!!!" % (t, agent.initial_exploration)
+                if agent.data_index_actor < agent.initial_exploration:
+                    print "Initial exploration for actor(%d / %d)!!!!!!!!!!!" % (agent.data_index_actor, agent.initial_exploration)
 
             if not evaluation:
                 agent.train(t, state, action, next_state, reward, episode_end)
@@ -83,3 +84,4 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     main(args.env, args.gpu, render=False)
+    #  main(args.env, args.gpu, render=True, monitor=False, evaluation=True)
