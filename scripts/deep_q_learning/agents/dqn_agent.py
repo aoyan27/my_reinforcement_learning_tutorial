@@ -44,7 +44,7 @@ class Agent:
 
     data_size = 1000
     replay_size = 100
-    init_exprolation = 1000
+    init_exploration = 1000
     target_update_freq = 20
 
     def __init__(self, n_state, n_action, gpu):
@@ -122,10 +122,11 @@ class Agent:
 
         tmp = list(map(xp.max, tmp.data))
         #  print "tmp : ", tmp, type(tmp)
-        max_Q_dash = xp.asanyarray(tmp, dtype=xp.float32)
+        max_Q_dash = xp.asarray(tmp, dtype=xp.float32)
         #  print "max_Q_dash : ", max_Q_dash, type(max_Q_dash)
         
-        target = xp.asanyarray(copy.deepcopy(Q.data), dtype=xp.float32)
+        target = copy.deepcopy(Q.data)
+        #  target = xp.asanyarray(copy.deepcopy(Q.data), dtype=xp.float32)
         #  print "target : ", target, type(target)
 
         for i in xrange(num_batch):
@@ -142,7 +143,10 @@ class Agent:
             #  print "target : ", target[i][action_index], type(target[i][action_index])
 
         #  print "target(after) : ", target
+        #  td = chainer.Variable(target) - Q
+        #  zero_val = chainer.Variable(xp.zeros((self.replay_size, self.n_action), dtype=xp.float32))
 
+        #  loss = F.mean_squared_error(td, zero_val)
         loss = F.mean_squared_error(Q, Variable(target))
         #  print "loss.data : ", loss.data
 
@@ -150,8 +154,7 @@ class Agent:
 
         return loss, Q
 
-    def experience_replay(self):
-        xp = cuda.get_array_module(self.D[0][0])
+    def experience_replay(self, t):
         index_list = np.arange(self.data_size)
         #  print "index_list : ", index_list
         replay_index_list = np.random.permutation(index_list)
@@ -164,11 +167,11 @@ class Agent:
         reward_replay = self.D[3][index]
         episode_end_replay = self.D[4][index]
 
-        #  self.model.zerograds()
-        self.model.cleargrads()
+        self.model.zerograds()
         loss, _ = self.forward(state_replay, action_replay, next_state_replay, reward_replay, episode_end_replay)
         loss.backward()
         self.optimizer.update()
+
 
     def get_action(self, state, evaluation=False):
         if self.gpu >= 0:
@@ -190,7 +193,7 @@ class Agent:
                 #  print "action : ", action, type(action)
                 return int(action), np.max(Q.data)
         else:
-            #  print "Greedy!!!"
+            #  print "Greedy!!"
             state = Variable(state)
             #  print "state.data : ", state.data
             Q = self.model.q_func(state)
@@ -205,9 +208,9 @@ class Agent:
         else:
             self.epsilon = self.min_epsilon
 
-    def train(self):
-        if self.step > self.init_exprolation:
-            self.experience_replay()
+    def train(self, t):
+        if self.step > self.init_exploration:
+            self.experience_replay(t)
             #  self.reduce_epsilon()
             if self.step % self.target_update_freq == 0:
                 self.target_model = copy.deepcopy(self.model)
@@ -262,7 +265,7 @@ if __name__ == "__main__":
             
             print "state : {0} action : {1} next_state : {2} reward : {3} done : {4}".format(state, action, next_state, reward, done)
 
-            #  if t > test_agent.init_exprolation:
+            #  if t > test_agent.init_exploration:
                 #  test_agent.extract_replay_memory()
                 #  loss = test_agent.forward()
 
@@ -275,7 +278,7 @@ if __name__ == "__main__":
 
 
 
-        #  if t > test_agent.init_exprolation:
+        #  if t > test_agent.init_exploration:
             #  break
     
     #  #  print type(test_agent.D[0][0])

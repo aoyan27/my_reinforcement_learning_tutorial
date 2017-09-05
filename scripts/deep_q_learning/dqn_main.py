@@ -29,7 +29,7 @@ def main(env_name, gpu, evaluation=False, monitor=True):
     if monitor:
         env = gym.wrappers.Monitor(env, video_path, force=True)
     
-    max_episode = 1001
+    max_episode = 10001
     max_step = 2000
 
     num_state = env.observation_space.shape[0]
@@ -59,13 +59,15 @@ def main(env_name, gpu, evaluation=False, monitor=True):
     t = 0
 
     r_sum_list = []
-
+    
+    success = 0
+    
     for i_episode in xrange(max_episode):
         observation = env.reset()
         q_list = []
         r_sum = 0.0
         for j_step in xrange(max_step):
-            env.render()
+            #  env.render()
 
             state = observation.astype(np.float32).reshape((1, num_state))
             #  print "state : ", state
@@ -97,7 +99,7 @@ def main(env_name, gpu, evaluation=False, monitor=True):
                 ####  Acrobot-v1, CartPole-v0  ####
                 agent.stock_experience(t, state, action, next_state, reward, done)
 
-                agent.train()
+                agent.train(t)
 
             r_sum += reward
 
@@ -113,6 +115,10 @@ def main(env_name, gpu, evaluation=False, monitor=True):
             del r_sum_list[0]
             r_sum_list.append(r_sum)
             print "average 100 episode reward : ", sum(r_sum_list) / 100.0
+
+        if r_sum == 200:
+            success += 1
+        print "Success : ", success, "\tSuccess rate : ", float(success)/float(i_episode+1)
 
         if not evaluation:
             agent.save_model(model_path, i_episode)
