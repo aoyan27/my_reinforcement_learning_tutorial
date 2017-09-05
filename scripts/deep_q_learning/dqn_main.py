@@ -33,6 +33,7 @@ def main(env_name, gpu, evaluation=False, monitor=True):
     max_step = 2000
 
     num_state = env.observation_space.shape[0]
+    #  print "num_state : ", num_state
     
     ####  Pendulum-v0  ####
     """
@@ -40,8 +41,9 @@ def main(env_name, gpu, evaluation=False, monitor=True):
     num_action = len(action_list)
     """
 
-    ####  Acrobot-v1, CartPole-v0  ####
+    ####  Acrobot-v1, CartPole-v0, MountainCar-v0  ####
     num_action = env.action_space.n
+
 
     agent = Agent(num_state, num_action, gpu)
     
@@ -67,7 +69,7 @@ def main(env_name, gpu, evaluation=False, monitor=True):
         q_list = []
         r_sum = 0.0
         for j_step in xrange(max_step):
-            #  env.render()
+            env.render()
 
             state = observation.astype(np.float32).reshape((1, num_state))
             #  print "state : ", state
@@ -78,9 +80,10 @@ def main(env_name, gpu, evaluation=False, monitor=True):
             action = action_list[act_i]
             """
             
-            ####  Acrobot-v1, CartPole-v0  ####
+            ####  Acrobot-v1, CartPole-v0, MountainCar-v0  ####
             action, q = agent.get_action(state, evaluation)
             #  print "action : ", action, type(action)
+
 
             q_list.append(q)
 
@@ -96,7 +99,7 @@ def main(env_name, gpu, evaluation=False, monitor=True):
                 agent.stock_experience(t, state, act_i, next_state, reward, done)
                 """
 
-                ####  Acrobot-v1, CartPole-v0  ####
+                ####  Acrobot-v1, CartPole-v0, MountainCar-v0  ####
                 agent.stock_experience(t, state, action, next_state, reward, done)
 
                 agent.train(t)
