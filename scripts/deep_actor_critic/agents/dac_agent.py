@@ -102,10 +102,17 @@ class Agent:
         self.step = 0
 
         self.data_index_actor = 0
+        
+        ### Pendulum-v0 ###
+        #  self.min_action = -2.0
+        #  self.max_action = 2.0
+        #  self.limit_action = 2.0
 
-        self.min_action = -2.0
-        self.max_action = 2.0
-        self.limit_action = 2.0
+        ### MountainCarContinuous-v0 ###
+        self.min_action = -1.0
+        self.max_action = 1.0
+        self.limit_action = 1.0
+        
 
         self.sigma = 1.0
         self.sigma_decay = 1e-6
@@ -192,7 +199,16 @@ class Agent:
     def calculate_td_error(self, state, next_state, reward):
         state = state.astype(np.float32)
         next_state = next_state.astype(np.float32)
-        reward = reward.astype(np.float32)
+        
+        ### Pendulum-v0 ###
+        #  reward = reward.astype(np.float32)
+        
+        ### MountainCarContinuous-v0 ###
+        reward = np.array([reward], dtype=np.float32)
+        #  print "reward : ", reward
+
+
+
 
         if self.gpu >= 0:
             state = cuda.to_gpu(state)
