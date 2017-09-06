@@ -69,7 +69,7 @@ def main(env_name, gpu, evaluation=False, monitor=True):
         q_list = []
         r_sum = 0.0
         for j_step in xrange(max_step):
-            env.render()
+            #  env.render()
 
             state = observation.astype(np.float32).reshape((1, num_state))
             #  print "state : ", state
