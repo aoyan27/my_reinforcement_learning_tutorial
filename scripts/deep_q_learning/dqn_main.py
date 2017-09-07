@@ -24,7 +24,8 @@ def main(env_name, gpu, evaluation=False, monitor=True):
     
     video_path = "/home/amsl/my_reinforcement_learning_tutorial/videos/dqn_" + env_name
     #  model_path = "/home/amsl/my_reinforcement_learning_tutorial/models/deep_q_learning/my_dqn_" + env_name + "/" + env_name + "_"
-    model_path = "/subhdd/my_reinforcement_learning_tutorial/models/deep_q_learning/my_dqn_" + env_name + "/" + env_name + "_"
+    #  model_path = "/subhdd/my_reinforcement_learning_tutorial/models/deep_q_learning/my_dqn_" + env_name + "/" + env_name + "_"
+    model_path = "/media/amsl/HDCL-UT/my_reinforcement_learning_tutorial/models/deep_q_learning/my_dqn_" + env_name + "/" + env_name + "_"
 
     if monitor:
         env = gym.wrappers.Monitor(env, video_path, force=True)
@@ -69,7 +70,7 @@ def main(env_name, gpu, evaluation=False, monitor=True):
         q_list = []
         r_sum = 0.0
         for j_step in xrange(max_step):
-            env.render()
+            #  env.render()
 
             state = observation.astype(np.float32).reshape((1, num_state))
             #  print "state : ", state
@@ -136,5 +137,5 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    main(args.env, args.gpu)
-    #  main(args.env, args.gpu, evaluation=True, monitor=False)
+    #  main(args.env, args.gpu)
+    main(args.env, args.gpu, evaluation=True, monitor=False)

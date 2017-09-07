@@ -26,17 +26,19 @@ class ActionValueNetwork(Chain):
         super(ActionValueNetwork, self).__init__(
             l1=L.Linear(n_state, 100),
             l2=L.Linear(100, 200),
-            l3=L.Linear(200, 100),
-            l4=L.Linear(100, 100),
-            l5=L.Linear(100, n_action, initialW=np.zeros((n_action, 100), dtype=np.float32)),
+            l3=L.Linear(200, 200),
+            l4=L.Linear(200, 100),
+            l5=L.Linear(100, 100),
+            l6=L.Linear(100, n_action, initialW=np.zeros((n_action, 100), dtype=np.float32)),
         )
 
     def q_func(self, x):
-        h1 = F.leaky_relu(self.l1(x))
-        h2 = F.leaky_relu(self.l2(h1))
-        h3 = F.leaky_relu(self.l3(h2))
-        h4 = F.leaky_relu(self.l4(h3))
-        y = self.l5(h4)
+        h = F.leaky_relu(self.l1(x))
+        h = F.leaky_relu(self.l2(h))
+        h = F.leaky_relu(self.l3(h))
+        h = F.leaky_relu(self.l4(h))
+        h = F.leaky_relu(self.l5(h))
+        y = self.l6(h)
         return y
 
 class Agent:
