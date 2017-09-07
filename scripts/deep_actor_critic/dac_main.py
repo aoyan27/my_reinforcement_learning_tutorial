@@ -19,7 +19,7 @@ def main(env_name, gpu, render=False, monitor=True, evaluation=False, seed=0):
 
     n_state = env.observation_space.shape[0]
 
-    ### Pendulum-v0, MountainCarContinuous-v0 ###
+    ### Pendulum-v0, MountainCarContinuous-v0, InvertedPendulum-v1 ###
     n_action = 1
 
     agent = Agent(n_state, n_action, gpu, seed)
