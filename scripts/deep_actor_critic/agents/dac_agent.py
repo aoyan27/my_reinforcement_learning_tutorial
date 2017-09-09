@@ -108,7 +108,7 @@ class Agent:
         #  self.max_action = 2.0
         #  self.limit_action = 2.0
 
-        ### MountainCarContinuous-v0 ###
+        ### MountainCarContinuous-v0, InvertedPendulum-v1 ###
         self.min_action = -1.0
         self.max_action = 1.0
         self.limit_action = 1.0
@@ -229,22 +229,23 @@ class Agent:
         return td.data[0][0]
 
     def stock_experience_for_actor(self, t, state, action, next_state, reward, episode_end):
-        if self.calculate_td_error(state, next_state, reward) > 0.0:
-            data_index = self.data_index_actor % self.data_size
-            if self.gpu >= 0:
-                state = cuda.to_gpu(state)
-                action = cuda.to_gpu(action)
-                next_state = cuda.to_gpu(next_state)
-                reward = cuda.to_gpu(reward)
-                episode_end = cuda.to_gpu(episode_end)
+        if t > self.initial_exploration:
+            if self.calculate_td_error(state, next_state, reward) > 0.0:
+                data_index = self.data_index_actor % self.data_size
+                if self.gpu >= 0:
+                    state = cuda.to_gpu(state)
+                    action = cuda.to_gpu(action)
+                    next_state = cuda.to_gpu(next_state)
+                    reward = cuda.to_gpu(reward)
+                    episode_end = cuda.to_gpu(episode_end)
 
-            self.D_actor[0][data_index] = state
-            self.D_actor[1][data_index] = action
-            self.D_actor[2][data_index] = next_state
-            self.D_actor[3][data_index] = reward
-            self.D_actor[4][data_index] = episode_end
+                self.D_actor[0][data_index] = state
+                self.D_actor[1][data_index] = action
+                self.D_actor[2][data_index] = next_state
+                self.D_actor[3][data_index] = reward
+                self.D_actor[4][data_index] = episode_end
 
-            self.data_index_actor += 1
+                self.data_index_actor += 1
     
     def actor_forward(self, state, action, next_state, reward, episode_end):
         num_batch = state.shape[0]
