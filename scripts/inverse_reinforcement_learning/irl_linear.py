@@ -122,8 +122,3 @@ policy = np.array([
 
 print "policy : "
 print policy
-
-I = np.eye(n)
-print "I : 
-"
-print I
