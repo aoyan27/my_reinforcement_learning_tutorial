@@ -12,9 +12,10 @@ def heatmap(a):
     plt.show()
 
 
-gammma = 0.9  # 割引率
+gamma = 0.9  # 割引率
 
-w, h = 3, 3  #状態(5*5のグリッドマップ)
+w, h = 2, 2  #状態(2*2のグリッドマップ)
+#  w, h = 5, 5  #状態(2*2のグリッドマップ)
 grid = np.zeros((w, h))
 print "grid : "
 print grid
@@ -100,6 +101,8 @@ for d in directions:
     #  print P[d]
 
 P[NOOP] = np.eye(n)
+print "P : "
+print P
 
 #  グリッドワールドの左上をゴール(終端状態)として、報酬1を与えるようにしている
 grid.fill(0)
@@ -115,10 +118,89 @@ Rmax = 1.0
 
 #  ゴールへ至るまでのエキスパートの方策を設定した
 policy = np.array([
-    [RIGHT, RIGHT, NOOP],
-    [UP,    RIGHT, UP  ],
-    [UP,    UP   , UP  ],
+    [RIGHT, NOOP],
+    [UP,    UP  ],
     ]).reshape(-1)
+
+#  policy = np.array([
+    #  [RIGHT, RIGHT, RIGHT, RIGHT, NOOP],
+    #  [UP,    RIGHT, RIGHT, UP,    UP  ],
+    #  [UP   , UP   , UP   , UP   , UP  ],
+    #  [UP   , UP   , RIGHT, UP   , UP  ],
+    #  [UP   , RIGHT, RIGHT, RIGHT, UP  ],
+#  ]).reshape(-1)
 
 print "policy : "
 print policy
+
+I = np.eye(n)  # 単位行列
+#  print "I : "
+#  print I
+nR = np.ndarray(n)  # 報酬関数(ベクトルR)
+#  print "nR : "
+#  print nR
+J = np.ndarray((k, n, n))  # (I - gamma * P[policy[i]]).inverse()のための変数
+#  print "J : "
+#  print J
+for a in xrange(k):
+    J[a] = inv(I - gamma*P[a])  # I - gamma * P[a] を実行
+print "J : "
+print J
+
+
+
+#  original
+"""
+#  tr = np.transpose
+#  nb_constraints = n*k*(k-1) + n*(k-1)
+#  print "nb_constraints : ", nb_constraints
+#  A = np.zeros((nb_constraints, 2*n))
+#  print "A : "
+#  print A, A.shape
+#  cursor = 0
+
+#  for ai in xrange(k):
+    #  for aj in xrange(k):
+        #  if ai == aj:
+            #  continue
+        #  print "tr(P[", ai, "] - P[", aj, "]) : "
+        #  print tr(P[ai] - P[aj]).dot(tr(J[ai]))
+        #  A[cursor:cursor+n, 0:n] = tr(P[ai] - P[aj]).dot(tr(J[ai]))
+        #  print "A"
+        #  print A[cursor:cursor+n, 0:n]
+        #  print "A_ : "
+        #  print A
+        #  cursor += n
+#  print "A__ : "
+#  print A
+
+#  for i in xrange(n):
+    #  a1 = policy[i]
+    #  for a in xrange(k):
+        #  if a == a1:
+            #  continue
+        #  A[cursor:cursor+n, 0:n] = tr(P[a1, :, i] - P[a, :, i]).dot(tr(J[a1]))
+        #  A[cursor, n+i] = -1
+        #  cursor += 1
+#  print "A__() : "
+#  print A
+
+#  b = np.zeros(nb_constraints)
+
+#  lamb = 10000.0
+#  c = np.ndarray(2*n)
+#  c[:n] = -lamb
+#  print "c : "
+#  print c
+#  c[n:] = 1
+#  print "c_ : "
+#  print c
+
+#  bounds = np.array( [(-Rmax, 0) for i in range(n)] + [(-1000000, 1000000) for i in range(n)] )
+#  print "bounds : "
+#  print bounds
+
+#  res = linprog(c, A, b, bounds=bounds)
+#  print res
+#  heatmap(-res['x'][:n].reshape(w, h))
+"""
