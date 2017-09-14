@@ -65,6 +65,9 @@ def heatmap_3d(input_array, title=''):
     plt.show()
     raw_input()
 
+def save_reward_map(dir_path, reward_map):
+    print "save reward_map!!!!"
+    np.save(dir_path+'reward_map.npy', reward_map)
 
 
 def main(R_max, gamma, lambd, noise):
@@ -77,7 +80,7 @@ def main(R_max, gamma, lambd, noise):
     #  rows = 1
     #  cols = 2
 
-    gw = Gridworld(rows, cols, R_max)
+    gw = Gridworld(rows, cols, R_max, noise)
     num_state = gw.n_state
     print "num_state : ", num_state
     num_action = gw.n_action
@@ -97,7 +100,7 @@ def main(R_max, gamma, lambd, noise):
             #  print "------------------------------------"
             #  print "state : ", state
             #  print "action : ", action
-            next_state_list, probs = gw.get_next_state_and_probs(state, action, noise)
+            next_state_list, probs = gw.get_next_state_and_probs(state, action)
             for i in xrange(len(probs)):
                 next_state = next_state_list[i]
                 #  print "next_state : ", next_state
@@ -166,6 +169,8 @@ def main(R_max, gamma, lambd, noise):
     reward = np.transpose(reward.reshape((gw.rows, gw.cols)))
     print "reward map :"
     print reward
+
+    save_reward_map('./', reward)
 
     heatmap_2d(reward, 'reward_map')
 
