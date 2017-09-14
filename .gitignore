@@ -10,3 +10,4 @@
 /build/*
 !.gitkeep
 /scripts/deep_q_learning/test_main.py
+/scripts/inverse_reinforcement_learning/samples
