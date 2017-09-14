@@ -37,13 +37,15 @@ def main(env_name, gpu, evaluation=False, monitor=True):
     #  print "num_state : ", num_state
     
     ####  Pendulum-v0  ####
-    """
-    action_list = [np.array([a]) for a in [-2.0, 2.0]]
-    num_action = len(action_list)
-    """
+    #  action_list = [np.array([a]) for a in [-2.0, 2.0]]
+    #  num_action = len(action_list)
 
     ####  Acrobot-v1, CartPole-v0, MountainCar-v0  ####
     num_action = env.action_space.n
+
+    #### InvertedPenduum-v1 (MuJoCo) ####
+    #  action_list = [np.array([a]) for a in [-0.3, -0.2, -0.1, 0.1, 0.2, 0.3]]
+    #  num_action = len(action_list)
 
 
     agent = Agent(num_state, num_action, gpu)
@@ -70,20 +72,22 @@ def main(env_name, gpu, evaluation=False, monitor=True):
         q_list = []
         r_sum = 0.0
         for j_step in xrange(max_step):
-            #  env.render()
+            env.render()
 
             state = observation.astype(np.float32).reshape((1, num_state))
             #  print "state : ", state
             
             ####  Pendulum-v0  ####
-            """
-            act_i, q = agent.get_action(state, evaluation)
-            action = action_list[act_i]
-            """
+            #  act_i, q = agent.get_action(state, evaluation)
+            #  action = action_list[act_i]
             
             ####  Acrobot-v1, CartPole-v0, MountainCar-v0  ####
             action, q = agent.get_action(state, evaluation)
             #  print "action : ", action, type(action)
+
+            ####  InvertedPendulum-v1 (MuJoCo) ####
+            #  act_i , q = agent.get_action(state, evaluation)
+            #  action = action_list[act_i]
 
 
             q_list.append(q)
@@ -96,12 +100,14 @@ def main(env_name, gpu, evaluation=False, monitor=True):
             
             if not evaluation:
                 ####  Pendulum-v0  ####
-                """
-                agent.stock_experience(t, state, act_i, next_state, reward, done)
-                """
+                #  agent.stock_experience(t, state, act_i, next_state, reward, done)
 
                 ####  Acrobot-v1, CartPole-v0, MountainCar-v0  ####
                 agent.stock_experience(t, state, action, next_state, reward, done)
+
+                ####  InvertedPendulum-v1 (MuJoCo) ####
+                #  agent.stock_experience(t, state, act_i, next_state, reward, done)
+
 
                 agent.train(t)
 
@@ -137,5 +143,5 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    #  main(args.env, args.gpu)
-    main(args.env, args.gpu, evaluation=True, monitor=False)
+    main(args.env, args.gpu)
+    #  main(args.env, args.gpu, evaluation=True, monitor=False)
