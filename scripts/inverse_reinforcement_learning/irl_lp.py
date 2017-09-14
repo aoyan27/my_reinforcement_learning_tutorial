@@ -4,98 +4,8 @@
 import numpy as np
 from numpy.linalg import inv
 from cvxopt import matrix, solvers
-import matplotlib.pyplot as plt
 
-class Maze:
-    def __init__(self, rows, cols, R_max):
-        self.rows = rows
-        self.cols = cols
-        self.n_state = self.rows * self.cols
-
-        self.R_max = R_max
-
-        self.maze = np.zeros((self.rows, self.cols))
-        # +----------------> x
-        # |
-        # |
-        # |
-        # |
-        # |
-        # |
-        # V
-        # y
-        self.goal = (self.rows-1, self.cols-1)
-        self.maze[self.goal] = self.R_max
-
-        self.action_list = [0, 1, 2, 3, 4]
-        self.n_action = len(self.action_list)
-        self.dirs = {0: '^', 1: '<', 2: 'v', 3: '>', 4: '-'}
-
-    def state2index(self, state):
-        #  state[0] : x
-        #  state[1] : y
-        return state[0] + self.cols * state[1]
-
-    def index2state(self, index):
-        state = [0, 0]
-        state[0] = index % self.cols
-        state[1] = index / self.cols
-        return state
-
-    def get_next_state_and_probs(self, state, action):
-        if state != list(self.goal):
-            x, y = state
-            #  print "x : ", x
-            #  print "y : ", y
-            if action == 0:
-                #  up
-                y = y - 1
-            elif action == 1:
-                #  left
-                x = x - 1
-            elif action == 2:
-                #  down
-                y = y + 1
-            elif action == 3:
-                #  right
-                x = x + 1
-            else:
-                #  stay
-                x = x
-                y = y
-             
-            if x < 0:
-                x = 0
-            elif x > (self.cols-1):
-                x = self.cols - 1
-
-            if y < 0:
-                y = 0
-            elif y > (self.rows-1):
-                y = self.rows - 1
-
-            next_state = [x, y]
-            print "next_state : "
-            print next_state
-        else:
-            next_state = state
-            print "next_state_ : "
-            print next_state
-
-        probability = 1.0
-
-        return next_state, probability
-    
-    def show_policy(self, policy):
-        vis_policy = np.array([])
-        for i in xrange(len(policy)):
-            vis_policy = np.append(vis_policy, self.dirs[policy[i]])
-            #  print self.dirs[policy[i]]
-        print vis_policy.reshape((self.rows, self.cols))
-
-
-
-class LinearIRL:
+class IRL_linearprograming:
     def __init__(self, P_a, policy, gamma, lambd, R_max):
         self.gamma = gamma
         self.lambd = lambd
@@ -106,9 +16,9 @@ class LinearIRL:
         self.policy = policy
 
         self.n_state = len(self.P_a)
-        print "self.n_state : ", self.n_state
+        #  print "self.n_state : ", self.n_state
         self.n_action = len(self.P_a[0][0])
-        print "self.n_action : ", self.n_action
+        #  print "self.n_action : ", self.n_action
         
         self.num_of_constraints = \
                 self.n_state*(self.n_action-1) + (self.n_action-1)*self.n_state \
@@ -120,9 +30,7 @@ class LinearIRL:
     
     def create_constraints(self):
         A = np.zeros((self.num_of_constraints, self.num_of_objects))
-        #  print "A : ", A.shape
         b = np.zeros(self.num_of_constraints)
-        #  print "b : ", b.shape
         
         """
         -1 * (P_a1 - P_a)(I - gamma*P_a1).inverse() <= 0の条件の左辺の係数を表す行列を作成。
@@ -223,17 +131,19 @@ class LinearIRL:
         for s in xrange(self.n_state):
             A[2*self.n_state*(self.n_action-1)+2*self.n_state+self.n_state+s, s] = -1
         
-        print "A_____ : "
-        print A
+        #  print "A_____ : "
+        #  print A
+        
+        print "A : "
+        print A, A.shape
         print "b : "
-        print b 
+        print b, b.shape
 
         return A, b
 
 
     def create_objects(self):
         c = np.zeros(self.num_of_objects)
-        #  print "c : ", c.shape
         """
         木たき関数は、minや絶対値を含んでおり、それらをそれぞれ変数Z_i, t_iで置き換えると
         sum(i=1...n, Z_i) - lambd*(sumi=1...n, t_i)となり最小化問題に帰着させるので-1をかけて
@@ -249,7 +159,7 @@ class LinearIRL:
         c[2*self.n_state:3*self.n_state] = self.lambd
 
         print "c : "
-        print c
+        print c, c.shape
 
 
         return c
@@ -262,132 +172,8 @@ class LinearIRL:
         reward = solvers.lp(matrix(c), matrix(A), matrix(b))
         #  print reward['x'][:self.n_state]
         reward = np.asarray(reward['x'][:self.n_state])
-        #  print "reward : "
-        #  print reward
-        #  return np.array(reward['x'])
+        print "reward : "
+        print reward
         return reward
 
 
-def normalize(vals):
-  min_val = np.min(vals)
-  max_val = np.max(vals)
-  return (vals - min_val) / (max_val - min_val)
-
-def heatmap_2d(input_array, title):
-    plt.imshow(input_array, interpolation="nearest")
-    plt.title(title)
-    plt.colorbar()
-
-    print "input_array.shape : ", input_array.shape
-
-    for y in range(input_array.shape[0]):
-      for x in range(input_array.shape[1]):
-        plt.text(x, y, '%.2f' % input_array[y, x],
-                 horizontalalignment='center',
-                 verticalalignment='center',
-                 )
-
-    plt.ion()
-    print 'press enter to continue'
-    plt.show()
-    raw_input()
-
-
-
-def main(R_max, gamma, lambd):
-    rows = 5
-    cols = 5
-    #  rows = 3
-    #  cols = 3
-    #  rows = 2
-    #  cols = 2
-    #  rows = 1
-    #  cols = 2
-
-    env = Maze(rows, cols, R_max)
-    num_state = env.n_state
-    print "num_state : ", num_state
-    num_action = env.n_action
-    print "num_action : ", num_action
-    
-    print "maze : "
-    print env.maze
-
-    P_a = np.zeros((num_state, num_state, num_action))
-    #  print "P_a : "
-    #  print P_a
-
-    for state_index in xrange(num_state):
-        state = env.index2state(state_index)
-        #  print "====================================="
-        for action in xrange(num_action):
-            #  print "------------------------------------"
-            #  print "state : ", state
-            #  print "action : ", action
-            next_state, probability = env.get_next_state_and_probs(state, action)
-            #  print "next_state : ", next_state
-            next_state_index = env.state2index(next_state)
-            #  print "state_index : ", state_index
-            #  print "next_state_index : ", next_state_index
-            #  print "probability : ", probability
-            P_a[state_index, next_state_index, action] = probability
-
-    print "P_a : "
-    print P_a
-    
-    Up, Left, Down, Right, Noop = env.action_list
-
-    #  policy = np.array([
-        #  [Down , Right, Right, Right, Down],
-        #  [Down , Down , Right, Down , Down],
-        #  [Down , Down , Down , Down , Down],
-        #  [Down , Right, Right, Down , Down],
-        #  [Right, Right, Right, Right, Noop]
-    #  ]).reshape(-1)
-    policy = np.array([
-        [Right, Right, Right, Right, Down],
-        [Right, Right, Right, Right, Down],
-        [Right, Right, Right, Right, Down],
-        [Right, Right, Right, Right, Down],
-        [Right, Right, Right, Right, Noop]
-    ]).reshape(-1)
-    #  policy = np.array([
-        #  [Right, Right, Down],
-        #  [Right, Right, Down],
-        #  [Right, Right, Noop]
-    #  ]).reshape(-1)
-    #  policy = np.array([
-        #  [Right, Down],
-        #  [Right, Noop]
-    #  ]).reshape(-1)
-    #  policy = np.array([
-        #  [Right, Noop]
-    #  ]).reshape(-1)
-
-    #  print "policy : "
-    #  print policy
-    print "policy : "
-    env.show_policy(policy)
-
-
-    print "#################################################"
-    lp_irl = LinearIRL(P_a, policy, gamma, lambd, R_max)
-
-    reward = lp_irl.optimize()
-    reward = normalize(reward) * R_max
-    reward = reward.reshape((env.rows, env.cols))
-    print "reward map :"
-    print reward
-
-    heatmap_2d(reward, 'reward_map')
-    
-
-
-
-
-if __name__=="__main__":
-    R_max = 1.0
-    gamma = 0.5
-    lambd = 10.0
-
-    main(R_max, gamma, lambd)
