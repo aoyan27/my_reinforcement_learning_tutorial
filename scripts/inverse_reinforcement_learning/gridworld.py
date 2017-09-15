@@ -121,7 +121,9 @@ class Gridworld:
         for i in xrange(len(policy)):
             vis_policy = np.append(vis_policy, self.dirs[policy[i]])
             #  print self.dirs[policy[i]]
-        print vis_policy.reshape((self.rows, self.cols))
+        vis_policy = vis_policy.reshape((self.rows, self.cols))
+        vis_policy[self.goal] = 'G'
+        print vis_policy
 
 
     def reset(self):

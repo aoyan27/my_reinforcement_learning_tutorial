@@ -118,11 +118,18 @@ def main(R_max, gamma, lambd, noise):
 
     policy = np.array([
         [Right, Right, Right, Down , Down],
-        [Down , Right, Down , Down , Down],
+        [Down , Down , Down , Down , Down],
         [Down , Right, Right, Down , Down],
-        [Right, Right, Right, Right, Down],
+        [Right, Right, Right, Down , Down],
         [Right, Right, Right, Right, Noop]
     ])
+    #  policy = np.array([
+        #  [Right, Right, Right, Down , Down],
+        #  [Down , Right, Down , Down , Down],
+        #  [Down , Right, Right, Down , Down],
+        #  [Right, Right, Right, Right, Down],
+        #  [Right, Right, Right, Right, Noop]
+    #  ])
     #  policy = np.array([
         #  [Down , Right, Right, Right, Down],
         #  [Down , Down , Right, Down , Down],
@@ -182,6 +189,6 @@ if __name__=="__main__":
     gamma = 0.5
     lambd = 10.0
 
-    noise = 0.3
+    noise = 0.0
 
     main(R_max, gamma, lambd, noise)
