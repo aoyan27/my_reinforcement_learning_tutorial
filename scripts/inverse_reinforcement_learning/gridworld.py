@@ -157,7 +157,7 @@ class Gridworld:
             else:
                 reward = 0
         else:
-            reward = reward_map[self._state[0], self._state[1]]
+            reward = reward_map[self.state2index(self._state)]
             #  print "reward : ", reward
 
         episode_end = False

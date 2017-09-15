@@ -116,13 +116,13 @@ def main(R_max, gamma, lambd, noise):
     
     Right, Left, Down, Up, Noop = gw.action_list
 
-    policy = np.array([
-        [Right, Right, Right, Down , Down],
-        [Down , Down , Down , Down , Down],
-        [Down , Right, Right, Down , Down],
-        [Right, Right, Right, Down , Down],
-        [Right, Right, Right, Right, Noop]
-    ])
+    #  policy = np.array([
+        #  [Right, Right, Right, Down , Down],
+        #  [Down , Down , Down , Down , Down],
+        #  [Down , Right, Right, Down , Down],
+        #  [Right, Right, Right, Down , Down],
+        #  [Right, Right, Right, Right, Noop]
+    #  ])
     #  policy = np.array([
         #  [Right, Right, Right, Down , Down],
         #  [Down , Right, Down , Down , Down],
@@ -137,13 +137,13 @@ def main(R_max, gamma, lambd, noise):
         #  [Down , Right, Right, Down , Down],
         #  [Right, Right, Right, Right, Noop]
     #  ])
-    #  policy = np.array([
-        #  [Right, Right, Right, Right, Down],
-        #  [Right, Right, Right, Right, Down],
-        #  [Right, Right, Right, Right, Down],
-        #  [Right, Right, Right, Right, Down],
-        #  [Right, Right, Right, Right, Noop]
-    #  ])
+    policy = np.array([
+        [Right, Right, Right, Right, Down],
+        [Right, Right, Right, Right, Down],
+        [Right, Right, Right, Right, Down],
+        [Right, Right, Right, Right, Down],
+        [Right, Right, Right, Right, Noop]
+    ])
     #  policy = np.array([
         #  [Right, Down , Down],
         #  [Right, Right, Down],

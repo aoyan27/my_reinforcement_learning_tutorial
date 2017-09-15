@@ -12,7 +12,7 @@ class Agent:
         self.gamma = gamma
 
         self.q_table = np.zeros((self.state_num ,self.action_num), dtype=np.float32)
-        self.epsilon = 0.05
+        self.epsilon = 0.1
 
     def get_action(self, state, evaluation=False):
         if not evaluation:

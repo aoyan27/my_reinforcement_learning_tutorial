@@ -14,16 +14,18 @@ def main(rows, cols, R_max, noise):
     print "env.n_action : ", env.n_action
 
     gamma = 0.5
-    alpha = 0.3
+    alpha = 0.1
 
     agent = Agent(env.n_state, env.n_action, gamma, alpha)
     
-    max_episode = 1000
+    max_episode = 2000
     max_step = 200
 
     reward_map = np.load('./reward_map.npy')
     print "reward_map : "
     print  reward_map
+    reward_map = np.transpose(reward_map).reshape(-1)
+    print "reward : ", reward_map
     
     success = 0
     for i in xrange(max_episode):
