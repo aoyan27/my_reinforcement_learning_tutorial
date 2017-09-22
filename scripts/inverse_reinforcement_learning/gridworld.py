@@ -30,7 +30,9 @@ class Gridworld:
         self.n_action = len(self.action_list)
         self.dirs = {0: '>', 1: '<', 2: 'v', 3: '^', 4: '-'}
 
-        self._state = None
+        self.state_ = None
+
+        self.out_of_range_ = None
 
     def state2index(self, state):
         #  state[0] : x
@@ -55,6 +57,7 @@ class Gridworld:
         for a in xrange(self.n_action):
             if state != list(self.goal):
                 next_state, out_of_range = self.move(state, a)
+                self.out_of_range_ = out_of_range
                 #  print "next_state() : "
                 #  print next_state
                 next_state_list.append(next_state)
@@ -127,11 +130,11 @@ class Gridworld:
 
 
     def reset(self):
-        self._state = [0, 0]
-        return self._state
+        self.state_ = [0, 0]
+        return self.state_
 
     def step(self, action, reward_map=None):
-        next_state_list, probs = self.get_next_state_and_probs(self._state, action)
+        next_state_list, probs = self.get_next_state_and_probs(self.state_, action)
         #  print "next_state_list : ", next_state_list
         #  print "probs : ", probs
         random_num = np.random.rand()
@@ -146,25 +149,25 @@ class Gridworld:
         #  print "action_index : ", action_index
         #  print "next_state : ", next_state_list[action_index]
 
-        self._state = next_state_list[action_index]
-        #  self._state, _ = self.move(self._state, action)
+        self.state_ = next_state_list[action_index]
+        #  self.state_, _ = self.move(self.state_, action)
         
 
         reward = None
         if reward_map is None:
-            if self._state == list(self.goal):
+            if self.state_ == list(self.goal):
                 reward = self.R_max
             else:
                 reward = 0
         else:
-            reward = reward_map[self.state2index(self._state)]
+            reward = reward_map[self.state2index(self.state_)]
             #  print "reward : ", reward
 
         episode_end = False
-        if self._state == list(self.goal):
+        if self.state_ == list(self.goal):
             episode_end = True
 
-        return self._state, reward, episode_end, {'probs':probs, 'random_num':random_num}
+        return self.state_, reward, episode_end, {'probs':probs, 'random_num':random_num}
 
 
 if __name__=="__main__":

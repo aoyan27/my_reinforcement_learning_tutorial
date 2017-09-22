@@ -21,6 +21,7 @@ class Agent:
                 return int(np.round(np.random.rand() * (self.action_num-1)))
             else:
                 #  print "Greedy action!!"
+                #  return np.argmax(self.q_table[state])
                 max_index_list = \
                         np.array(np.where(self.q_table[state] == self.q_table[state].max()))
                 if len(max_index_list[0]) > 1:
@@ -31,10 +32,16 @@ class Agent:
         else:
             return np.argmax(self.q_table[state])
 
-    def q_update(self, state, next_state, action, reward):
-        self.q_table[state][action] = \
-                (1-self.alpha)*self.q_table[state][action] \
-                + self.alpha*(reward+self.gamma*np.max(self.q_table[next_state]))
+    def q_update(self, state, next_state, action, reward, episode_end):
+        if not episode_end:
+            self.q_table[state][action] = \
+                    (1-self.alpha)*self.q_table[state][action] \
+                    + self.alpha*(reward+self.gamma*np.max(self.q_table[next_state]))
+        else:
+            #  self.q_table[state][action] = reward
+            self.q_table[state][action] = \
+                    (1-self.alpha)*self.q_table[state][action] \
+                    + self.alpha*(reward+self.gamma*np.max(self.q_table[next_state]))
 
 
 if __name__ == "__main__":

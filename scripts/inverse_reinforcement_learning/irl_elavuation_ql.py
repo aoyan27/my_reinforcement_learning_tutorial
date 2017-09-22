@@ -14,9 +14,9 @@ def main(rows, cols, R_max, noise):
     print "env.n_action : ", env.n_action
 
     gamma = 0.5
-    alpha = 0.1
+    alpha = 0.01
 
-    agent = Agent(env.n_state, env.n_action, gamma, alpha)
+    agent = Agent(env.n_state, env.n_action-1, gamma, alpha)
     
     max_episode = 2000
     max_step = 200
@@ -30,8 +30,12 @@ def main(rows, cols, R_max, noise):
     success = 0
     for i in xrange(max_episode):
         #  print "==============================================="
+        #  print "agent.episilon : ", agent.epsilon
+        if i >= max_episode*0.9:
+            agent.epsilon = 0.0
         observation = env.reset()
         for j in xrange(max_step):
+        #  while 1:
             state = observation
 
             #  action = np.random.randint(env.n_action)
@@ -40,8 +44,8 @@ def main(rows, cols, R_max, noise):
             #  observation, reward, done, info = env.step(action)
             observation, reward, done, info = env.step(action, reward_map)
             next_state = observation
-            
-            agent.q_update(env.state2index(state), env.state2index(next_state), action, reward)
+ 
+            agent.q_update(env.state2index(state), env.state2index(next_state), action, reward, done)
 
             #  print "episode : ", i+1, " step : ", j+1, " state : ", state, " action : ", action, " next_state : ", next_state, " reward : ", reward, " episode_end : ", done
 
