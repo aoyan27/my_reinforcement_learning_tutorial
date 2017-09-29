@@ -133,6 +133,27 @@ class Gridworld:
         self.state_ = [0, 0]
         return self.state_
 
+    def reward_function(self, state, reward_map=None):
+        reward = None 
+        if reward_map is None:
+            if state == list(self.goal):
+                reward = self.R_max
+            else:
+                reward = 0
+        else:
+            reward = reward_map[self.state2index(state)]
+            #  print "reward : ", reward
+        return reward
+    
+    def terminal(self, state):
+        episode_end = False
+        if state == list(self.goal):
+            episode_end = True
+
+        return episode_end
+
+
+
     def step(self, action, reward_map=None):
         next_state_list, probs = self.get_next_state_and_probs(self.state_, action)
         #  print "next_state_list : ", next_state_list
@@ -153,19 +174,9 @@ class Gridworld:
         #  self.state_, _ = self.move(self.state_, action)
         
 
-        reward = None
-        if reward_map is None:
-            if self.state_ == list(self.goal):
-                reward = self.R_max
-            else:
-                reward = 0
-        else:
-            reward = reward_map[self.state2index(self.state_)]
-            #  print "reward : ", reward
+        reward = self.reward_function(self.state_, reward_map)
+        episode_end = self.terminal(self.state_)
 
-        episode_end = False
-        if self.state_ == list(self.goal):
-            episode_end = True
 
         return self.state_, reward, episode_end, {'probs':probs, 'random_num':random_num}
 
@@ -184,10 +195,11 @@ if __name__=="__main__":
     
     max_episode = 1000
     max_step = 200
-
-    reward_map = np.load('./reward_map.npy')
-    print "reward_map : "
-    print  reward_map
+    
+    reward_map = None
+    #  reward_map = np.load('./reward_map.npy')
+    #  print "reward_map : "
+    #  print  reward_map
 
     for i in xrange(max_episode):
         print "================================================="
