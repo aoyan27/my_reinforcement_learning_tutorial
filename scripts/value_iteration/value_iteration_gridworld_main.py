@@ -3,16 +3,22 @@
 
 import numpy as np
 from gridworld import Gridworld
+from value_iteration import ValueIterationAgent
 
-def main(rows, cols, R_max, noise):
+def main(rows, cols, R_max, noise, gamma):
     env = Gridworld(rows, cols, R_max, noise)
 
     print "env.n_state : ", env.n_state
     print "env.n_action : ", env.n_action
 
     print env.grid
-    
 
+    agent = ValueIterationAgent(env, gamma)
+
+    agent.train()
+    agent.get_policy()
+
+    env.show_policy(agent.policy.reshape(-1))
 
 
 if __name__=="__main__":
@@ -22,4 +28,6 @@ if __name__=="__main__":
     R_max = 10.0
     noise = 0.3
 
-    main(rows, cols, R_max, noise)
+    gamma = 0.5
+
+    main(rows, cols, R_max, noise, gamma)
