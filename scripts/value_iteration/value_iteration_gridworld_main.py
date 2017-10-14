@@ -2,8 +2,8 @@
 #coding:utf-8
 
 import numpy as np
-from gridworld import Gridworld
-from value_iteration import ValueIterationAgent
+from envs.gridworld import Gridworld
+from agents.value_iteration import ValueIterationAgent
 
 def main(rows, cols, R_max, noise, gamma):
     env = Gridworld(rows, cols, R_max, noise)
