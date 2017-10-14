@@ -10,8 +10,6 @@
 """
 
 import numpy as np
-import sys
-sys.path.append('../../')
 from envs.maze import Maze
 from agents.actor_critic_maze_agent import Agent
 

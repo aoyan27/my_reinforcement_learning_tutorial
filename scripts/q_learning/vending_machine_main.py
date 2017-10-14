@@ -10,8 +10,6 @@
 """
 
 import numpy as np
-import sys
-sys.path.append('../../')
 from envs.vending_machine import VendingMachine
 from agents.vending_machine_agent import Agent
 
