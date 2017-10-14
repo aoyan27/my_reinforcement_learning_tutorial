@@ -2,8 +2,8 @@
 #coding:utf-8
 
 import numpy as np
-from gridworld import Gridworld
-from ql_agent import Agent
+from envs.gridworld import Gridworld
+from agents.ql_agent import Agent
 
 
 def main(rows, cols, R_max, noise):

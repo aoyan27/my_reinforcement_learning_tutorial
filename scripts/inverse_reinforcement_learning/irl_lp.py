@@ -62,7 +62,7 @@ class IRL_linearprograming:
 
         """
         min{a_j(j=1...k and a_j!=a1), (P_a1[i] - P_a[i]) * (I - gamma*P_a1).inverse() * R}という
-        非線形関数を線形問題に帰着させるために、Z_i(i=1...n)という変数を置く。
+        非線形関数minを線形問題に帰着させるために、Z_i(i=1...n)という変数を置く。
         この変数は, (P_a1[i] - P_a[i]) * (I - gamma*P_a1).inverse() * R) >= Z_i 
         (a=a1...ak and a != a1), (i=1...n)という制約条件を満たす。
         最小化問題に帰着するためにこの不等式の両辺に-1をかけるので、
@@ -145,7 +145,7 @@ class IRL_linearprograming:
     def create_objects(self):
         c = np.zeros(self.num_of_objects)
         """
-        木たき関数は、minや絶対値を含んでおり、それらをそれぞれ変数Z_i, t_iで置き換えると
+        目的関数は、minや絶対値を含んでおり、それらをそれぞれ変数Z_i, t_iで置き換えると
         sum(i=1...n, Z_i) - lambd*(sumi=1...n, t_i)となり最小化問題に帰着させるので-1をかけて
         -1.0*sum(i=1...n, Z_i) + lambd*(sumi=1...n, t_i)
         となるので目的関数を表す行列は、

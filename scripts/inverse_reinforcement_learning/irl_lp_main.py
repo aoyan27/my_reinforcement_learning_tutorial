@@ -5,7 +5,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 
-from gridworld import Gridworld
+from envs.gridworld import Gridworld
 from irl_lp import IRL_linearprograming
 
 
