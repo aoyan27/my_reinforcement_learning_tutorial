@@ -13,8 +13,8 @@ class ValueIterationAgent:
         self.limit_iteration = limit_iteration
 
         self.V = np.zeros(env.n_state, dtype=np.float32)
-        self.V[self.env.state2index(list(self.env.goal))] = \
-                self.env.reward_function(list(self.env.goal))
+        #  self.V[self.env.state2index(list(self.env.goal))] = \
+                #  self.env.reward_function(list(self.env.goal))
 
         self.P_a = self.create_transition_matrix(self.env.n_state, self.env.n_action)
 
@@ -53,8 +53,8 @@ class ValueIterationAgent:
             V_ = copy.deepcopy(self.V)
             delta = 0
             for s in xrange(self.env.n_state):
-                if self.env.terminal(self.env.index2state(s)):
-                    continue
+                #  if self.env.terminal(self.env.index2state(s)):
+                    #  continue
                 
                 self.V[s] = R(self.env.index2state(s)) + \
                         self.gamma*max([sum(self.P_a[s, s_dash, a]*self.V[s_dash] \
