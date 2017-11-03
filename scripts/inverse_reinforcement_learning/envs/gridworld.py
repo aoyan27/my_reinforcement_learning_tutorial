@@ -83,6 +83,31 @@ class Gridworld:
 
         return next_state_list, probs
 
+    def get_transition_matrix(self):
+        P = np.zeros((self.n_state, self.n_state, self.n_action), dtype=np.float32)
+        for state_index in xrange(self.n_state):
+            state = self.index2state(state_index)
+            #  print "state : ", state
+            for action_index in xrange(self.n_action):
+                action = self.action_list[action_index]
+                #  print "action : ", action
+
+                next_state_list, probs = self.get_next_state_and_probs(state, action)
+                #  print "next_state_list : ", next_state_list
+                #  print "probs : ", probs
+                for i in xrange(len(probs)):
+                    next_state = next_state_list[i]
+                    #  print "next_state : ", next_state
+                    next_state_index = self.state2index(next_state)
+                    probability = probs[i]
+                    #  print "probability : ", probability
+                    P[state_index, next_state_index, action_index] = probability
+        #  print "P : "
+        #  print P
+        #  print P.shape
+        return P
+
+
     def move(self, state, action):
         x, y = state
         if action == 0:
@@ -128,9 +153,15 @@ class Gridworld:
         vis_policy[self.goal] = 'G'
         print vis_policy
 
+    def terminal(self, state):
+        episode_end = False
+        if state == list(self.goal):
+            episode_end = True
 
-    def reset(self):
-        self.state_ = [0, 0]
+        return episode_end
+
+    def reset(self, start_position=[0,0]):
+        self.state_ = start_position
         return self.state_
 
     def step(self, action, reward_map=None):
@@ -160,12 +191,10 @@ class Gridworld:
             else:
                 reward = 0
         else:
-            reward = reward_map[self.state2index(self.state_)]
+            reward = reward_map[self.state_[1], self.state_[0]]
             #  print "reward : ", reward
 
-        episode_end = False
-        if self.state_ == list(self.goal):
-            episode_end = True
+        episode_end = self.terminal(self.state_)
 
         return self.state_, reward, episode_end, {'probs':probs, 'random_num':random_num}
 
