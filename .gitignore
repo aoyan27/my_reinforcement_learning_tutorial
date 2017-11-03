@@ -9,5 +9,5 @@
 !.gitkeep
 /build/*
 !.gitkeep
-/scripts/deep_q_learning/test_main.py
+/scripts/deep_q_learning/samples
 /scripts/inverse_reinforcement_learning/samples
