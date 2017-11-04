@@ -10,6 +10,13 @@ from mpl_toolkits.mplot3d import Axes3D
 from envs.gridworld import Gridworld
 from agents.value_iteration import ValueIterationAgent
 
+from irl_maxent import MaximumEntropyIRL
+
+def normalize(vals):
+  min_val = np.min(vals)
+  max_val = np.max(vals)
+  return (vals - min_val) / (max_val - min_val)
+
 
 def heatmap_2d(input_array, title):
     plt.imshow(input_array, interpolation="nearest")
@@ -84,8 +91,6 @@ def generate_demonstration(env, policy, reward_map, n_trajs, l_traj, start_posit
             episode_traj["reward"].append(reward)
             episode_traj["done"].append(done)
             
-            if done:
-                break
         #  print "episode_traj : "
         #  print episode_traj
         trajs.append(episode_traj)
@@ -142,8 +147,29 @@ def main(rows, cols, gamma, act_noise, n_trajs, l_traj, lr, n_itrs):
     #  print demo
     
     #################################### ここまで ############################################
-
     
+    ######################### ここからが，逆強化学習のメインの処理 #########################
+    '''
+    デモの各軌道における特徴量は各状態における特徴量の合計としてとらえられるので...
+    今回は，各状態における特徴ベクトルを，
+        要素数が全状態数に等しく，値は{0 or 1}(自身の状態が1になってる)のベクトル，
+    イメージとしては，全状態数が4(s=0, s=1, s=2, S=3)の場合は，
+        f_0 = [1, 0, 0, 0]
+        f_1 = [0, 1, 0, 0]
+        f_2 = [0, 0, 1, 0]
+        f_3 = [0, 0, 0, 1]
+    みたいな感じ...
+    '''
+    feat_map = np.eye(n_states)
+    print "feat_map : "
+    #  print feat_map
+    print feat_map.shape
+    
+    maxent_irl = MaximumEntropyIRL(feat_map, P_a, gamma, demo, lr, n_itrs, gw)
+    reward = maxent_irl.train()
+    reward = normalize(reward)
+    print reward
+
 
     
 
@@ -156,7 +182,7 @@ if __name__=="__main__":
     parser.add_argument('-g', '--gamma', default=0.8, type=float, help='discout factor')
     parser.add_argument('-a', '--act_noise', default=0.0, type=float, 
             help='probability of action noise')
-    parser.add_argument('-t', '--n_trajs', default=100, type=int, help='number fo trajectories')
+    parser.add_argument('-t', '--n_trajs', default=10, type=int, help='number fo trajectories')
     parser.add_argument('-l', '--l_traj', default=20, type=int, help='length fo trajectory')
     parser.add_argument('-lr', '--learning_rate', default=0.01, type=float, help='learning rate')
     parser.add_argument('-ni', '--n_itrs', default=20, type=int, help='number of iterations')
