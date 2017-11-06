@@ -37,18 +37,19 @@ class Gridworld:
     def state2index(self, state):
         #  state[0] : y
         #  state[1] : x
-        return state[1] + self.cols * state[0]
+        #  return state[1] + self.cols * state[0]
+        return state[0] + self.cols * state[1]
 
     def index2state(self, index):
         state = [0, 0]
-        state[1] = index % self.cols
-        state[0] = index / self.cols
+        state[0] = index % self.cols
+        state[1] = index / self.cols
         return state
 
     def get_next_state_and_probs(self, state, action):
         transition_probability = 1 - self.noise
         probs = np.zeros([self.n_action])
-        probs[action] = transition_probability
+        probs[int(action)] = transition_probability
         probs += self.noise / self.n_action
         #  print "probs : "
         #  print probs
@@ -56,6 +57,7 @@ class Gridworld:
 
         for a in xrange(self.n_action):
             if state != list(self.goal):
+                #  print "state : ", state
                 next_state, out_of_range = self.move(state, a)
                 self.out_of_range_ = out_of_range
                 #  print "next_state() : "
@@ -142,16 +144,37 @@ class Gridworld:
             y = self.rows - 1
             out_of_range = True
 
-        return [x, y], out_of_range
+        return [y, x], out_of_range
     
-    def show_policy(self, policy):
+    def show_policy(self, policy, deterministic=True):
         vis_policy = np.array([])
-        for i in xrange(len(policy)):
-            vis_policy = np.append(vis_policy, self.dirs[policy[i]])
-            #  print self.dirs[policy[i]]
-        vis_policy = vis_policy.reshape((self.rows, self.cols))
+        if deterministic:
+            for i in xrange(len(policy)):
+                vis_policy = np.append(vis_policy, self.dirs[policy[i]])
+                #  print self.dirs[policy[i]]
+        else:
+            #  for i in xrange(len(policy)):
+                #  #  print "np.sum(policy[s]) : ", np.sum(policy[i])
+                #  random_num = np.random.rand()
+                #  #  print "random_num : ", random_num
+                #  action_index = 0
+                #  for j in xrange(len(policy[i])):
+                    #  random_num -= policy[i][j]
+                    #  #  print "random_num_ : ", random_num
+                    #  if random_num < 0:
+                        #  action_index = j
+                        #  break
+                #  vis_policy = np.append(vis_policy, self.dirs[action_index])
+                #  #  print self.dirs[action_index]
+                for i in xrange(len(policy)):
+                    vis_policy = np.append(vis_policy, self.dirs[np.argmax(policy[i])])
+
+        vis_policy = vis_policy.reshape((self.rows, self.cols)).transpose()
         vis_policy[self.goal] = 'G'
         print vis_policy
+
+
+
 
     def terminal(self, state):
         episode_end = False
@@ -170,17 +193,17 @@ class Gridworld:
         #  print "probs : ", probs
         random_num = np.random.rand()
         #  print "random_num : ", random_num
-        action_index = 0
+        index = 0
         for i in xrange(len(probs)):
             random_num -= probs[i]
             #  print "random_num_ : ", random_num
             if random_num < 0:
-                action_index = i
+                index = i
                 break
-        #  print "action_index : ", action_index
-        #  print "next_state : ", next_state_list[action_index]
+        #  print "index : ", index
+        #  print "next_state : ", next_state_list[index]
 
-        self.state_ = next_state_list[action_index]
+        self.state_ = next_state_list[index]
         #  self.state_, _ = self.move(self.state_, action)
         
 
@@ -191,7 +214,7 @@ class Gridworld:
             else:
                 reward = 0
         else:
-            reward = reward_map[self.state_[1], self.state_[0]]
+            reward = reward_map[self.state2index(self.state_)]
             #  print "reward : ", reward
 
         episode_end = self.terminal(self.state_)
