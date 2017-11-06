@@ -65,11 +65,12 @@ def heatmap_3d(input_array, title=''):
     plt.show()
 
 
-def generate_demonstration(env, policy, reward_map, n_trajs, l_traj, start_position=[0,0]):
+def generate_demonstration(env, policy, reward_map, n_trajs, l_traj, \
+        start_position=[0,0], rand_start=False):
     trajs = []
     for i in xrange(n_trajs):
-        #  start_position = [np.random.randint(0, env.rows), np.random.randint(0, env.cols)]
-        #  start_position = [4, 4]
+        if rand_start:
+            start_position = [np.random.randint(0, env.rows), np.random.randint(0, env.cols)]
 
         episode_traj = {"state":[], "action":[], "next_state":[], "reward":[], "done":[]}
         env.reset(start_position)
@@ -111,8 +112,9 @@ def main(rows, cols, gamma, act_noise, n_trajs, l_traj, lr, n_itrs):
     '''
     reward_map_gt = np.zeros([rows, cols])
     reward_map_gt[rows-1, cols-1] = r_max
+    reward_map_gt = np.reshape(reward_map_gt, n_states)
     print "reward_map_gt : "
-    print reward_map_gt
+    print reward_map_gt.reshape([rows, cols]).transpose()
     #  heatmap_2d(reward_map_gt, 'Reward Map(Ground truth)')
     #  heatmap_3d(reward_map_gt, 'Reward Map(Ground truth)')
 
@@ -129,12 +131,12 @@ def main(rows, cols, gamma, act_noise, n_trajs, l_traj, lr, n_itrs):
     vi_agent = ValueIterationAgent(gw, P_a, gamma)
     vi_agent.train(reward_map_gt)
     print "V : "
-    print vi_agent.V.reshape([5,5])
+    print vi_agent.V.reshape([rows, cols]).transpose()
     #  heatmap_2d(vi_agent.V.reshape([5,5]), 'State value(Ground truth)')
     #  heatmap_3d(vi_agent.V.reshape([5,5]), 'State value(Ground truth)')
     vi_agent.get_policy(reward_map_gt)
     print "policy : "
-    print vi_agent.policy
+    print vi_agent.policy.reshape([rows, cols]).transpose()
     #  print vi_agent.policy.reshape(-1)
     gw.show_policy(vi_agent.policy.reshape(-1))
 
@@ -143,33 +145,58 @@ def main(rows, cols, gamma, act_noise, n_trajs, l_traj, lr, n_itrs):
     '''
     np.random.seed(1)
     demo = generate_demonstration(gw, vi_agent.policy, reward_map_gt, n_trajs, l_traj)
-    print "demo : "
-    print demo
+    #  demo = generate_demonstration(gw, vi_agent.policy, reward_map_gt, n_trajs, l_traj, rand_start=True)
+    #  print "demo : "
+    #  print demo
+
+    #  count = 0
+    #  for traj in demo:
+        #  print "count : "
+        #  print count
+        #  print "traj : "
+        #  print traj
+        #  count += 1
     
     #################################### ここまで ############################################
     
-    #  ######################### ここからが，逆強化学習のメインの処理 #########################
-    #  '''
-    #  デモの各軌道における特徴量は各状態における特徴量の合計としてとらえられるので...
-    #  今回は，各状態における特徴ベクトルを，
-        #  要素数が全状態数に等しく，値は{0 or 1}(自身の状態が1になってる)のベクトル，
-    #  イメージとしては，全状態数が4(s=0, s=1, s=2, S=3)の場合は，
-        #  f_0 = [1, 0, 0, 0]
-        #  f_1 = [0, 1, 0, 0]
-        #  f_2 = [0, 0, 1, 0]
-        #  f_3 = [0, 0, 0, 1]
-    #  みたいな感じ...
-    #  '''
-    #  feat_map = np.eye(n_states)
-    #  print "feat_map : "
-    #  #  print feat_map
-    #  print feat_map.shape
+    ######################### ここからが，逆強化学習のメインの処理 #########################
+    '''
+    デモの各軌道における特徴量は各状態における特徴量の合計としてとらえられるので...
+    今回は，各状態における特徴ベクトルを，
+        要素数が全状態数に等しく，値は{0 or 1}(自身の状態が1になってる)のベクトル，
+    イメージとしては，全状態数が4(s=0, s=1, s=2, S=3)の場合は，
+        f_0 = [1, 0, 0, 0]
+        f_1 = [0, 1, 0, 0]
+        f_2 = [0, 0, 1, 0]
+        f_3 = [0, 0, 0, 1]
+    みたいな感じ...
+    '''
+    feat_map = np.eye(n_states)
+    print "feat_map : "
+    #  print feat_map
+    print feat_map.shape
     
-    #  maxent_irl = MaximumEntropyIRL(feat_map, P_a, gamma, demo, lr, n_itrs, gw)
-    #  reward = maxent_irl.train()
-    #  reward = normalize(reward)
-    #  print reward
+    maxent_irl = MaximumEntropyIRL(feat_map, P_a, gamma, demo, lr, n_itrs, gw)
+    reward = maxent_irl.train()
+    reward = normalize(reward)
+    print "reward : "
+    print reward.reshape([rows, cols]).transpose()
 
+    ########################### ここまで ############################
+    
+    ################ ここからは，ヴィジュアライズのための処理 #######################
+    
+    agent = ValueIterationAgent(gw, P_a, gamma)
+    agent.train(reward)
+    print "V : "
+    print agent.V.reshape([rows, cols]).transpose()
+    #  heatmap_2d(vi_agent.V.reshape([5,5]), 'State value(Ground truth)')
+    #  heatmap_3d(vi_agent.V.reshape([5,5]), 'State value(Ground truth)')
+    agent.get_policy(reward)
+    print "policy : "
+    print agent.policy.reshape([rows, cols]).transpose()
+    #  print vi_agent.policy.reshape(-1)
+    gw.show_policy(agent.policy.reshape(-1))
 
     
 
@@ -182,8 +209,8 @@ if __name__=="__main__":
     parser.add_argument('-g', '--gamma', default=0.8, type=float, help='discout factor')
     parser.add_argument('-a', '--act_noise', default=0.0, type=float, 
             help='probability of action noise')
-    parser.add_argument('-t', '--n_trajs', default=10, type=int, help='number fo trajectories')
-    parser.add_argument('-l', '--l_traj', default=20, type=int, help='length fo trajectory')
+    parser.add_argument('-t', '--n_trajs', default=100, type=int, help='number fo trajectories')
+    parser.add_argument('-l', '--l_traj', default=50, type=int, help='length fo trajectory')
     parser.add_argument('-lr', '--learning_rate', default=0.01, type=float, help='learning rate')
     parser.add_argument('-ni', '--n_itrs', default=20, type=int, help='number of iterations')
 

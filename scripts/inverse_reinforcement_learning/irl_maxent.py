@@ -62,7 +62,7 @@ class MaximumEntropyIRL:
 
         return expart_feature
     
-    def state_visitation_frequencies(self, policy):
+    def state_visitation_frequencies(self, policy, deterministic=True):
         '''
         状態訪問回数を計算する(dynamic programingで...)
         '''
@@ -82,10 +82,12 @@ class MaximumEntropyIRL:
 
         for s in xrange(n_state):
             for t in xrange(T-1):
-                mu[s, t+1] = sum([mu[pre_s, t]*self.P_a[pre_s, s, 
-                        policy[self.env.index2state(pre_s)[1], self.env.index2state(pre_s)[0]]] \
-                        for pre_s in xrange(n_state)])
-# エージェントがt-1秒の時の状態に至る確率とその状態からある行動による状態遷移確率の積で, 次の状態へ至る確率が計算できる(行動の選択は，逆強化学習によって得られた報酬マップを利用して価値反復によって学習した方策にしたがう)
+                if deterministic:
+                    mu[s, t+1] = sum([mu[pre_s, t]*self.P_a[pre_s, s, int(policy[pre_s])] \
+                            for pre_s in xrange(n_state)])    # エージェントがt-1秒の時の状態に至る確率とその状態からある行動による状態遷移確率の積で, 次の状態へ至る確率が計算できる(行動の選択は，逆強化学習によって得られた報酬マップを利用して価値反復によって学習した方策にしたがう)
+                else:
+                    mu[s, t+1] = sum([sum([mu[pre_s, t]*self.P_a[pre_s, s, a1]*policy[pre_s, a1] \
+                            for a1 in xrange(n_action)]) for pre_s in xrange(n_state)])
         p = np.sum(mu, 1)
         return p
 
@@ -106,11 +108,12 @@ class MaximumEntropyIRL:
         expart_feat = self.get_expart_feature()
         print "expart_feat : "
         print expart_feat
+        #  print np.sum(expart_feat)
 
         
-        '''
-        学習行程
-        '''
+        #  '''
+        #  学習行程
+        #  '''
         for itr in xrange(self.n_itrs):
             print 'iteration : {} / {}'.format(itr, self.n_itrs)
             
@@ -120,8 +123,7 @@ class MaximumEntropyIRL:
             reward = np.zeros(self.feat_map.shape[1])
             for i in xrange(len(self.feat_map)):
                 reward += self.feat_map[i] * theta
-            reward = reward.reshape([self.env.rows, self.env.cols])
-            print reward
+            #  print reward
 
             '''
             推定した報酬関数を基に価値反復で方策を計算
@@ -130,20 +132,22 @@ class MaximumEntropyIRL:
             agent.train(reward)
             #  print "V : "
             #  print agent.V.reshape([self.env.rows, self.env.cols])
-            agent.get_policy(reward)
+            #  agent.get_policy(reward)
+            agent.get_policy(reward, deterministic=False)
             #  print "policy : "
             #  print agent.policy
             #  self.env.show_policy(agent.policy.reshape(-1))
             _, policy = agent.V, agent.policy
-            print policy
+            #  print policy.reshape([self.env.rows, self.env.cols])
             
             '''
             期待状態訪問回数(expected state visitation frequencies)を計算する
                 (dynamic programingで計算する)
             '''
-            svf = self.state_visitation_frequencies(policy)
-            print "state visitation frequebceis : "
-            print svf
+            #  svf = self.state_visitation_frequencies(policy)
+            svf = self.state_visitation_frequencies(policy, deterministic=False)
+            #  print "state visitation frequebceis : "
+            #  print svf
 
             '''
             勾配の計算
@@ -151,24 +155,23 @@ class MaximumEntropyIRL:
             expected_feat = np.zeros(self.feat_map.shape[1])
             for i in xrange(len(self.feat_map)):
                 expected_feat += self.feat_map[i] * svf
-            print "expected_feat : "
-            print expected_feat
+            #  print "expected_feat : "
+            #  print expected_feat
             
             grad = expart_feat - expected_feat
-            print "grad : "
-            print grad
+            #  print "grad : "
+            #  print grad
 
             '''
             パラメータΘの更新
             '''
             theta += self.lr * grad
-            print "theta : "
-            print theta
+            #  print "theta : "
+            #  print theta
 
         reward_final = np.zeros(self.feat_map.shape[1])
         for i in xrange(len(self.feat_map)):
             reward_final += self.feat_map[i] * theta
-        reward_final = reward_final.reshape([self.env.rows, self.env.cols])
         #  print reward_final
         return reward_final
 
