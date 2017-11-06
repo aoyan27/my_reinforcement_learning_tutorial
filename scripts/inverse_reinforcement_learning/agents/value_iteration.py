@@ -56,14 +56,16 @@ class ValueIterationAgent:
                     for a in xrange(self.env.n_action)])
             self.policy.append(opt_action)
 
-        self.policy = \
-                np.transpose(np.asarray(self.policy).reshape((self.env.rows, self.env.cols)))
+        self.policy = np.asarray(self.policy)
         #  print "self.policy : "
         #  print self.policy
 
 
 if __name__=="__main__":
-    from gridworld import Gridworld
+    import sys
+    sys.path.append('../')
+    from envs.gridworld import Gridworld
+    
 
     rows = 5
     cols = 5
@@ -72,19 +74,26 @@ if __name__=="__main__":
     noise = 0.3
 
     env = Gridworld(rows, cols, R_max, noise)
-    
+    P_a = env.get_transition_matrix()
+    print P_a
+
     gamma = 0.5
 
-    agent = ValueIterationAgent(env, gamma)
+    reward_map = np.zeros([rows, cols])
+    reward_map[rows-1, cols-1] = R_max
+
+    agent = ValueIterationAgent(env, P_a, gamma)
     print "agent.n_state : ", agent.env.n_state
-    print "agent.V : "
-    print agent.V
     #  print "agent.V[0][0] : "
     #  print agent.V[0][0]
 
-    agent.train()
+    agent.train(reward_map)
+    print "agent.V : "
+    print agent.V.reshape([rows, cols])
 
-    agent.get_policy()
+    agent.get_policy(reward_map)
+    print "agent.policy : "
+    print agent.policy.reshape([rows, cols])
 
     env.show_policy(agent.policy.reshape(-1))
 

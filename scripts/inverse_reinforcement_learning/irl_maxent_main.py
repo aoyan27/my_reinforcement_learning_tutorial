@@ -68,7 +68,7 @@ def heatmap_3d(input_array, title=''):
 def generate_demonstration(env, policy, reward_map, n_trajs, l_traj, start_position=[0,0]):
     trajs = []
     for i in xrange(n_trajs):
-        start_position = [np.random.randint(0, env.rows), np.random.randint(0, env.cols)]
+        #  start_position = [np.random.randint(0, env.rows), np.random.randint(0, env.cols)]
         #  start_position = [4, 4]
 
         episode_traj = {"state":[], "action":[], "next_state":[], "reward":[], "done":[]}
@@ -80,7 +80,7 @@ def generate_demonstration(env, policy, reward_map, n_trajs, l_traj, start_posit
             state = observation
             episode_traj["state"].append(state)
             #  print "state : ", state
-            action = policy[state[1], state[0]]
+            action = policy[env.state2index(state)]
             episode_traj["action"].append(action)
             #  print "action : ", action
             observation, reward, done, _ = env.step(action, reward_map)
@@ -143,32 +143,32 @@ def main(rows, cols, gamma, act_noise, n_trajs, l_traj, lr, n_itrs):
     '''
     np.random.seed(1)
     demo = generate_demonstration(gw, vi_agent.policy, reward_map_gt, n_trajs, l_traj)
-    #  print "demo : "
-    #  print demo
+    print "demo : "
+    print demo
     
     #################################### ここまで ############################################
     
-    ######################### ここからが，逆強化学習のメインの処理 #########################
-    '''
-    デモの各軌道における特徴量は各状態における特徴量の合計としてとらえられるので...
-    今回は，各状態における特徴ベクトルを，
-        要素数が全状態数に等しく，値は{0 or 1}(自身の状態が1になってる)のベクトル，
-    イメージとしては，全状態数が4(s=0, s=1, s=2, S=3)の場合は，
-        f_0 = [1, 0, 0, 0]
-        f_1 = [0, 1, 0, 0]
-        f_2 = [0, 0, 1, 0]
-        f_3 = [0, 0, 0, 1]
-    みたいな感じ...
-    '''
-    feat_map = np.eye(n_states)
-    print "feat_map : "
-    #  print feat_map
-    print feat_map.shape
+    #  ######################### ここからが，逆強化学習のメインの処理 #########################
+    #  '''
+    #  デモの各軌道における特徴量は各状態における特徴量の合計としてとらえられるので...
+    #  今回は，各状態における特徴ベクトルを，
+        #  要素数が全状態数に等しく，値は{0 or 1}(自身の状態が1になってる)のベクトル，
+    #  イメージとしては，全状態数が4(s=0, s=1, s=2, S=3)の場合は，
+        #  f_0 = [1, 0, 0, 0]
+        #  f_1 = [0, 1, 0, 0]
+        #  f_2 = [0, 0, 1, 0]
+        #  f_3 = [0, 0, 0, 1]
+    #  みたいな感じ...
+    #  '''
+    #  feat_map = np.eye(n_states)
+    #  print "feat_map : "
+    #  #  print feat_map
+    #  print feat_map.shape
     
-    maxent_irl = MaximumEntropyIRL(feat_map, P_a, gamma, demo, lr, n_itrs, gw)
-    reward = maxent_irl.train()
-    reward = normalize(reward)
-    print reward
+    #  maxent_irl = MaximumEntropyIRL(feat_map, P_a, gamma, demo, lr, n_itrs, gw)
+    #  reward = maxent_irl.train()
+    #  reward = normalize(reward)
+    #  print reward
 
 
     

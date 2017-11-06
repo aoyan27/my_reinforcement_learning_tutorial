@@ -35,8 +35,8 @@ class Gridworld:
         self.out_of_range_ = None
 
     def state2index(self, state):
-        #  state[0] : x
-        #  state[1] : y
+        #  state[0] : y
+        #  state[1] : x
         return state[1] + self.cols * state[0]
 
     def index2state(self, index):
@@ -109,7 +109,7 @@ class Gridworld:
 
 
     def move(self, state, action):
-        x, y = state
+        y, x = state
         if action == 0:
             #  right
             x = x + 1
@@ -214,9 +214,11 @@ if __name__=="__main__":
     max_episode = 1000
     max_step = 200
 
-    reward_map = np.load('./reward_map.npy')
-    print "reward_map : "
-    print  reward_map
+    #  reward_map = np.load('./reward_map.npy')
+    #  print "reward_map : "
+    #  print  reward_map
+    reward_map = np.zeros([rows, cols])
+    reward_map[rows-1, cols-1] = R_max
 
     for i in xrange(max_episode):
         print "================================================="
