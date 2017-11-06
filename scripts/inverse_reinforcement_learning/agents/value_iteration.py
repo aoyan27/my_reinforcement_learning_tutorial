@@ -115,8 +115,6 @@ if __name__=="__main__":
 
     agent = ValueIterationAgent(env, P_a, gamma)
     print "agent.n_state : ", agent.env.n_state
-    #  print "agent.V[0][0] : "
-    #  print agent.V[0][0]
 
     agent.train(reward_map)
     print "agent.V : "
