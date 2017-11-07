@@ -112,11 +112,11 @@ def main(rows, cols, gamma, act_noise, n_trajs, l_traj, lr, n_itrs):
     '''
     reward_map_gt = np.zeros([rows, cols])
     reward_map_gt[rows-1, cols-1] = r_max
-    reward_map_gt = np.reshape(reward_map_gt, n_states)
-    print "reward_map_gt : "
-    print reward_map_gt.reshape([rows, cols]).transpose()
-    #  heatmap_2d(reward_map_gt, 'Reward Map(Ground truth)')
-    #  heatmap_3d(reward_map_gt, 'Reward Map(Ground truth)')
+    reward_gt = np.reshape(reward_map_gt, n_states)
+    print "reward_gt : "
+    print reward_gt.reshape([rows, cols]).transpose()
+    heatmap_2d(reward_gt.reshape([rows, cols]).transpose(), 'Reward Map(Ground truth)')
+    heatmap_3d(reward_gt.reshape([rows, cols]).transpose(), '3D Reward Map(Ground truth)')
 
     
     '''
@@ -129,12 +129,12 @@ def main(rows, cols, gamma, act_noise, n_trajs, l_traj, lr, n_itrs):
     Value Iteration(state value)で価値関数と方策を算出
     '''
     vi_agent = ValueIterationAgent(gw, P_a, gamma)
-    vi_agent.train(reward_map_gt)
+    vi_agent.train(reward_gt)
     print "V : "
     print vi_agent.V.reshape([rows, cols]).transpose()
-    #  heatmap_2d(vi_agent.V.reshape([5,5]), 'State value(Ground truth)')
-    #  heatmap_3d(vi_agent.V.reshape([5,5]), 'State value(Ground truth)')
-    vi_agent.get_policy(reward_map_gt)
+    heatmap_2d(vi_agent.V.reshape([rows, cols]).transpose(), 'State value(Ground truth)')
+    heatmap_3d(vi_agent.V.reshape([rows, cols]).transpose(), '3D State value(Ground truth)')
+    vi_agent.get_policy(reward_gt)
     print "policy : "
     print vi_agent.policy.reshape([rows, cols]).transpose()
     #  print vi_agent.policy.reshape(-1)
@@ -144,8 +144,8 @@ def main(rows, cols, gamma, act_noise, n_trajs, l_traj, lr, n_itrs):
     Value iterationより得られた方策をエキスパートとしてスタートランダムで，デモを作成
     '''
     np.random.seed(1)
-    demo = generate_demonstration(gw, vi_agent.policy, reward_map_gt, n_trajs, l_traj)
-    #  demo = generate_demonstration(gw, vi_agent.policy, reward_map_gt, n_trajs, l_traj, rand_start=True)
+    demo = generate_demonstration(gw, vi_agent.policy, reward_gt, n_trajs, l_traj)
+    #  demo = generate_demonstration(gw, vi_agent.policy, reward_gt, n_trajs, l_traj, rand_start=True)
     #  print "demo : "
     #  print demo
 
@@ -181,6 +181,8 @@ def main(rows, cols, gamma, act_noise, n_trajs, l_traj, lr, n_itrs):
     reward = normalize(reward)
     print "reward : "
     print reward.reshape([rows, cols]).transpose()
+    heatmap_2d(reward.reshape([rows, cols]).transpose(), 'Reward Map')
+    heatmap_3d(reward.reshape([rows, cols]).transpose(), '3D Reward Map')
 
     ########################### ここまで ############################
     
@@ -190,8 +192,8 @@ def main(rows, cols, gamma, act_noise, n_trajs, l_traj, lr, n_itrs):
     agent.train(reward)
     print "V : "
     print agent.V.reshape([rows, cols]).transpose()
-    #  heatmap_2d(vi_agent.V.reshape([5,5]), 'State value(Ground truth)')
-    #  heatmap_3d(vi_agent.V.reshape([5,5]), 'State value(Ground truth)')
+    heatmap_2d(agent.V.reshape([rows, cols]).transpose(), 'State value')
+    heatmap_3d(agent.V.reshape([rows, cols]).transpose(), '3D State value')
     agent.get_policy(reward)
     print "policy : "
     print agent.policy.reshape([rows, cols]).transpose()
