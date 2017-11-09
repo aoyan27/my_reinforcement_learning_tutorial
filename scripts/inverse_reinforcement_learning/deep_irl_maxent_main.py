@@ -155,7 +155,26 @@ def main(rows, cols, gamma, act_noise, n_trajs, l_traj, learning_rate, n_itrs):
     #  print feat_map
 
     deep_maxent_irl = DeepMaximumEntropyIRL(feat_map, P_a, gamma, demo, learning_rate, n_itrs, gw)
-    deep_maxent_irl.train()
+    reward = deep_maxent_irl.train()
+    reward = normalize(reward)
+    print "reward : "
+    print reward.reshape([rows, cols]).transpose()
+    heatmap_2d(reward.reshape([rows, cols]).transpose(), 'Reward Map')
+    heatmap_3d(reward.reshape([rows, cols]).transpose(), '3D Reward Map')
+
+    ################ ここからは，ヴィジュアライズのための処理 #######################
+    
+    agent = ValueIterationAgent(gw, P_a, gamma)
+    agent.train(reward)
+    print "V : "
+    print agent.V.reshape([rows, cols]).transpose()
+    heatmap_2d(agent.V.reshape([rows, cols]).transpose(), 'State value')
+    heatmap_3d(agent.V.reshape([rows, cols]).transpose(), '3D State value')
+    agent.get_policy(reward)
+    print "policy : "
+    print agent.policy.reshape([rows, cols]).transpose()
+    #  print vi_agent.policy.reshape(-1)
+    gw.show_policy(agent.policy.reshape(-1))
 
 
 

@@ -14,6 +14,13 @@ import copy
 
 from agents.value_iteration import ValueIterationAgent
 
+
+def normalize(vals):
+  min_val = np.min(vals)
+  max_val = np.max(vals)
+  return (vals - min_val) / (max_val - min_val)
+
+
 class DeepIRLNetwork(Chain):
     def __init__(self, n_in, n_out):
         super(DeepIRLNetwork, self).__init__(
@@ -43,15 +50,36 @@ class DeepMaximumEntropyIRL:
         self.optimizer = optimizers.SGD(self.lr)
         
         self.optimizer.setup(self.model)
-    
+        self.optimizer.add_hook(chainer.optimizer.WeightDecay(1e-4))
+        self.optimizer.add_hook(chainer.optimizer.GradientClipping(100.0))
+
+
+    def apply_grad(self, r, grad_r):
+        self.model.zerograds()
+        print "r : "
+        print r
+        print "grad_r_ : "
+        print grad_r
+        #  print "grad_r_ * r : "
+        #  print grad_r * r
+        print "r.grad : "
+        print r.grad
+        r.grad = -grad_r.reshape([self.feat_map.shape[0], 1]).astype(np.float32)
+        #  loss = F.sum(-grad_r * r)
+        #  print "loss.data : "
+        #  print loss.data
+        r.backward()
+        self.optimizer.update()
+
+
     def get_reward(self):
         features = Variable(np.asarray(self.feat_map, dtype=np.float32))
         #  print "features.data : "
         #  print features.data
         reward = self.model(features)
-        #  print "rewards__ : "
-        #  print rewards
-        reward = reward.data.reshape(-1)
+        print "reward__ : "
+        print reward
+        #  reward = reward.data.reshape(-1)
         return reward
 
     def expart_state_visitation_frequencies(self):
@@ -119,7 +147,8 @@ class DeepMaximumEntropyIRL:
             '''
             現在のネットワークモデルに基づいて、報酬を計算...
             '''
-            reward = self.get_reward()
+            reward_ = self.get_reward()
+            reward = reward_.data.reshape(-1)
             print "reward : "
             print reward
 
@@ -130,8 +159,8 @@ class DeepMaximumEntropyIRL:
             agent.train(reward)
             print "V : "
             print agent.V.reshape([self.env.rows, self.env.cols])
-            agent.get_policy(reward)
-            #  agent.get_policy(reward, deterministic=False)
+            #  agent.get_policy(reward)
+            agent.get_policy(reward, deterministic=False)
             print "policy : "
             print agent.policy
             #  self.env.show_policy(agent.policy.reshape(-1))
@@ -142,8 +171,8 @@ class DeepMaximumEntropyIRL:
             期待状態訪問回数(expected state visitation frequencies)を計算する
                 (dynamic programingで計算する)
             '''
-            mu_exp = self.expected_state_visitation_frequencies(policy)
-            #  mu_exp = self.expected_state_visitation_frequencies(policy, deterministic=False)
+            #  mu_exp = self.expected_state_visitation_frequencies(policy)
+            mu_exp = self.expected_state_visitation_frequencies(policy, deterministic=False)
             print "mu_exp : "
             print mu_exp
 
@@ -153,3 +182,11 @@ class DeepMaximumEntropyIRL:
             grad_r = mu_D - mu_exp
             print "grad_r : "
             print grad_r
+
+            self.apply_grad(reward_, grad_r)
+
+        #  reward_final = normalize(self.get_reward().data.reshape(-1))
+        reward_final = self.get_reward().data.reshape(-1)
+        print "reward_final : "
+        print reward_final.reshape([self.env.rows, self.env.cols]).transpose()
+        return reward_final
