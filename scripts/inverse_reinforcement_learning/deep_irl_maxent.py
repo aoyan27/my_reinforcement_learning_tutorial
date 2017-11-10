@@ -56,18 +56,13 @@ class DeepMaximumEntropyIRL:
 
     def apply_grad(self, r, grad_r):
         self.model.zerograds()
-        print "r : "
-        print r
-        print "grad_r_ : "
-        print grad_r
-        #  print "grad_r_ * r : "
-        #  print grad_r * r
-        print "r.grad : "
-        print r.grad
+        #  print "r : "
+        #  print r
+        #  print "grad_r_ : "
+        #  print grad_r
         r.grad = -grad_r.reshape([self.feat_map.shape[0], 1]).astype(np.float32)
-        #  loss = F.sum(-grad_r * r)
-        #  print "loss.data : "
-        #  print loss.data
+        #  print "r.grad : "
+        #  print r.grad
         r.backward()
         self.optimizer.update()
 
@@ -77,8 +72,8 @@ class DeepMaximumEntropyIRL:
         #  print "features.data : "
         #  print features.data
         reward = self.model(features)
-        print "reward__ : "
-        print reward
+        #  print "reward__ : "
+        #  print reward
         #  reward = reward.data.reshape(-1)
         return reward
 
@@ -134,8 +129,8 @@ class DeepMaximumEntropyIRL:
         エキスパートのデモでの状態訪問回数を算出
         '''
         mu_D = self.expart_state_visitation_frequencies()
-        print "mu_D : "
-        print mu_D
+        #  print "mu_D : "
+        #  print mu_D
 
         '''
         学習行程
@@ -149,20 +144,20 @@ class DeepMaximumEntropyIRL:
             '''
             reward_ = self.get_reward()
             reward = reward_.data.reshape(-1)
-            print "reward : "
-            print reward
+            #  print "reward : "
+            #  print reward
 
             '''
             推定された報酬を基に価値反復で方策を計算...
             '''
             agent = ValueIterationAgent(self.env, self.P_a, self.gamma)
             agent.train(reward)
-            print "V : "
-            print agent.V.reshape([self.env.rows, self.env.cols])
+            #  print "V : "
+            #  print agent.V.reshape([self.env.rows, self.env.cols])
             #  agent.get_policy(reward)
             agent.get_policy(reward, deterministic=False)
-            print "policy : "
-            print agent.policy
+            #  print "policy : "
+            #  print agent.policy
             #  self.env.show_policy(agent.policy.reshape(-1))
             _, policy = agent.V, agent.policy
             #  print policy.reshape([self.env.rows, self.env.cols])
@@ -173,15 +168,15 @@ class DeepMaximumEntropyIRL:
             '''
             #  mu_exp = self.expected_state_visitation_frequencies(policy)
             mu_exp = self.expected_state_visitation_frequencies(policy, deterministic=False)
-            print "mu_exp : "
-            print mu_exp
+            #  print "mu_exp : "
+            #  print mu_exp
 
             '''
             勾配の計算
             '''
             grad_r = mu_D - mu_exp
-            print "grad_r : "
-            print grad_r
+            #  print "grad_r : "
+            #  print grad_r
 
             self.apply_grad(reward_, grad_r)
 

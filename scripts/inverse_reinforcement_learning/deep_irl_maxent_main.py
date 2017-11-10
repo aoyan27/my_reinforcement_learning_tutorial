@@ -107,6 +107,8 @@ def main(rows, cols, gamma, act_noise, n_trajs, l_traj, learning_rate, n_itrs):
 
     reward_map_gt = np.zeros([rows, cols])
     reward_map_gt[rows-1, cols-1] = r_max
+    #  reward_map_gt[rows-1, 0] = r_max
+    #  reward_map_gt[0, cols-1] = r_max
     
     reward_gt = np.reshape(reward_map_gt, n_state)
     print "reward_gt : "
@@ -134,8 +136,8 @@ def main(rows, cols, gamma, act_noise, n_trajs, l_traj, learning_rate, n_itrs):
 
 
     np.random.seed(1)
-    demo = generate_demonstration(gw, vi_agent.policy, reward_gt, n_trajs, l_traj)
-    #  demo = generate_demonstration(gw, vi_agent.policy, reward_gt, n_trajs, l_traj, rand_start=True)
+    #  demo = generate_demonstration(gw, vi_agent.policy, reward_gt, n_trajs, l_traj)
+    demo = generate_demonstration(gw, vi_agent.policy, reward_gt, n_trajs, l_traj, rand_start=True)
     #  print "demo : "
     #  print demo
 
@@ -185,10 +187,10 @@ if __name__ == "__main__":
     parser.add_argument('-r', '--rows', default=5, type=int, help='row of gridworld')
     parser.add_argument('-c', '--cols', default=5, type=int, help='column of gridworld')
     parser.add_argument('-g', '--gamma', default=0.8, type=float, help='discout factor')
-    parser.add_argument('-a', '--act_noise', default=0.0, type=float, 
+    parser.add_argument('-a', '--act_noise', default=0.3, type=float, 
             help='probability of action noise')
-    parser.add_argument('-t', '--n_trajs', default=100, type=int, help='number fo trajectories')
-    parser.add_argument('-l', '--l_traj', default=50, type=int, help='length fo trajectory')
+    parser.add_argument('-t', '--n_trajs', default=200, type=int, help='number fo trajectories')
+    parser.add_argument('-l', '--l_traj', default=20, type=int, help='length fo trajectory')
     parser.add_argument('-lr', '--learning_rate', default=0.01, type=float, help='learning rate')
     parser.add_argument('-ni', '--n_itrs', default=20, type=int, help='number of iterations')
 
