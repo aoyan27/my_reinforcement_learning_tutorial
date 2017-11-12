@@ -63,8 +63,8 @@ class DeepMaximumEntropyIRL:
         self.optimizer.update()
 
 
-    def get_reward(self):
-        features = Variable(np.asarray(self.feat_map, dtype=np.float32))
+    def get_reward(self, feature):
+        features = Variable(np.asarray(feature, dtype=np.float32))
         #  print "features.data : "
         #  print features.data
         reward = self.model(features)
@@ -145,10 +145,22 @@ class DeepMaximumEntropyIRL:
             '''
             現在のネットワークモデルに基づいて、報酬を計算...
             '''
-            reward_ = self.get_reward()
+            reward_ = self.get_reward(self.feat_map)
             reward = reward_.data.reshape(-1)
             print "reward : "
             print reward
+
+            #  reward = np.zeros([self.feat_map.shape[0]])
+            #  #  print "rewards : "
+            #  #  print rewards
+            #  for s in xrange(self.env.n_state):
+                #  #  print "s : ", s
+                #  reward_ = self.get_reward(np.array([self.feat_map[s]]))
+                #  print "reward_ : "
+                #  print reward_
+                #  reward[s] = reward_.data[0]
+            #  print "reward : "
+            #  print reward
 
             '''
             推定された報酬を基に価値反復で方策を計算...
@@ -183,9 +195,21 @@ class DeepMaximumEntropyIRL:
 
             self.apply_grad(reward_, grad_r)
 
-        reward_final = self.get_reward().data.reshape(-1)
+        reward_final = self.get_reward(self.feat_map).data.reshape(-1)
+        print "reward_final : "
+        print reward_final.reshape([self.env.rows, self.env.cols]).transpose()
+        #  reward_final = np.zeros([self.feat_map.shape[0]])
+        #  #  print "reward_final : "
+        #  #  print reward_final
+        #  for s in xrange(self.env.n_state):
+            #  #  print "s : ", s
+            #  reward_ = self.get_reward(np.array([self.feat_map[s]]))
+            #  #  print "reward_ : "
+            #  #  print reward_
+            #  reward_final[s] = reward_[0]
         #  print "reward_final : "
-        #  print reward_final.reshape([self.env.rows, self.env.cols]).transpose()
+        #  print reward_final
+
         return reward_final
 
     def save_model(self, dirs):
