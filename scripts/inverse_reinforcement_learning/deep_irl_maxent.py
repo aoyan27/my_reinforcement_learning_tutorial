@@ -15,12 +15,6 @@ import copy
 from agents.value_iteration import ValueIterationAgent
 
 
-def normalize(vals):
-  min_val = np.min(vals)
-  max_val = np.max(vals)
-  return (vals - min_val) / (max_val - min_val)
-
-
 class DeepIRLNetwork(Chain):
     def __init__(self, n_in, n_out):
         super(DeepIRLNetwork, self).__init__(
@@ -180,8 +174,7 @@ class DeepMaximumEntropyIRL:
 
             self.apply_grad(reward_, grad_r)
 
-        #  reward_final = normalize(self.get_reward().data.reshape(-1))
         reward_final = self.get_reward().data.reshape(-1)
-        print "reward_final : "
-        print reward_final.reshape([self.env.rows, self.env.cols]).transpose()
+        #  print "reward_final : "
+        #  print reward_final.reshape([self.env.rows, self.env.cols]).transpose()
         return reward_final
