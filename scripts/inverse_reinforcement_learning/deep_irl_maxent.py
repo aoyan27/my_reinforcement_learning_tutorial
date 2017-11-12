@@ -187,3 +187,11 @@ class DeepMaximumEntropyIRL:
         #  print "reward_final : "
         #  print reward_final.reshape([self.env.rows, self.env.cols]).transpose()
         return reward_final
+
+    def save_model(self, dirs):
+        print "Now Saving model to ", dirs
+        serializers.save_npz(dirs, self.model)
+
+    def load_model(self, dirs):
+        print "Now Loading model from ", dirs
+        seriazliers.load_npz(dirs, self.model)

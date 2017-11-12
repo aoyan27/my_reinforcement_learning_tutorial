@@ -268,6 +268,10 @@ def main(rows, cols, gamma, act_noise, n_trajs, l_traj, learning_rate, n_itrs):
     print reward.reshape([rows, cols]).transpose()
     heatmap_2d(reward.reshape([rows, cols]).transpose(), 'Reward Map')
     heatmap_3d(reward.reshape([rows, cols]).transpose(), '3D Reward Map')
+    
+    dirs = "/home/amsl//my_reinforcement_learning_tutorial/scripts/inverse_reinforcement_learning/models/"
+    model_name = "deep_irl.model"
+    deep_maxent_irl.save_model(dirs+model_name)
 
     ################ ここからは，ヴィジュアライズのための処理 #######################
     
