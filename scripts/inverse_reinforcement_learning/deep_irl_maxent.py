@@ -18,9 +18,9 @@ from agents.value_iteration import ValueIterationAgent
 class DeepIRLNetwork(Chain):
     def __init__(self, n_in, n_out):
         super(DeepIRLNetwork, self).__init__(
-                l1 = L.Linear(n_in, 400),
-                l2 = L.Linear(400, 300),
-                l3 = L.Linear(300, n_out),
+                l1 = L.Linear(n_in, 1024),
+                l2 = L.Linear(1024, 512),
+                l3 = L.Linear(512, n_out),
                 )
 
     def __call__(self, x):
@@ -40,8 +40,10 @@ class DeepMaximumEntropyIRL:
         self.n_itrs = n_itrs
         self.env = env
         
-        self.model = DeepIRLNetwork(self.env.n_state, 1)
-        self.optimizer = optimizers.SGD(self.lr)
+        self.model = DeepIRLNetwork(self.feat_map.shape[1], 1)
+        #  self.optimizer = optimizers.SGD(self.lr)
+        self.optimizer = optimizers.Adam(self.lr)
+        #  self.optimizer = optimizers.AdaGrad(self.lr)
         
         self.optimizer.setup(self.model)
         self.optimizer.add_hook(chainer.optimizer.WeightDecay(1e-4))
@@ -100,11 +102,18 @@ class DeepMaximumEntropyIRL:
         T = len(self.trajs[0]["state"])
         
         mu = np.zeros([n_state, T])
-        #  print mu
 
         for i in self.trajs:
             mu[self.env.state2index(i["state"][0]), 0] += 1
         mu[:, 0] = mu[:, 0] / len(self.trajs)
+        #  print "mu : "
+        #  print mu
+
+        #  print "policy : "
+        #  print policy
+
+        #  print "self.P_a : "
+        #  print self.P_a
 
         for s in xrange(n_state):
             for t in xrange(T-1):
@@ -123,8 +132,8 @@ class DeepMaximumEntropyIRL:
         エキスパートのデモでの状態訪問回数を算出
         '''
         mu_D = self.expart_state_visitation_frequencies()
-        #  print "mu_D : "
-        #  print mu_D
+        print "mu_D : "
+        print mu_D
 
         '''
         学習行程
@@ -138,8 +147,8 @@ class DeepMaximumEntropyIRL:
             '''
             reward_ = self.get_reward()
             reward = reward_.data.reshape(-1)
-            #  print "reward : "
-            #  print reward
+            print "reward : "
+            print reward
 
             '''
             推定された報酬を基に価値反復で方策を計算...
@@ -162,15 +171,15 @@ class DeepMaximumEntropyIRL:
             '''
             #  mu_exp = self.expected_state_visitation_frequencies(policy)
             mu_exp = self.expected_state_visitation_frequencies(policy, deterministic=False)
-            #  print "mu_exp : "
-            #  print mu_exp
+            print "mu_exp : "
+            print mu_exp
 
             '''
             勾配の計算
             '''
             grad_r = mu_D - mu_exp
-            #  print "grad_r : "
-            #  print grad_r
+            print "grad_r : "
+            print grad_r
 
             self.apply_grad(reward_, grad_r)
 

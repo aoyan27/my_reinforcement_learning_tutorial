@@ -7,6 +7,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 
+import math
+
 from envs.gridworld import Gridworld
 from agents.value_iteration import ValueIterationAgent
 
@@ -64,6 +66,105 @@ def heatmap_3d(input_array, title=''):
     plt.show()
 
 
+def create_feature_map(mode, n_state, env):
+    '''
+    特徴量を作成
+    '''
+    if mode == 0:
+        '''
+        デモの各軌道における特徴量は各状態における特徴量の合計としてとらえられるので...
+        今回は，各状態における特徴ベクトルを，
+            要素数が全状態数に等しく，値は{0 or 1}(自身の状態が1になってる)のベクトル，
+        イメージとしては，全状態数が4(s=0, s=1, s=2, S=3)の場合は，
+            f_0 = [1, 0, 0, 0]
+            f_1 = [0, 1, 0, 0]
+            f_2 = [0, 0, 1, 0]
+            f_3 = [0, 0, 0, 1]
+        みたいな感じ...
+        '''
+        feat_map = np.eye(n_state)
+        #  print "feat_map : "
+        #  print feat_map
+    elif mode == 1:
+        '''
+        デモの各軌道における特徴量は各状態における特徴量の合計としてとらえられるので...
+        今回は，各状態における特徴ベクトルを，各軌道の座標に設定、
+        イメージは、全状態数が4(s=0[0,0], 1[1,0], 2[0,1], 3[1,1])の場合、
+            f_0 = [0, 0]
+            f_1 = [1, 0]
+            f_2 = [0, 1]
+            f_3 = [1, 1]
+        みたいな感じ...
+        '''
+        feat_map = np.zeros([n_state, 2])
+        for i in xrange(n_state):
+            y, x = env.index2state(i)
+            feat_map[i, 0] = y
+            feat_map[i, 1] = x
+    elif mode == 2:
+        '''
+        デモの各軌道における特徴量は各状態における特徴量の合計としてとらえられるので...
+        今回は，各状態における特徴ベクトルを，各軌道の座標とゴールの位置に設定、
+        イメージは、全状態数が4(s=0[0,0], 1[1,0], 2[0,1], 3[1,1])、ゴールは3[1,1]の場合、
+            f_0 = [0, 0, 1, 1]
+            f_1 = [1, 0, 1, 1]
+            f_2 = [0, 1, 1, 1]
+            f_3 = [1, 1, 1, 1]
+        みたいな感じ...
+        '''
+        feat_map = np.zeros([n_state, 4])
+        for i in xrange(n_state):
+            y, x = env.index2state(i)
+            feat_map[i, 0] = y
+            feat_map[i, 1] = x
+            feat_map[i, 2] = env.goal[0]
+            feat_map[i, 3] = env.goal[1]
+    elif mode == 3:
+        '''
+        デモの各軌道における特徴量は各状態における特徴量の合計としてとらえられるので...
+        今回は，各状態における特徴ベクトルを，各軌道の座標とゴールの距離を特徴量に...
+        イメージは、全状態数が4(s=0[0,0], 1[1,0], 2[0,1], 3[1,1])、ゴールは3[1,1]の場合、
+            f_0 = [1/d_0**2]
+            f_1 = [1/d_1**2]
+            f_2 = [1/d_2**2]
+            f_3 = [1/d_3**2]
+        みたいな感じ...
+        '''
+        feat_map = np.zeros([n_state, 1])
+        for i in xrange(n_state):
+            y, x = env.index2state(i)
+            distance = math.sqrt((y-env.goal[0])**2 + (x-env.goal[1])**2)
+            if distance == 0.0:
+                feat_map[i, 0] = 1.0 / (1e-6**2)
+            else:
+                feat_map[i, 0] = 1.0 / (distance**2)
+    elif mode == 4:
+        '''
+        デモの各軌道における特徴量は各状態における特徴量の合計としてとらえられるので...
+        今回は，各状態における特徴ベクトルを，各軌道の座標と, そこからのゴールの距離を特徴量に...
+        イメージは、全状態数が4(s=0[0,0], 1[1,0], 2[0,1], 3[1,1])、ゴールは3[1,1]の場合、
+            f_0 = [0, 0, 1/d_0**2]
+            f_1 = [1, 0, 1/d_1**2]
+            f_2 = [0, 1, 1/d_2**2]
+            f_3 = [1, 1, 1/d_3**2]
+        みたいな感じ...
+        '''
+        feat_map = np.zeros([n_state, 2+1])
+        for i in xrange(n_state):
+            y, x = env.index2state(i)
+            feat_map[i, 0] = y
+            feat_map[i, 1] = x
+
+            distance = math.sqrt((y-env.goal[0])**2 + (x-env.goal[1])**2)
+            if distance == 0.0:
+                feat_map[i, 2] = 1.0 / (1e-6**2)
+            else:
+                feat_map[i, 2] = 1.0 / (distance**2)
+        
+
+    return feat_map
+
+
 def generate_demonstration(env, policy, reward_map, n_trajs, l_traj, \
         start_position=[0,0], rand_start=False):
     trajs = []
@@ -113,8 +214,8 @@ def main(rows, cols, gamma, act_noise, n_trajs, l_traj, learning_rate, n_itrs):
     reward_gt = np.reshape(reward_map_gt, n_state)
     print "reward_gt : "
     print reward_gt.reshape([rows, cols]).transpose()
-    #  heatmap_2d(reward_gt.reshape([rows, cols]).transpose(), 'Reward Map(Grand truth)')
-    #  heatmap_3d(reward_gt.reshape([rows, cols]).transpose(), '3D Reward Map(Grand truth)')
+    heatmap_2d(reward_gt.reshape([rows, cols]).transpose(), 'Reward Map(Grand truth)')
+    heatmap_3d(reward_gt.reshape([rows, cols]).transpose(), '3D Reward Map(Grand truth)')
 
     gw = Gridworld(rows, cols, r_max, act_noise)
     P_a = gw.get_transition_matrix()
@@ -126,8 +227,8 @@ def main(rows, cols, gamma, act_noise, n_trajs, l_traj, learning_rate, n_itrs):
     vi_agent.train(reward_gt)
     print "V : "
     print vi_agent.V.reshape([rows, cols]).transpose()
-    #  heatmap_2d(vi_agent.V.reshape([rows, cols]).transpose(), 'State value(Ground truth)')
-    #  heatmap_3d(vi_agent.V.reshape([rows, cols]).transpose(), '3D State value(Ground truth)')
+    heatmap_2d(vi_agent.V.reshape([rows, cols]).transpose(), 'State value(Ground truth)')
+    heatmap_3d(vi_agent.V.reshape([rows, cols]).transpose(), '3D State value(Ground truth)')
     vi_agent.get_policy(reward_gt)
     print "policy : "
     print vi_agent.policy.reshape([rows, cols]).transpose()
@@ -152,9 +253,13 @@ def main(rows, cols, gamma, act_noise, n_trajs, l_traj, learning_rate, n_itrs):
     ################################ ここまで ######################################
 
     ################### ここからが，深層逆強化学習のメイン処理 #####################
-    feat_map = np.eye(n_state)
-    #  print "feat_map : "
-    #  print feat_map
+    #  feat_map = create_feature_map(0, n_state, gw)
+    #  feat_map = create_feature_map(1, n_state, gw)
+    #  feat_map = create_feature_map(2, n_state, gw)
+    #  feat_map = create_feature_map(3, n_state, gw)
+    feat_map = create_feature_map(4, n_state, gw)
+    print "feat_map : "
+    print feat_map
 
     deep_maxent_irl = DeepMaximumEntropyIRL(feat_map, P_a, gamma, demo, learning_rate, n_itrs, gw)
     reward = deep_maxent_irl.train()
@@ -186,8 +291,8 @@ if __name__ == "__main__":
 
     parser.add_argument('-r', '--rows', default=5, type=int, help='row of gridworld')
     parser.add_argument('-c', '--cols', default=5, type=int, help='column of gridworld')
-    parser.add_argument('-g', '--gamma', default=0.8, type=float, help='discout factor')
-    parser.add_argument('-a', '--act_noise', default=0.3, type=float, 
+    parser.add_argument('-g', '--gamma', default=0.9, type=float, help='discout factor')
+    parser.add_argument('-a', '--act_noise', default=0.0, type=float, 
             help='probability of action noise')
     parser.add_argument('-t', '--n_trajs', default=200, type=int, help='number fo trajectories')
     parser.add_argument('-l', '--l_traj', default=20, type=int, help='length fo trajectory')
