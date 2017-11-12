@@ -124,10 +124,10 @@ def create_feature_map(mode, n_state, env):
         デモの各軌道における特徴量は各状態における特徴量の合計としてとらえられるので...
         今回は，各状態における特徴ベクトルを，各軌道の座標とゴールの距離を特徴量に...
         イメージは、全状態数が4(s=0[0,0], 1[1,0], 2[0,1], 3[1,1])、ゴールは3[1,1]の場合、
-            f_0 = [1/d_0**2]
-            f_1 = [1/d_1**2]
-            f_2 = [1/d_2**2]
-            f_3 = [1/d_3**2]
+            f_0 = [1/d_0]
+            f_1 = [1/d_1]
+            f_2 = [1/d_2]
+            f_3 = [1/d_3]
         みたいな感じ...
         '''
         feat_map = np.zeros([n_state, 1])
@@ -135,18 +135,18 @@ def create_feature_map(mode, n_state, env):
             y, x = env.index2state(i)
             distance = math.sqrt((y-env.goal[0])**2 + (x-env.goal[1])**2)
             if distance == 0.0:
-                feat_map[i, 0] = 1.0 / (1e-6**2)
+                feat_map[i, 0] = 1.0 / 1e-6
             else:
-                feat_map[i, 0] = 1.0 / (distance**2)
+                feat_map[i, 0] = 1.0 / distance**2
     elif mode == 4:
         '''
         デモの各軌道における特徴量は各状態における特徴量の合計としてとらえられるので...
         今回は，各状態における特徴ベクトルを，各軌道の座標と, そこからのゴールの距離を特徴量に...
         イメージは、全状態数が4(s=0[0,0], 1[1,0], 2[0,1], 3[1,1])、ゴールは3[1,1]の場合、
-            f_0 = [0, 0, 1/d_0**2]
-            f_1 = [1, 0, 1/d_1**2]
-            f_2 = [0, 1, 1/d_2**2]
-            f_3 = [1, 1, 1/d_3**2]
+            f_0 = [0, 0, 1/d_0]
+            f_1 = [1, 0, 1/d_1]
+            f_2 = [0, 1, 1/d_2]
+            f_3 = [1, 1, 1/d_3]
         みたいな感じ...
         '''
         feat_map = np.zeros([n_state, 2+1])
@@ -157,9 +157,9 @@ def create_feature_map(mode, n_state, env):
 
             distance = math.sqrt((y-env.goal[0])**2 + (x-env.goal[1])**2)
             if distance == 0.0:
-                feat_map[i, 2] = 1.0 / (1e-6**2)
+                feat_map[i, 2] = 1.0 / 1e-6
             else:
-                feat_map[i, 2] = 1.0 / (distance**2)
+                feat_map[i, 2] = 1.0 / distance
         
 
     return feat_map
