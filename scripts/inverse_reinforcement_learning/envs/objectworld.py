@@ -12,6 +12,8 @@ class Objectworld:
         self.n_state = self.rows * self.cols
         
         self.R_max = R_max
+
+        self.noise = noise
         
         self.grid = np.zeros([self.rows, self.cols])
         # +----------------> x
@@ -39,8 +41,7 @@ class Objectworld:
 
         self.state_ = None
 
-        self.out_of_range_ = None
-        self.collision_ = None
+        self.collisions_ = []
 
     def set_objects(self):
         objects_ = []
@@ -69,10 +70,13 @@ class Objectworld:
         state[1] = idnex / self.cols    # x
         return state
 
+    def get_action_sample(self):
+        return np.random.randint(self.n_action)
+
     def move(self, state, action):
         y, x = state
-        next_x = 0
-        next_y = 0
+        next_y, next_x = state
+
         if action == 0:
             #  right
             next_x = x + 1
@@ -92,12 +96,12 @@ class Objectworld:
         
         out_of_range = False
         if next_y < 0 or (self.rows-1) < next_y:
-            print "y, out_of_range!!!!"
+            #  print "y, out_of_range!!!!"
             next_y = y
             out_of_range = True
 
         if next_x < 0 or (self.cols-1) < next_x:
-            print "x, out of range!!!!!"
+            #  print "x, out of range!!!!!"
             next_x = x
             out_of_range = True
 
@@ -105,10 +109,10 @@ class Objectworld:
         if self.grid[next_y, next_x] == -1:
             print "collision!!!!!"
             collision = True
-            if action == 0 or action == 1:
-                next_x = x
-            elif action == 2 or action == 3:
-                next_y = y
+            #  if action == 0 or action == 1:
+                #  next_x = x
+            #  elif action == 2 or action == 3:
+                #  next_y = y
 
         return [next_y, next_x], out_of_range, collision
 
@@ -120,13 +124,14 @@ class Objectworld:
         #  print "probs : "
         #  print probs
         next_state_list = []
+        next_collision_list = []
 
         for a in xrange(self.n_action):
             if state != list(self.goal):
                 #  print "state : ", state
                 next_state, out_of_range, collision = self.move(state, a)
-                self.out_of_range_ = out_of_range
-                self.collision_ = collision
+                next_collision_list.append(collision)
+                self.collisions_ = next_collision_list
                 #  print "next_state() : "
                 #  print next_state
                 next_state_list.append(next_state)
@@ -151,8 +156,103 @@ class Objectworld:
         #  print probs
 
         return next_state_list, probs
-        
+    
+    def get_transition_matrix(self):
+        P = np.zeros((self.n_state, self.n_state, self.n_action), dtype=np.float32)
+        for state_index in xrange(self.n_state):
+            state = self.index2state(state_index)
+            #  print "state : ", state
+            for action_index in xrange(self.n_action):
+                action = self.action_list[action_index]
+                #  print "action : ", action
 
+                next_state_list, probs = self.get_next_state_and_probs(state, action)
+                #  print "next_state_list : ", next_state_list
+                #  print "probs : ", probs
+                for i in xrange(len(probs)):
+                    next_state = next_state_list[i]
+                    #  print "next_state : ", next_state
+                    next_state_index = self.state2index(next_state)
+                    probability = probs[i]
+                    #  print "probability : ", probability
+                    P[state_index, next_state_index, action_index] = probability
+        #  print "P : "
+        #  print P
+        #  print P.shape
+        return P
+    
+    def show_policy(self, policy, deterministic=True):
+        vis_policy = np.array([])
+        if deterministic:
+            for i in xrange(len(policy)):
+                vis_policy = np.append(vis_policy, self.dirs[policy[i]])
+                #  print self.dirs[policy[i]]
+        else:
+            #  for i in xrange(len(policy)):
+                #  #  print "np.sum(policy[s]) : ", np.sum(policy[i])
+                #  random_num = np.random.rand()
+                #  #  print "random_num : ", random_num
+                #  action_index = 0
+                #  for j in xrange(len(policy[i])):
+                    #  random_num -= policy[i][j]
+                    #  #  print "random_num_ : ", random_num
+                    #  if random_num < 0:
+                        #  action_index = j
+                        #  break
+                #  vis_policy = np.append(vis_policy, self.dirs[action_index])
+                #  #  print self.dirs[action_index]
+                for i in xrange(len(policy)):
+                    vis_policy = np.append(vis_policy, self.dirs[np.argmax(policy[i])])
+
+        vis_policy = vis_policy.reshape((self.rows, self.cols)).transpose()
+        vis_policy[self.goal] = 'G'
+        print vis_policy
+
+    def terminal(self, state, index):
+        episode_end = False
+        #  if state == list(self.goal) or self.collisions_[index]:
+        if state == list(self.goal):
+            episode_end = True
+
+        return episode_end
+
+    def reset(self, start_position=[0,0]):
+        self.state_ = start_position
+        return self.state_
+
+    def step(self, action, reward_map=None):
+        next_state_list, probs = self.get_next_state_and_probs(self.state_, action)
+        #  print "next_state_list : ", next_state_list
+        #  print "probs : ", probs
+        random_num = np.random.rand()
+        #  print "random_num : ", random_num
+        index = 0
+        for i in xrange(len(probs)):
+            random_num -= probs[i]
+            #  print "random_num_ : ", random_num
+            if random_num < 0:
+                index = i
+                break
+        #  print "index : ", index
+        #  print "next_state : ", next_state_list[index]
+
+        self.state_ = next_state_list[index]
+        #  print "self.satte_ : ", self.state_
+
+        reward = None
+        if reward_map is None:
+            if self.state_ == list(self.goal):
+                reward = self.R_max
+            else:
+                reward = 0
+        else:
+            reward = reward_map[self.state2index(self.state_)]
+            #  print "reward : ", reward
+
+        episode_end = self.terminal(self.state_, index)
+
+        return self.state_, reward, episode_end, \
+                {'probs':probs, 'random_num':random_num, 'collison': self.collisions_[index]}
 
 
 if __name__ == "__main__":
@@ -164,12 +264,36 @@ if __name__ == "__main__":
     seed = 1
 
     ow = Objectworld(rows, cols, R_max, noise, n_objects, seed)
+
+    print "ow.n_state : ", ow.n_state
+    print "ow.n_action : ", ow.n_action
+
+    reward_map = ow.grid.transpose().reshape(-1)
+    print "reward_map : "
+    print reward_map
     
-    state = [0, 0]
-    action = 0
-    for i in xrange(10):
-        print "state : ", state
-        print "action : ", action
-        state, out_of_range, collision = ow.move(state, action)
-        print "next_state : ", state
+    max_episode = 100
+    max_step = 100
+    for i in xrange(max_episode):
+        print "==========================="
+        print "episode : ", i
+        observation = ow.reset()
+        for j in xrange(max_step):
+            print "----------------------"
+            print "step : ", j
+            state = observation
+            print "state : ", state
+            action = ow.get_action_sample()
+            print "action : ", action, ow.dirs[action]
+
+            observation, reward, done, info = ow.step(action, reward_map)
+            next_state = observation
+            print "observation : ", observation
+            print "next_state : ", next_state
+            print "reward : ", reward
+            print "episode_end : ", done
+            print "info : ", info
+
+            if done:
+                break
 
