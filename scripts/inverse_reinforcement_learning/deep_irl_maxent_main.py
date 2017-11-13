@@ -4,12 +4,15 @@
 import argparse
 
 import numpy as np
+np.set_printoptions(suppress=True, threshold=np.inf)
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 
 import math
 
 from envs.gridworld import Gridworld
+from envs.objectworld import Objectworld
+
 from agents.value_iteration import ValueIterationAgent
 
 from deep_irl_maxent import DeepMaximumEntropyIRL
@@ -160,6 +163,35 @@ def create_feature_map(mode, n_state, env):
                 feat_map[i, 2] = 1.0 / 1e-6
             else:
                 feat_map[i, 2] = 1.0 / distance
+    elif mode == 5:
+        '''
+        ゴールへの距離の逆数, 最近傍の静的障害物への距離の逆数
+        '''
+        feat_map = np.zeros([n_state, 2])
+        object_list = []
+        for j in xrange(n_state):
+            y_object, x_object = env.index2state(j)
+            if env.grid[y_object, x_object] == -1:
+                object_list.append([y_object, x_object])
+
+        for i in xrange(n_state):
+            y, x = env.index2state(i)
+
+            distance = math.sqrt((y-env.goal[0])**2 + (x-env.goal[1])**2)
+            if distance == 0.0:
+                feat_map[i, 0] = 1.0 / 0.5
+            else:
+                feat_map[i, 0] = 1.0 / distance
+
+            object_dist_list = []
+            zero_flag = False
+            for j in xrange(len(object_list)):
+                tmp_dist = math.sqrt((y-object_list[j][0])**2 + (x-object_list[j][1])**2)
+                object_dist_list.append(tmp_dist)
+                feat_map[i, 1] = min(object_dist_list)
+        
+        for i in xrange(feat_map.shape[1]):
+            feat_map[:, i] = normalize(feat_map[:, i])
         
 
     return feat_map
@@ -170,7 +202,10 @@ def generate_demonstration(env, policy, reward_map, n_trajs, l_traj, \
     trajs = []
     for i in xrange(n_trajs):
         if rand_start:
-            start_position = [np.random.randint(0, env.rows), np.random.randint(0, env.cols)]
+            while 1:
+                start_position = [np.random.randint(0, env.rows), np.random.randint(0, env.cols)]
+                if env.grid[tuple(start_position)] != -1:
+                    break
 
         episode_traj = {"state":[], "action":[], "next_state":[], "reward":[], "done":[]}
         env.reset(start_position)
@@ -204,41 +239,47 @@ def main(rows, cols, gamma, act_noise, n_trajs, l_traj, learning_rate, n_itrs):
     n_action = 5
     r_max = 1.0
 
+    n_objects = 6
+    seed = 3
+
     ################### ここからは逆強化学習のための前処理 #########################
 
-    reward_map_gt = np.zeros([rows, cols])
-    reward_map_gt[rows-1, cols-1] = r_max
-    #  reward_map_gt[rows-1, 0] = r_max
-    #  reward_map_gt[0, cols-1] = r_max
-    
-    reward_gt = np.reshape(reward_map_gt, n_state)
-    print "reward_gt : "
-    print reward_gt.reshape([rows, cols]).transpose()
-    heatmap_2d(reward_gt.reshape([rows, cols]).transpose(), 'Reward Map(Grand truth)')
-    heatmap_3d(reward_gt.reshape([rows, cols]).transpose(), '3D Reward Map(Grand truth)')
-
-    gw = Gridworld(rows, cols, r_max, act_noise)
-    P_a = gw.get_transition_matrix()
+    #  env = Gridworld(rows, cols, r_max, act_noise)
+    env = Objectworld(rows, cols, r_max, act_noise, n_objects, seed)
+    P_a = env.get_transition_matrix()
     #  print "P_a : "
     #  print P_a
 
+    #  reward_map_gt = np.zeros([rows, cols])
+    #  reward_map_gt[rows-1, cols-1] = r_max
+    #  reward_map_gt[rows-1, 0] = r_max
+    #  reward_map_gt[0, cols-1] = r_max
+    reward_map_gt = env.grid
+    
+    reward_gt = reward_map_gt.transpose().reshape(n_state)
+    print "reward_gt : "
+    print reward_gt.reshape([rows, cols]).transpose()
+    heatmap_2d(normalize(reward_gt.reshape([rows, cols]).transpose()), 'Reward Map(Grand truth)')
+    heatmap_3d(normalize(reward_gt.reshape([rows, cols]).transpose()), '3D Reward Map(Grand truth)')
 
-    vi_agent = ValueIterationAgent(gw, P_a, gamma)
+
+    vi_agent = ValueIterationAgent(env, P_a, gamma)
     vi_agent.train(reward_gt)
     print "V : "
     print vi_agent.V.reshape([rows, cols]).transpose()
-    heatmap_2d(vi_agent.V.reshape([rows, cols]).transpose(), 'State value(Ground truth)')
-    heatmap_3d(vi_agent.V.reshape([rows, cols]).transpose(), '3D State value(Ground truth)')
+    heatmap_2d(normalize(vi_agent.V.reshape([rows, cols]).transpose()), 'State value(Ground truth)')
+    heatmap_3d(normalize(vi_agent.V.reshape([rows, cols]).transpose()), \
+            '3D State value(Ground truth)')
     vi_agent.get_policy(reward_gt)
     print "policy : "
     print vi_agent.policy.reshape([rows, cols]).transpose()
     #  print vi_agent.policy.reshape(-1)
-    gw.show_policy(vi_agent.policy.reshape(-1))
+    env.show_policy(vi_agent.policy.reshape(-1))
 
 
-    np.random.seed(1)
-    #  demo = generate_demonstration(gw, vi_agent.policy, reward_gt, n_trajs, l_traj)
-    demo = generate_demonstration(gw, vi_agent.policy, reward_gt, n_trajs, l_traj, rand_start=True)
+    np.random.seed(seed)
+    #  demo = generate_demonstration(env, vi_agent.policy, reward_gt, n_trajs, l_traj)
+    demo = generate_demonstration(env, vi_agent.policy, reward_gt, n_trajs, l_traj, rand_start=True)
     #  print "demo : "
     #  print demo
 
@@ -253,15 +294,16 @@ def main(rows, cols, gamma, act_noise, n_trajs, l_traj, learning_rate, n_itrs):
     ################################ ここまで ######################################
 
     ################### ここからが，深層逆強化学習のメイン処理 #####################
-    #  feat_map = create_feature_map(0, n_state, gw)
-    #  feat_map = create_feature_map(1, n_state, gw)
-    #  feat_map = create_feature_map(2, n_state, gw)
-    #  feat_map = create_feature_map(3, n_state, gw)
-    feat_map = create_feature_map(4, n_state, gw)
+    #  feat_map = create_feature_map(0, n_state, env)
+    #  feat_map = create_feature_map(1, n_state, env)
+    #  feat_map = create_feature_map(2, n_state, env)
+    #  feat_map = create_feature_map(3, n_state, env)
+    #  feat_map = create_feature_map(4, n_state, env)
+    feat_map = create_feature_map(5, n_state, env)
     print "feat_map : "
     print feat_map
 
-    deep_maxent_irl = DeepMaximumEntropyIRL(feat_map, P_a, gamma, demo, learning_rate, n_itrs, gw)
+    deep_maxent_irl = DeepMaximumEntropyIRL(feat_map, P_a, gamma, demo, learning_rate, n_itrs, env)
     reward = deep_maxent_irl.train()
     reward = normalize(reward)
     print "reward : "
@@ -275,17 +317,22 @@ def main(rows, cols, gamma, act_noise, n_trajs, l_traj, learning_rate, n_itrs):
 
     ################ ここからは，ヴィジュアライズのための処理 #######################
     
-    agent = ValueIterationAgent(gw, P_a, gamma)
+    agent = ValueIterationAgent(env, P_a, gamma)
     agent.train(reward)
     print "V : "
     print agent.V.reshape([rows, cols]).transpose()
-    heatmap_2d(agent.V.reshape([rows, cols]).transpose(), 'State value')
-    heatmap_3d(agent.V.reshape([rows, cols]).transpose(), '3D State value')
-    agent.get_policy(reward)
+    #  print "P_a : "
+    #  print P_a
+    heatmap_2d(normalize(agent.V.reshape([rows, cols]).transpose()), 'State value')
+    heatmap_3d(normalize(agent.V.reshape([rows, cols]).transpose()), '3D State value')
+    #  agent.get_policy(reward)
+    agent.get_policy(reward, deterministic=False)
     print "policy : "
-    print agent.policy.reshape([rows, cols]).transpose()
+    print agent.policy
+    #  print agent.policy.reshape([rows, cols]).transpose()
     #  print vi_agent.policy.reshape(-1)
-    gw.show_policy(agent.policy.reshape(-1))
+    #  env.show_policy(agent.policy.reshape(-1))
+    env.show_policy(agent.policy, deterministic=False)
 
 
 
