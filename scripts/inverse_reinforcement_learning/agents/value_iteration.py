@@ -2,6 +2,7 @@
 #coding:utf-8
 
 import numpy as np
+np.set_printoptions(precision=3, suppress=True, threshold=np.inf)
 import copy
 
 class ValueIterationAgent:
@@ -34,21 +35,10 @@ class ValueIterationAgent:
                 
                 state = self.env.index2state(s)
                 #  print "state : ", state
-                #  print "R[state] : ", R[state[0], state[1]]
-                #  self.V[s] = R[state[0], state[1]] + \
-                        #  self.gamma*max([sum(self.P_a[s, s_dash, a]*self.V[s_dash] \
-                        #  for s_dash in xrange(self.env.n_state)) \
-                        #  for a in xrange(self.env.n_action)])
                 self.V[s] = max([sum([self.P_a[s, s_dash, a]*(R[s] + self.gamma*V_[s_dash]) \
                         for s_dash in xrange(self.env.n_state)]) \
                         for a in xrange(self.env.n_action)])
 
-                #  print "sum[...] : "
-                #  print [sum([self.P_a[s, s_dash, a]*(R[s] + self.gamma*V_[s_dash]) for s_dash in xrange(self.env.n_state)]) for a in xrange(self.env.n_action)]
-                #  print "max : "
-                #  print max([sum([self.P_a[s, s_dash, a]*(R[s] + self.gamma*V_[s_dash]) for s_dash in xrange(self.env.n_state)]) for a in xrange(self.env.n_action)])
-                #  print "self.V : "
-                #  print self.V
             #  print "self.V : "
             #  print self.V.reshape([5,5])
             count += 1
@@ -94,7 +84,8 @@ class ValueIterationAgent:
 if __name__=="__main__":
     import sys
     sys.path.append('../')
-    from envs.gridworld import Gridworld
+    #  from envs.gridworld import Gridworld
+    from envs.objectworld import Objectworld
     
 
     rows = 5
@@ -103,15 +94,21 @@ if __name__=="__main__":
 
     noise = 0.3
 
-    env = Gridworld(rows, cols, R_max, noise)
+    n_objects = 6
+    seed = 3
+
+    #  env = Gridworld(rows, cols, R_max, noise)
+    env = Objectworld(rows, cols, R_max, noise, n_objects, seed)
     P_a = env.get_transition_matrix()
     print P_a
 
-    gamma = 0.5
+    gamma = 0.9
 
-    reward_map = np.zeros([rows, cols])
-    reward_map[rows-1, cols-1] = R_max
-    reward_map = np.reshape(reward_map, rows*cols)
+    #  reward_map = np.zeros([rows, cols])
+    #  reward_map[rows-1, cols-1] = R_max
+    #  reward_map = np.reshape(reward_map, rows*cols)
+    reward_map = env.grid
+    reward_map = reward_map.transpose().reshape(-1)
 
     agent = ValueIterationAgent(env, P_a, gamma)
     print "agent.n_state : ", agent.env.n_state
