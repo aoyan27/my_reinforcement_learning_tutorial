@@ -109,10 +109,10 @@ class Objectworld:
         if self.grid[next_y, next_x] == -1:
             #  print "collision!!!!!"
             collision = True
-            if action == 0 or action == 1:
-                next_x = x
-            elif action == 2 or action == 3:
-                next_y = y
+            #  if action == 0 or action == 1:
+                #  next_x = x
+            #  elif action == 2 or action == 3:
+                #  next_y = y
 
         return [next_y, next_x], out_of_range, collision
 
@@ -139,6 +139,9 @@ class Objectworld:
                 if out_of_range:
                     probs[self.n_action-1] += probs[a]
                     probs[a] = 0
+                #  if collision:
+                    #  probs[self.n_action-1] += probs[a]
+                    #  probs[a] = 0
             else:
                 next_state = state
                 #  print "probs[", a, "] : ", probs[a]
