@@ -40,7 +40,7 @@ class ValueIterationAgent:
                         for a in xrange(self.env.n_action)])
 
             #  print "self.V : "
-            #  print self.V.reshape([5,5])
+            #  print self.V.reshape([self.env.rows, self.env.cols]).transpose()
             count += 1
             if max(abs(self.V - V_)) < threshold:
                 #  print "self.P_a[0] : "
@@ -68,15 +68,18 @@ class ValueIterationAgent:
             self.policy = np.zeros([self.env.n_state, self.env.n_action])
             for s in xrange(self.env.n_state):
                 state = self.env.index2state(s)
-                state_value = [sum(self.P_a[s, s_dash, a] *\
-                        (R[s]+self.gamma*self.V[s_dash]) \
-                        for s_dash in xrange(self.env.n_state)) \
-                        for a in xrange(self.env.n_action)]
+                state_value = [sum(self.P_a[s, s_dash, a] * (R[s] + self.gamma*self.V[s_dash]) \
+                        for s_dash in xrange(self.env.n_state)) for a in xrange(self.env.n_action)]
                 #  print "state_value : "
                 #  print state_value
-                self.policy[s, :] = state_value/np.sum(state_value)
+                if np.sum(state_value) == 0.0:
+                    self.policy[s, :] = 1 / self.env.n_action
+                
+                else:
+                    self.policy[s, :] = state_value/np.sum(state_value)
+
                 #  print "policy : "
-                #  print policy[s, :]
+                #  print self.policy[s, :]
                 
 
 
@@ -92,7 +95,8 @@ if __name__=="__main__":
     cols = 5
     R_max = 10.0
 
-    noise = 0.3
+    #  noise = 0.3
+    noise = 0.0
 
     n_objects = 6
     seed = 3
@@ -115,7 +119,7 @@ if __name__=="__main__":
 
     agent.train(reward_map)
     print "agent.V : "
-    print agent.V.reshape([rows, cols])
+    print agent.V.reshape([rows, cols]).transpose()
 
     agent.get_policy(reward_map, deterministic=False)
     #  agent.get_policy(reward_map, deterministic=True)
