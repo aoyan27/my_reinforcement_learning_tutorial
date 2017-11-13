@@ -67,7 +67,7 @@ class Objectworld:
     def index2state(self, index):
         state = [0, 0]
         state[0] = index % self.cols    # y
-        state[1] = idnex / self.cols    # x
+        state[1] = index / self.cols    # x
         return state
 
     def get_action_sample(self):
@@ -107,12 +107,12 @@ class Objectworld:
 
         collision = False
         if self.grid[next_y, next_x] == -1:
-            print "collision!!!!!"
+            #  print "collision!!!!!"
             collision = True
-            #  if action == 0 or action == 1:
-                #  next_x = x
-            #  elif action == 2 or action == 3:
-                #  next_y = y
+            if action == 0 or action == 1:
+                next_x = x
+            elif action == 2 or action == 3:
+                next_y = y
 
         return [next_y, next_x], out_of_range, collision
 
@@ -188,23 +188,14 @@ class Objectworld:
                 vis_policy = np.append(vis_policy, self.dirs[policy[i]])
                 #  print self.dirs[policy[i]]
         else:
-            #  for i in xrange(len(policy)):
-                #  #  print "np.sum(policy[s]) : ", np.sum(policy[i])
-                #  random_num = np.random.rand()
-                #  #  print "random_num : ", random_num
-                #  action_index = 0
-                #  for j in xrange(len(policy[i])):
-                    #  random_num -= policy[i][j]
-                    #  #  print "random_num_ : ", random_num
-                    #  if random_num < 0:
-                        #  action_index = j
-                        #  break
-                #  vis_policy = np.append(vis_policy, self.dirs[action_index])
-                #  #  print self.dirs[action_index]
-                for i in xrange(len(policy)):
-                    vis_policy = np.append(vis_policy, self.dirs[np.argmax(policy[i])])
+            for i in xrange(len(policy)):
+                vis_policy = np.append(vis_policy, self.dirs[np.argmax(policy[i])])
 
         vis_policy = vis_policy.reshape((self.rows, self.cols)).transpose()
+        for y in xrange(self.rows):
+            for x in xrange(self.cols):
+                if self.grid[y, x] != 0:
+                    vis_policy[y, x] = '#'
         vis_policy[self.goal] = 'G'
         print vis_policy
 
