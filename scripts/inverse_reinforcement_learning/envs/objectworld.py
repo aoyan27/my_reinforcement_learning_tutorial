@@ -33,7 +33,6 @@ class Objectworld:
         self.objects = self.set_objects()
         for i in xrange(len(self.objects)):
             self.grid[self.objects[i]] = -1
-        print self.grid
 
         self.action_list = [0, 1, 2, 3, 4]
         self.n_action = len(self.action_list)
