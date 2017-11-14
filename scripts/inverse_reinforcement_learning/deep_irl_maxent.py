@@ -2,6 +2,7 @@
 #coding:utf-8
 
 import numpy as np
+np.set_printoptions(suppress=True, threshold=np.inf)
 import sys
 
 import chainer 
@@ -20,7 +21,7 @@ class DeepIRLNetwork(Chain):
         super(DeepIRLNetwork, self).__init__(
                 l1 = L.Linear(n_in, 1024),
                 l2 = L.Linear(1024, 512),
-                l3 = L.Linear(512, n_out),
+                l3 = L.Linear(512, n_out, initialW=np.zeros((n_out, 512), dtype=np.float32)),
                 )
 
     def __call__(self, x):
@@ -148,7 +149,7 @@ class DeepMaximumEntropyIRL:
             reward_ = self.get_reward(self.feat_map)
             reward = reward_.data.reshape(-1)
             print "reward : "
-            print reward
+            print reward.reshape([self.env.rows, self.env.cols]).transpose()
 
             #  reward = np.zeros([self.feat_map.shape[0]])
             #  #  print "rewards : "
@@ -216,6 +217,5 @@ class DeepMaximumEntropyIRL:
         print "Now Saving model to ", dirs
         serializers.save_npz(dirs, self.model)
 
-    def load_model(self, dirs):
-        print "Now Loading model from ", dirs
-        seriazliers.load_npz(dirs, self.model)
+
+
