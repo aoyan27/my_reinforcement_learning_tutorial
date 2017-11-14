@@ -91,20 +91,24 @@ if __name__=="__main__":
     from envs.objectworld import Objectworld
     
 
-    rows = 5
-    cols = 5
-    R_max = 10.0
+    rows = 10
+    cols = 10
+    R_max = 1.0
 
     #  noise = 0.3
     noise = 0.0
 
-    n_objects = 6
-    seed = 3
+    #  n_objects, seed = 5, 1
+    #  n_objects, seed = 6, 3
+    #  n_objects, seed = 7, 2
+
+    n_objects, seed = 30, 2
 
     #  env = Gridworld(rows, cols, R_max, noise)
     env = Objectworld(rows, cols, R_max, noise, n_objects, seed)
+    print env.grid
     P_a = env.get_transition_matrix()
-    print P_a
+    #  print P_a
 
     gamma = 0.9
 
