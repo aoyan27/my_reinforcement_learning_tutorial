@@ -4,7 +4,7 @@
 import numpy as np
 
 class Objectworld:
-    def __init__(self, rows, cols, R_max, noise, n_objects, seed):
+    def __init__(self, rows, cols, R_max, noise, n_objects, seed, object_list=None, random_objects=True):
         np.random.seed(seed)
 
         self.rows = rows
@@ -30,7 +30,7 @@ class Objectworld:
         self.grid[self.goal] = self.R_max
         
         self.n_objects = n_objects
-        self.objects = self.set_objects()
+        self.objects = self.set_objects(object_list, random_objects)
         for i in xrange(len(self.objects)):
             self.grid[self.objects[i]] = -1
 
@@ -42,19 +42,22 @@ class Objectworld:
 
         self.collisions_ = []
 
-    def set_objects(self):
+    def set_objects(self, object_list, random_objects):
         objects_ = []
-        i = 0
-        while i < self.n_objects:
-            #  print " i : ", i
-            y = np.random.randint(0, self.rows)
-            x = np.random.randint(0, self.cols)
-            i += 1
-            if (y, x) == (0, 0) or (y, x) == self.goal:
-                i -= 1
-            else:
-                objects_.append((y, x))
-            #  print "(y, x) : ", (y, x)
+        if random_objects:
+            i = 0
+            while i < self.n_objects:
+                #  print " i : ", i
+                y = np.random.randint(0, self.rows)
+                x = np.random.randint(0, self.cols)
+                i += 1
+                if (y, x) == (0, 0) or (y, x) == self.goal:
+                    i -= 1
+                else:
+                    objects_.append((y, x))
+                #  print "(y, x) : ", (y, x)
+        else:
+            objects_ = object_list
         #  print "objects_ : ", objects_
         return objects_
     
