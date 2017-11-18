@@ -3,12 +3,14 @@
 
 import numpy as np
 from envs.gridworld import Gridworld
+from envs.objectworld import Objectworld
 from agents.ql_agent import Agent
 
 
-def main(rows, cols, R_max, noise):
+def main(rows, cols, R_max, noise, n_objects, seed):
 
-    env = Gridworld(rows, cols, R_max, noise)
+    #  env = Gridworld(rows, cols, R_max, noise)
+    env = Objectworld(rows, cols, R_max, noise, n_objects, seed)
 
     print "env.n_state : ", env.n_state
     print "env.n_action : ", env.n_action
@@ -16,16 +18,16 @@ def main(rows, cols, R_max, noise):
     gamma = 0.5
     alpha = 0.01
 
-    agent = Agent(env.n_state, env.n_action-1, gamma, alpha)
+    agent = Agent(env.n_state, env.n_action, gamma, alpha)
     
     max_episode = 2000
     max_step = 200
 
-    reward_map = np.load('./reward_map.npy')
+    reward_map = np.load('./models/reward_array.npy')
     print "reward_map : "
     print  reward_map
-    reward_map = np.transpose(reward_map).reshape(-1)
-    print "reward : ", reward_map
+    #  reward_map = np.transpose(reward_map).reshape(-1)
+    #  print "reward : ", reward_map
     
     success = 0
     for i in xrange(max_episode):
@@ -77,7 +79,11 @@ if __name__=="__main__":
     R_max = 10.0
 
     noise = 0.0
+    
+    n_objects = 5
+    seed = 3
 
-    main(rows, cols, R_max, noise)
+
+    main(rows, cols, R_max, noise, n_objects, seed)
 
 
