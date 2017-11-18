@@ -53,6 +53,12 @@ def normalize(vals):
   max_val = np.max(vals)
   return (vals - min_val) / (max_val - min_val)
 
+def z_score_normalize(vals):
+    mean = np.mean(vals)
+    std = np.std(vals)
+    return (vals - mean) / std
+
+
 def heatmap_2d(input_array, title):
     plt.imshow(input_array, interpolation="nearest")
     plt.title(title)
@@ -209,19 +215,19 @@ def create_feature_map(mode, n_state, env):
 
             distance = math.sqrt((y-env.goal[0])**2 + (x-env.goal[1])**2)
             if distance == 0.0:
-                feat_map[i, 0] = 1.0 / 0.5
+                feat_map[i, 0] = 1.0 / 1.0
             else:
                 feat_map[i, 0] = 1.0 / distance
 
             object_dist_list = []
-            zero_flag = False
             for j in xrange(len(object_list)):
                 tmp_dist = math.sqrt((y-object_list[j][0])**2 + (x-object_list[j][1])**2)
                 object_dist_list.append(tmp_dist)
                 feat_map[i, 1] = min(object_dist_list)
         
         for i in xrange(feat_map.shape[1]):
-            feat_map[:, i] = normalize(feat_map[:, i])
+            #  feat_map[:, i] = normalize(feat_map[:, i])
+            feat_map[:, i] = z_score_normalize(feat_map[:, i])
         
 
     return feat_map
@@ -232,6 +238,22 @@ def main(rows, cols, gamma, act_noise, n_objects, seed, model_name):
     n_action = 5
     r_max = 1.0
 
+
+
+    object_list = [
+            (0, 3), (0, 4), (0, 5), (0, 6),
+            (1, 0), (1, 5), (1, 6), (1, 7),
+            (2, 0), (2, 5), (2, 6), (2, 7),
+            (3, 0), (3, 1), (3, 6), (3, 7), (3, 8),
+            (4, 0), (4, 1), (4, 3), (4, 6), (4, 7), (4, 8),
+            (5, 0), (5, 1), (5, 2), (5, 7), (5, 8), (5, 9),
+            (6, 0), (6, 1), (6, 2), (6, 5), (6, 7), (6, 8), (6, 9),
+            (7, 0), (7, 1), (7, 2), (7, 3), (7, 6), (7, 8), (7, 9),
+            (8, 0), (8, 1), (8, 2), (8, 3),
+            (9, 0), (9, 1), (9, 2), (9, 3), (9, 4)
+            ]
+
+    #  env = Objectworld(rows, cols, r_max, act_noise, n_objects, seed, object_list=object_list, random_objects=False)
     env = Objectworld(rows, cols, r_max, act_noise, n_objects, seed)
     print "env.grid : "
     print env.grid
@@ -257,7 +279,7 @@ def main(rows, cols, gamma, act_noise, n_objects, seed, model_name):
     print "reward : "
     print reward.reshape([rows, cols]).transpose()
     heatmap_2d(reward.reshape([rows, cols]).transpose(), 'Reward Map')
-    heatmap_3d(reward.reshape([rows, cols]).transpose(), '3D Reward Map')
+    #  heatmap_3d(reward.reshape([rows, cols]).transpose(), '3D Reward Map')
 
 
     agent = ValueIterationAgent(env, P_a, gamma)
@@ -267,7 +289,7 @@ def main(rows, cols, gamma, act_noise, n_objects, seed, model_name):
     #  print "P_a : "
     #  print P_a
     heatmap_2d(normalize(agent.V.reshape([rows, cols]).transpose()), 'State value')
-    heatmap_3d(normalize(agent.V.reshape([rows, cols]).transpose()), '3D State value')
+    #  heatmap_3d(normalize(agent.V.reshape([rows, cols]).transpose()), '3D State value')
     #  agent.get_policy(reward)
     agent.get_policy(reward, deterministic=False)
     print "policy : "
@@ -277,6 +299,7 @@ def main(rows, cols, gamma, act_noise, n_objects, seed, model_name):
     #  env.show_policy(agent.policy.reshape(-1))
     env.show_policy(agent.policy, deterministic=False)
     
+    np.save(dirs+'reward_array.npy', reward)
     
 
 if __name__ == "__main__":
