@@ -19,9 +19,14 @@ from deep_irl_maxent import DeepMaximumEntropyIRL
 
 
 def normalize(vals):
-  min_val = np.min(vals)
-  max_val = np.max(vals)
-  return (vals - min_val) / (max_val - min_val)
+    min_val = np.min(vals)
+    max_val = np.max(vals)
+    return (vals - min_val) / (max_val - min_val)
+
+def z_score_normalize(vals):
+    mean = np.mean(vals)
+    std = np.std(vals)
+    return (vals - mean) / std
 
 def heatmap_2d(input_array, title):
     plt.imshow(input_array, interpolation="nearest")
@@ -34,7 +39,6 @@ def heatmap_2d(input_array, title):
                  horizontalalignment='center',
                  verticalalignment='center',
                  )
-
     plt.show()
 
 def heatmap_3d(input_array, title=''):
@@ -179,7 +183,7 @@ def create_feature_map(mode, n_state, env):
 
             distance = math.sqrt((y-env.goal[0])**2 + (x-env.goal[1])**2)
             if distance == 0.0:
-                feat_map[i, 0] = 1.0 / 0.5
+                feat_map[i, 0] = 1.0 / 1.0
             else:
                 feat_map[i, 0] = 1.0 / distance
 
@@ -191,7 +195,8 @@ def create_feature_map(mode, n_state, env):
                 feat_map[i, 1] = min(object_dist_list)
         
         for i in xrange(feat_map.shape[1]):
-            feat_map[:, i] = normalize(feat_map[:, i])
+            #  feat_map[:, i] = normalize(feat_map[:, i])
+            feat_map[:, i] = z_score_normalize(feat_map[:, i])
         
 
     return feat_map
@@ -239,13 +244,30 @@ def main(rows, cols, gamma, act_noise, n_trajs, l_traj, learning_rate, n_itrs):
     n_action = 5
     r_max = 1.0
 
-    n_objects = 6
-    seed = 3
+    #  n_objects, seed = 30, 2
+    n_objects, seed = 20, 1
 
     ################### ここからは逆強化学習のための前処理 #########################
+    
+
+    object_list = [
+            (0, 3), (0, 4), (0, 5), (0, 6), (0 ,7), (0, 8), (0, 9),
+            (1, 0), (1, 5), (1, 6), (1, 7), (1, 8), (1, 9),
+            (2, 0), (2, 5), (2, 6), (2, 7), (2, 8), (2, 9), 
+            (3, 0), (3, 1), (3, 6), (3, 7), (3, 8), (3, 9),
+            (4, 0), (4, 1), (4, 6), (4, 7), (4, 8), (4, 9),
+            (5, 0), (5, 1), (5, 2), (5, 7), (5, 8), (5, 9),
+            (6, 0), (6, 1), (6, 2), (6, 7), (6, 8), (6, 9),
+            (7, 0), (7, 1), (7, 2), (7, 3), (7, 8), (7, 9),
+            (8, 0), (8, 1), (8, 2), (8, 3),
+            (9, 0), (9, 1), (9, 2), (9, 3), (9, 4)
+            ]
+
+
 
     #  env = Gridworld(rows, cols, r_max, act_noise)
-    env = Objectworld(rows, cols, r_max, act_noise, n_objects, seed)
+    #  env = Objectworld(rows, cols, r_max, act_noise, n_objects, seed)
+    env = Objectworld(rows, cols, r_max, act_noise, n_objects, seed, object_list=object_list, random_objects=False)
     P_a = env.get_transition_matrix()
     #  print "P_a : "
     #  print P_a
