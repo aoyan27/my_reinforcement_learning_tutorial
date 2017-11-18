@@ -206,8 +206,8 @@ class Objectworld:
 
     def terminal(self, state, index):
         episode_end = False
-        #  if state == list(self.goal) or self.collisions_[index]:
-        if state == list(self.goal):
+        if state == list(self.goal) or self.collisions_[index]:
+        #  if state == list(self.goal):
             episode_end = True
 
         return episode_end
