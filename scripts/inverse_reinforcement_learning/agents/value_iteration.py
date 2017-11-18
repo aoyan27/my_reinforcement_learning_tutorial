@@ -89,7 +89,14 @@ if __name__=="__main__":
     sys.path.append('../')
     #  from envs.gridworld import Gridworld
     from envs.objectworld import Objectworld
-    
+
+
+    def normalize(vals):
+        min_val = np.min(vals)
+        max_val = np.max(vals)
+        return (vals - min_val) / (max_val - min_val)
+
+
 
     rows = 10
     cols = 10
@@ -104,7 +111,22 @@ if __name__=="__main__":
 
     n_objects, seed = 30, 2
 
+
+    object_list = [
+            (0, 3), (0, 4), (0, 5), (0, 6),
+            (1, 0), (1, 5), (1, 6), (1, 7),
+            (2, 0), (2, 5), (2, 6), (2, 7),
+            (3, 0), (3, 1), (3, 6), (3, 7), (3, 8),
+            (4, 0), (4, 1), (4, 6), (4, 7), (4, 8),
+            (5, 0), (5, 1), (5, 2), (5, 7), (5, 8), (5, 9),
+            (6, 0), (6, 1), (6, 2), (6, 7), (6, 8), (6, 9),
+            (7, 0), (7, 1), (7, 2), (7, 3), (7, 8), (7, 9),
+            (8, 0), (8, 1), (8, 2), (8, 3), (8, 9),
+            (9, 0), (9, 1), (9, 2), (9, 3), (9, 4)
+            ]
+
     #  env = Gridworld(rows, cols, R_max, noise)
+    #  env = Objectworld(rows, cols, R_max, noise, n_objects, seed, object_list=object_list, random_objects=False)
     env = Objectworld(rows, cols, R_max, noise, n_objects, seed)
     print env.grid
     P_a = env.get_transition_matrix()
@@ -115,7 +137,9 @@ if __name__=="__main__":
     #  reward_map = np.zeros([rows, cols])
     #  reward_map[rows-1, cols-1] = R_max
     #  reward_map = np.reshape(reward_map, rows*cols)
-    reward_map = env.grid
+    reward_map = normalize(env.grid)
+    print "reward_map : "
+    print reward_map
     reward_map = reward_map.transpose().reshape(-1)
 
     agent = ValueIterationAgent(env, P_a, gamma)
