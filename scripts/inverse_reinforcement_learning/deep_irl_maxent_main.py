@@ -183,7 +183,7 @@ def create_feature_map(mode, n_state, env):
 
             distance = math.sqrt((y-env.goal[0])**2 + (x-env.goal[1])**2)
             if distance == 0.0:
-                feat_map[i, 0] = 1.0 / 1.0
+                feat_map[i, 0] = 1.0 / 0.9
             else:
                 feat_map[i, 0] = 1.0 / distance
 
@@ -247,9 +247,9 @@ def main(rows, cols, gamma, act_noise, n_trajs, l_traj, learning_rate, n_itrs):
     n_action = 5
     r_max = 1.0
 
-    #  n_objects, seed = 30, 2
+    n_objects, seed = 30, 2
     #  n_objects, seed = 20, 1
-    n_objects, seed = 15, 1
+    #  n_objects, seed = 15, 1
 
     ################### ここからは逆強化学習のための前処理 #########################
     
@@ -297,17 +297,17 @@ def main(rows, cols, gamma, act_noise, n_trajs, l_traj, learning_rate, n_itrs):
     reward_gt = reward_map_gt.transpose().reshape(n_state)
     print "reward_gt : "
     print reward_gt.reshape([rows, cols]).transpose()
-    heatmap_2d(normalize(reward_gt.reshape([rows, cols]).transpose()), 'Reward Map(Grand truth)')
-    heatmap_3d(normalize(reward_gt.reshape([rows, cols]).transpose()), '3D Reward Map(Grand truth)')
+    #  heatmap_2d(normalize(reward_gt.reshape([rows, cols]).transpose()), 'Reward Map(Grand truth)')
+    #  heatmap_3d(normalize(reward_gt.reshape([rows, cols]).transpose()), '3D Reward Map(Grand truth)')
 
 
     vi_agent = ValueIterationAgent(env, P_a, gamma)
     vi_agent.train(reward_gt)
     print "V : "
     print vi_agent.V.reshape([rows, cols]).transpose()
-    heatmap_2d(normalize(vi_agent.V.reshape([rows, cols]).transpose()), 'State value(Ground truth)')
-    heatmap_3d(normalize(vi_agent.V.reshape([rows, cols]).transpose()), \
-            '3D State value(Ground truth)')
+    #  heatmap_2d(normalize(vi_agent.V.reshape([rows, cols]).transpose()), 'State value(Ground truth)')
+    #  heatmap_3d(normalize(vi_agent.V.reshape([rows, cols]).transpose()), \
+            #  '3D State value(Ground truth)')
     vi_agent.get_policy(reward_gt)
     print "policy : "
     print vi_agent.policy.reshape([rows, cols]).transpose()
@@ -316,8 +316,8 @@ def main(rows, cols, gamma, act_noise, n_trajs, l_traj, learning_rate, n_itrs):
 
 
     np.random.seed(seed)
-    #  demo = generate_demonstration(env, vi_agent.policy, reward_gt, n_trajs, l_traj)
-    demo = generate_demonstration(env, vi_agent.policy, reward_gt, n_trajs, l_traj, rand_start=True)
+    demo = generate_demonstration(env, vi_agent.policy, reward_gt, n_trajs, l_traj)
+    #  demo = generate_demonstration(env, vi_agent.policy, reward_gt, n_trajs, l_traj, rand_start=True)
     #  print "demo : "
     #  print demo
 
@@ -347,7 +347,7 @@ def main(rows, cols, gamma, act_noise, n_trajs, l_traj, learning_rate, n_itrs):
     print "reward : "
     print reward.reshape([rows, cols]).transpose()
     heatmap_2d(reward.reshape([rows, cols]).transpose(), 'Reward Map')
-    heatmap_3d(reward.reshape([rows, cols]).transpose(), '3D Reward Map')
+    #  heatmap_3d(reward.reshape([rows, cols]).transpose(), '3D Reward Map')
     
     dirs = "/home/amsl//my_reinforcement_learning_tutorial/scripts/inverse_reinforcement_learning/models/"
     model_name = "deep_irl.model"
@@ -362,13 +362,15 @@ def main(rows, cols, gamma, act_noise, n_trajs, l_traj, learning_rate, n_itrs):
     #  print "P_a : "
     #  print P_a
     heatmap_2d(normalize(agent.V.reshape([rows, cols]).transpose()), 'State value')
-    heatmap_3d(normalize(agent.V.reshape([rows, cols]).transpose()), '3D State value')
+    #  heatmap_3d(normalize(agent.V.reshape([rows, cols]).transpose()), '3D State value')
     #  agent.get_policy(reward)
     agent.get_policy(reward, deterministic=False)
     print "policy : "
     print agent.policy
     #  print agent.policy.reshape([rows, cols]).transpose()
-    #  print vi_agent.policy.reshape(-1)
+    print "policy(grand truth) : "
+    env.show_policy(vi_agent.policy.reshape(-1))
+    print "policy : "
     #  env.show_policy(agent.policy.reshape(-1))
     env.show_policy(agent.policy, deterministic=False)
 
