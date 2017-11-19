@@ -2,6 +2,9 @@
 #coding:utf-8
 
 import numpy as np
+np.set_printoptions(suppress=True, threshold=np.inf)
+
+import copy
 
 from objectworld import Objectworld
 
@@ -29,7 +32,7 @@ class LocalgridObjectworld(Objectworld):
                 g_x = x + (l_x - center_x)
                 #  print "g_y : ", g_y
                 #  print "g_x : ", g_x 
-                if g_x < 0 or g_y < 0:
+                if (g_x < 0 or self.ow.cols-1 < g_x) or (g_y < 0 or self.ow.rows-1 < g_y):
                     local_grid[l_y, l_x] = 0
                 else:
                     local_grid[l_y, l_x] = self.ow.grid[g_y, g_x]
@@ -44,27 +47,36 @@ class LocalgridObjectworld(Objectworld):
         self.local_grid = self.extract_local_grid(self.ow.state_)
         return [self.ow.state_, self.local_grid]
 
-    def step(self, actioni, reward_map=None):
+    def step(self, action, reward_map=None):
         next_state, reward, done, info = self.ow.step(action, reward_map)
         self.local_grid = self.extract_local_grid(next_state)
         return [next_state, self.local_grid], reward, done, info
+    
+    def show_global_grid(self):
+        global_grid = copy.deepcopy(self.ow.grid)
+        if self.ow.state_ != None:
+            global_grid[tuple(self.ow.state_)] = 2
+        for row in global_grid:
+            print "|",
+            for i in row:
+                print "%2d" % i,
+            print "|"
 
 
 
 if __name__ == "__main__":
-    rows = 15
-    cols = 15
+    rows = cols = 50
     R_max = 1.0
     noise = 0.0
-    n_objects = 50
+    n_objects = 1000
     seed = 1
 
-    l_rows = 3
-    l_cols = 3
+    l_rows = l_cols = 5
 
     lg_ow = LocalgridObjectworld(rows, cols, R_max, noise, n_objects, seed, l_rows, l_cols)
-    print "global_grid : "
-    print lg_ow.ow.grid
+    #  print "global_grid : "
+    #  print lg_ow.ow.grid
+    lg_ow.show_global_grid()
 
     print "local_grid"
     print lg_ow.local_grid
@@ -73,8 +85,8 @@ if __name__ == "__main__":
     print "reward_map : "
     print reward_map
     
-    max_episode = 100
-    max_step = 50
+    max_episode = 1
+    max_step = 500
     for i in xrange(max_episode):
         print "================================"
         print "episode : ", i
@@ -95,6 +107,7 @@ if __name__ == "__main__":
             print "state : ", observation[0]
             print "local_map : "
             print observation[1]
+            lg_ow.show_global_grid()
 
             print "reward : ", reward
             print "episode_end : ", done
