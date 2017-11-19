@@ -33,7 +33,7 @@ class LocalgridObjectworld(Objectworld):
                 #  print "g_y : ", g_y
                 #  print "g_x : ", g_x 
                 if (g_x < 0 or self.ow.cols-1 < g_x) or (g_y < 0 or self.ow.rows-1 < g_y):
-                    local_grid[l_y, l_x] = 0
+                    local_grid[l_y, l_x] = -1
                 else:
                     local_grid[l_y, l_x] = self.ow.grid[g_y, g_x]
         
