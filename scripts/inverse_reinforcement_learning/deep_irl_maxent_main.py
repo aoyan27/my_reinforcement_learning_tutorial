@@ -195,8 +195,8 @@ def create_feature_map(mode, n_state, env):
                 feat_map[i, 1] = min(object_dist_list)
         
         for i in xrange(feat_map.shape[1]):
-            #  feat_map[:, i] = normalize(feat_map[:, i])
-            feat_map[:, i] = z_score_normalize(feat_map[:, i])
+            feat_map[:, i] = normalize(feat_map[:, i])
+            #  feat_map[:, i] = z_score_normalize(feat_map[:, i])
         
 
     return feat_map
@@ -209,7 +209,7 @@ def generate_demonstration(env, policy, reward_map, n_trajs, l_traj, \
         if rand_start:
             while 1:
                 start_position = [np.random.randint(0, env.rows), np.random.randint(0, env.cols)]
-                if env.grid[tuple(start_position)] != -1:
+                if env.grid[tuple(start_position)] == 0:
                     break
 
         episode_traj = {"state":[], "action":[], "next_state":[], "reward":[], "done":[]}
@@ -232,6 +232,9 @@ def generate_demonstration(env, policy, reward_map, n_trajs, l_traj, \
             episode_traj["reward"].append(reward)
             episode_traj["done"].append(done)
             
+            if done:
+                break
+            
         #  print "episode_traj : "
         #  print episode_traj
         trajs.append(episode_traj)
@@ -245,7 +248,8 @@ def main(rows, cols, gamma, act_noise, n_trajs, l_traj, learning_rate, n_itrs):
     r_max = 1.0
 
     #  n_objects, seed = 30, 2
-    n_objects, seed = 20, 1
+    #  n_objects, seed = 20, 1
+    n_objects, seed = 15, 1
 
     ################### ここからは逆強化学習のための前処理 #########################
     
@@ -262,12 +266,24 @@ def main(rows, cols, gamma, act_noise, n_trajs, l_traj, learning_rate, n_itrs):
             (8, 0), (8, 1), (8, 2), (8, 3),
             (9, 0), (9, 1), (9, 2), (9, 3), (9, 4)
             ]
+    #  object_list = [
+            #  (0, 0), (0, 1), (0 ,7), (0, 8), (0, 9),
+            #  (1, 0), (1, 1), (1, 2), (1, 8), (1, 9),
+            #  (2, 0), (2, 1), (2, 7), (2, 8), (2, 9), 
+            #  (3, 0), (3, 1), (3, 7), (3, 8), (3, 9),
+            #  (4, 0), (4, 1), (4, 7), (4, 8), (4, 9),
+            #  (5, 0), (5, 1), (5, 7), (5, 8), (5, 9),
+            #  (6, 0), (6, 1), (6, 2), (6, 8), (6, 9),
+            #  (7, 0), (7, 1), (7, 2), (7, 3), (7, 8), (7, 9),
+            #  (8, 0), (8, 1), (8, 2), (8, 3),
+            #  (9, 0), (9, 1), (9, 2), (9, 3), (9, 4)
+            #  ]
 
 
 
     #  env = Gridworld(rows, cols, r_max, act_noise)
-    #  env = Objectworld(rows, cols, r_max, act_noise, n_objects, seed)
-    env = Objectworld(rows, cols, r_max, act_noise, n_objects, seed, object_list=object_list, random_objects=False)
+    env = Objectworld(rows, cols, r_max, act_noise, n_objects, seed)
+    #  env = Objectworld(rows, cols, r_max, act_noise, n_objects, seed, object_list=object_list, random_objects=False)
     P_a = env.get_transition_matrix()
     #  print "P_a : "
     #  print P_a

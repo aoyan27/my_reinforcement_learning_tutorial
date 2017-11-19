@@ -21,13 +21,15 @@ class DeepIRLNetwork(Chain):
         super(DeepIRLNetwork, self).__init__(
                 l1 = L.Linear(n_in, 1024),
                 l2 = L.Linear(1024, 512),
-                l3 = L.Linear(512, n_out, initialW=np.zeros((n_out, 512), dtype=np.float32)),
+                l3 = L.Linear(512, 256),
+                l4 = L.Linear(256, n_out, initialW=np.zeros((n_out, 256), dtype=np.float32)),
                 )
 
     def __call__(self, x):
         h = F.relu(self.l1(x))
         h = F.relu(self.l2(h))
-        y = self.l3(h)
+        h = F.relu(self.l3(h))
+        y = self.l4(h)
         return y
 
 
@@ -83,8 +85,9 @@ class DeepMaximumEntropyIRL:
         for traj in self.trajs:
             #  print "traj : "
             #  print traj
-            for i in xrange(len(traj["state"])):
-                mu[self.env.state2index(traj["state"][i])] += 1
+            mu[self.env.state2index(traj["state"][0])] +=1
+            for i in xrange(len(traj["next_state"])):
+                mu[self.env.state2index(traj["next_state"][i])] += 1
             #  print "mu : "
             #  print mu
         mu = mu / len(self.trajs)
@@ -135,6 +138,7 @@ class DeepMaximumEntropyIRL:
         mu_D = self.expart_state_visitation_frequencies()
         print "mu_D : "
         print mu_D
+        print mu_D.reshape([self.env.rows, self.env.cols]).transpose()
 
         '''
         学習行程
@@ -186,6 +190,7 @@ class DeepMaximumEntropyIRL:
             mu_exp = self.expected_state_visitation_frequencies(policy, deterministic=False)
             print "mu_exp : "
             print mu_exp
+            print mu_exp.reshape([self.env.rows, self.env.cols]).transpose()
 
             '''
             勾配の計算
@@ -193,6 +198,7 @@ class DeepMaximumEntropyIRL:
             grad_r = mu_D - mu_exp
             print "grad_r : "
             print grad_r
+            print grad_r.reshape([self.env.rows, self.env.cols]).transpose()
 
             self.apply_grad(reward_, grad_r)
 
