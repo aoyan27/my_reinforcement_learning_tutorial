@@ -232,8 +232,8 @@ def generate_demonstration(env, policy, reward_map, n_trajs, l_traj, \
             episode_traj["reward"].append(reward)
             episode_traj["done"].append(done)
             
-            if done:
-                break
+            #  if done:
+                #  break
             
         #  print "episode_traj : "
         #  print episode_traj

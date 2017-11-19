@@ -22,7 +22,8 @@ class DeepIRLNetwork(Chain):
                 l1 = L.Linear(n_in, 1024),
                 l2 = L.Linear(1024, 512),
                 l3 = L.Linear(512, 256),
-                l4 = L.Linear(256, n_out, initialW=np.zeros((n_out, 256), dtype=np.float32)),
+                #  l4 = L.Linear(256, n_out, initialW=np.zeros((n_out, 256), dtype=np.float32)),
+                l4 = L.Linear(256, n_out),
                 )
 
     def __call__(self, x):
@@ -44,8 +45,8 @@ class DeepMaximumEntropyIRL:
         self.env = env
         
         self.model = DeepIRLNetwork(self.feat_map.shape[1], 1)
-        #  self.optimizer = optimizers.SGD(self.lr)
-        self.optimizer = optimizers.Adam(self.lr)
+        self.optimizer = optimizers.SGD(self.lr)
+        #  self.optimizer = optimizers.Adam(self.lr)
         #  self.optimizer = optimizers.AdaGrad(self.lr)
         
         self.optimizer.setup(self.model)
@@ -85,9 +86,8 @@ class DeepMaximumEntropyIRL:
         for traj in self.trajs:
             #  print "traj : "
             #  print traj
-            mu[self.env.state2index(traj["state"][0])] +=1
             for i in xrange(len(traj["next_state"])):
-                mu[self.env.state2index(traj["next_state"][i])] += 1
+                mu[self.env.state2index(traj["state"][i])] += 1
             #  print "mu : "
             #  print mu
         mu = mu / len(self.trajs)
@@ -174,8 +174,8 @@ class DeepMaximumEntropyIRL:
             agent.train(reward)
             #  print "V : "
             #  print agent.V.reshape([self.env.rows, self.env.cols])
-            #  agent.get_policy(reward)
-            agent.get_policy(reward, deterministic=False)
+            agent.get_policy(reward)
+            #  agent.get_policy(reward, deterministic=False)
             #  print "policy : "
             #  print agent.policy
             #  self.env.show_policy(agent.policy.reshape(-1))
@@ -186,8 +186,11 @@ class DeepMaximumEntropyIRL:
             期待状態訪問回数(expected state visitation frequencies)を計算する
                 (dynamic programingで計算する)
             '''
-            #  mu_exp = self.expected_state_visitation_frequencies(policy)
-            mu_exp = self.expected_state_visitation_frequencies(policy, deterministic=False)
+            mu_exp = self.expected_state_visitation_frequencies(policy)
+            #  mu_exp = self.expected_state_visitation_frequencies(policy, deterministic=False)
+            print "mu_D : "
+            print mu_D
+            print mu_D.reshape([self.env.rows, self.env.cols]).transpose()
             print "mu_exp : "
             print mu_exp
             print mu_exp.reshape([self.env.rows, self.env.cols]).transpose()
