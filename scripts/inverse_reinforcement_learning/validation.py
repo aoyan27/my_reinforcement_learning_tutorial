@@ -8,12 +8,6 @@ np.set_printoptions(suppress=True, threshold=np.inf)
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 
-import chainer 
-from chainer import cuda, Variable, optimizers, serializers
-from chainer import Chain
-import chainer.functions as F
-import chainer.links as L
-
 import math
 
 from networks.deep_irl_network import DeepIRLNetwork
