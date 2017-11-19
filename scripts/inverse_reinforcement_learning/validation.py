@@ -16,36 +16,11 @@ import chainer.links as L
 
 import math
 
+from networks.deep_irl_network import DeepIRLNetwork
 from envs.gridworld import Gridworld
 from envs.objectworld import Objectworld
 
 from agents.value_iteration import ValueIterationAgent
-
-
-class DeepIRLNetwork(Chain):
-    def __init__(self, n_in, n_out):
-        super(DeepIRLNetwork, self).__init__(
-                l1 = L.Linear(n_in, 1024),
-                l2 = L.Linear(1024, 512),
-                l3 = L.Linear(512, n_out, initialW=np.zeros((n_out, 512), dtype=np.float32)),
-                )
-
-    def __call__(self, x):
-        h = F.relu(self.l1(x))
-        h = F.relu(self.l2(h))
-        y = self.l3(h)
-        return y
-
-    def get_reward(self, feature):
-        features = Variable(np.asarray(feature, dtype=np.float32))
-        #  print "features.data : "
-        #  print features.data
-        reward = self.__call__(features)
-        #  print "reward__ : "
-        #  print reward
-        #  reward = reward.data.reshape(-1)
-        return reward
-
 
 
 def normalize(vals):
@@ -215,7 +190,7 @@ def create_feature_map(mode, n_state, env):
 
             distance = math.sqrt((y-env.goal[0])**2 + (x-env.goal[1])**2)
             if distance == 0.0:
-                feat_map[i, 0] = 1.0 / 1.0
+                feat_map[i, 0] = 1.0 / 0.9
             else:
                 feat_map[i, 0] = 1.0 / distance
 
@@ -226,8 +201,8 @@ def create_feature_map(mode, n_state, env):
                 feat_map[i, 1] = min(object_dist_list)
         
         for i in xrange(feat_map.shape[1]):
-            #  feat_map[:, i] = normalize(feat_map[:, i])
-            feat_map[:, i] = z_score_normalize(feat_map[:, i])
+            feat_map[:, i] = normalize(feat_map[:, i])
+            #  feat_map[:, i] = z_score_normalize(feat_map[:, i])
         
 
     return feat_map
@@ -299,7 +274,6 @@ def main(rows, cols, gamma, act_noise, n_objects, seed, model_name):
     #  env.show_policy(agent.policy.reshape(-1))
     env.show_policy(agent.policy, deterministic=False)
     
-    np.save(dirs+'reward_array.npy', reward)
     
 
 if __name__ == "__main__":
