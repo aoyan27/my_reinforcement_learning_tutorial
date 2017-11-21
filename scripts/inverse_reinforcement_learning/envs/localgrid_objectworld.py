@@ -5,6 +5,7 @@ import numpy as np
 np.set_printoptions(suppress=True, threshold=np.inf)
 
 import copy
+import math
 
 from objectworld import Objectworld
 
@@ -14,7 +15,27 @@ class LocalgridObjectworld(Objectworld):
 
         self.l_rows = l_rows
         self.l_cols = l_cols
+        self.l_n_state = self.l_rows * self.l_cols
         self.local_grid = np.zeros([self.l_rows, self.l_cols])
+        self.local_goal = None
+
+    def local_state2index(self, state):
+        # state[0] : y
+        # state[1] : x
+        return state[0] + self.l_cols * state[1]
+
+    def local_index2state(self, index):
+        state = [0, 0]
+        state[0] = index % self.l_cols    # y
+        state[1] = index / self.l_cols    # x
+        return state
+
+    def create_local_grid(self, state):
+        self.get_local_goal()
+        local_grid = self.extract_local_grid(state)
+        local_grid_ = copy.deepcopy(local_grid)
+        local_grid_[self.local_goal] = 1
+        return local_grid, local_grid_
 
     def extract_local_grid(self, state):
         local_grid = self.local_grid
@@ -24,7 +45,6 @@ class LocalgridObjectworld(Objectworld):
         center_x = int(self.l_cols / 2)
         #  print "center_y : ", center_y
         #  print "center_x : ", center_x
-        
 
         for l_y in xrange(self.l_rows):
             for l_x in xrange(self.l_cols):
@@ -38,18 +58,47 @@ class LocalgridObjectworld(Objectworld):
                     local_grid[l_y, l_x] = self.ow.grid[g_y, g_x]
         
         return local_grid
+
+    def get_local_goal(self):
+        #  print math.degrees(math.atan2((self.ow.goal[0]-self.ow.state_[0]), (self.ow.goal[1]-self.ow.state_[1])))
+        theta = math.atan2((self.ow.goal[0]-self.ow.state_[0]), (self.ow.goal[1]-self.ow.state_[1]))
+
+        diff_theta = math.pi / (2.0*self.l_rows)
+        #  print math.degrees(diff_theta)
+        i = theta / diff_theta
+        #  print i
+
+        center_y = int(self.l_rows / 2)
+        center_x = int(self.l_cols / 2)
+        
+        local_goal_candidate = [(yi, self.l_cols-1) for yi in xrange(center_y, self.l_rows-1)]
+        local_goal_candidate.append((self.l_rows-1, self.l_cols-1))
+        local_goal_candidate.extend([(self.l_rows-1, xi) for xi in xrange(center_x, self.l_cols-1)][::-1])
+
+        #  for xi in xrange(self.l_cols-2, center_x+1, -1):
+            #  local_goal_candidate.append((self.l_rows-1, xi))
+        #  print local_goal_candidate
+
+        if i == self.l_rows:
+            self.local_goal = local_goal_candidate[self.l_rows-1]
+            #  print local_goal_candidate[self.l_rows-1]
+        else:
+            self.local_goal = local_goal_candidate[int(i)]
+            #  print local_goal_candidate[int(i)]
     
     def get_sample_action(self):
         return self.ow.get_action_sample()
 
     def reset(self, start_position=[0,0]):
         self.ow.reset()
+        self.get_local_goal()
         self.local_grid = self.extract_local_grid(self.ow.state_)
         return [self.ow.state_, self.local_grid]
 
     def step(self, action, reward_map=None):
         next_state, reward, done, info = self.ow.step(action, reward_map)
-        self.local_grid = self.extract_local_grid(next_state)
+        self.local_grid, _ = self.create_local_grid(next_state)
+        info["local_grid"] = _
         return [next_state, self.local_grid], reward, done, info
     
     def show_global_grid(self):
@@ -66,7 +115,7 @@ class LocalgridObjectworld(Objectworld):
 
 if __name__ == "__main__":
     rows = cols = 50
-    R_max = 1.0
+    R_max = 10.0
     noise = 0.0
     n_objects = 1000
     seed = 1
