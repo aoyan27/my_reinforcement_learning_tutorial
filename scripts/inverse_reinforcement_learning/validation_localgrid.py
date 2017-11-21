@@ -77,7 +77,7 @@ def heatmap_3d(input_array, title=''):
     plt.show()
 
 
-def create_feature_map(mode, n_state, env):
+def create_feature_map(mode, env):
     '''
     特徴量を作成
     '''
@@ -93,7 +93,7 @@ def create_feature_map(mode, n_state, env):
             f_3 = [0, 0, 0, 1]
         みたいな感じ...
         '''
-        feat_map = np.eye(n_state)
+        feat_map = np.eye(env.l_n_state)
         #  print "feat_map : "
         #  print feat_map
     elif mode == 1:
@@ -107,9 +107,9 @@ def create_feature_map(mode, n_state, env):
             f_3 = [1, 1]
         みたいな感じ...
         '''
-        feat_map = np.zeros([n_state, 2])
-        for i in xrange(n_state):
-            y, x = env.index2state(i)
+        feat_map = np.zeros([env.l_n_state, 2])
+        for i in xrange(env.l_n_state):
+            y, x = env.ilocal_index2state(i)
             feat_map[i, 0] = y
             feat_map[i, 1] = x
     elif mode == 2:
@@ -123,13 +123,13 @@ def create_feature_map(mode, n_state, env):
             f_3 = [1, 1, 1, 1]
         みたいな感じ...
         '''
-        feat_map = np.zeros([n_state, 4])
-        for i in xrange(n_state):
-            y, x = env.index2state(i)
+        feat_map = np.zeros([env.l_n_state, 4])
+        for i in xrange(env.l_n_state):
+            y, x = env.local_index2state(i)
             feat_map[i, 0] = y
             feat_map[i, 1] = x
-            feat_map[i, 2] = env.goal[0]
-            feat_map[i, 3] = env.goal[1]
+            feat_map[i, 2] = env.local_goal[0]
+            feat_map[i, 3] = env.local_goal[1]
     elif mode == 3:
         '''
         デモの各軌道における特徴量は各状態における特徴量の合計としてとらえられるので...
@@ -141,14 +141,14 @@ def create_feature_map(mode, n_state, env):
             f_3 = [1/d_3]
         みたいな感じ...
         '''
-        feat_map = np.zeros([n_state, 1])
-        for i in xrange(n_state):
-            y, x = env.index2state(i)
-            distance = math.sqrt((y-env.goal[0])**2 + (x-env.goal[1])**2)
+        feat_map = np.zeros([env.l_n_state, 1])
+        for i in xrange(env.l_n_state):
+            y, x = env.local_index2state(i)
+            distance = math.sqrt((y-env.local_goal[0])**2 + (x-env.local_goal[1])**2)
             if distance == 0.0:
-                feat_map[i, 0] = 1.0 / 1e-6
+                feat_map[i, 0] = 1.0 / 0.9
             else:
-                feat_map[i, 0] = 1.0 / distance**2
+                feat_map[i, 0] = 1.0 / distance
     elif mode == 4:
         '''
         デモの各軌道における特徴量は各状態における特徴量の合計としてとらえられるので...
@@ -160,47 +160,51 @@ def create_feature_map(mode, n_state, env):
             f_3 = [1, 1, 1/d_3]
         みたいな感じ...
         '''
-        feat_map = np.zeros([n_state, 2+1])
-        for i in xrange(n_state):
-            y, x = env.index2state(i)
+        feat_map = np.zeros([env.l_n_state, 2+1])
+        for i in xrange(env.l_n_state):
+            y, x = env.local_index2state(i)
             feat_map[i, 0] = y
             feat_map[i, 1] = x
 
-            distance = math.sqrt((y-env.goal[0])**2 + (x-env.goal[1])**2)
+            distance = math.sqrt((y-env.local_goal[0])**2 + (x-env.local_goal[1])**2)
             if distance == 0.0:
-                feat_map[i, 2] = 1.0 / 1e-6
+                feat_map[i, 2] = 1.0 / 0.9
             else:
                 feat_map[i, 2] = 1.0 / distance
     elif mode == 5:
         '''
         ゴールへの距離の逆数, 最近傍の静的障害物への距離の逆数
         '''
-        feat_map = np.zeros([n_state, 2])
+        feat_map = np.zeros([env.l_n_state, 2])
         object_list = []
-        for j in xrange(n_state):
-            y_object, x_object = env.index2state(j)
-            if env.grid[y_object, x_object] == -1:
+        for j in xrange(env.l_n_state):
+            y_object, x_object = env.local_index2state(j)
+            if env.local_grid[y_object, x_object] == -1:
                 object_list.append([y_object, x_object])
 
-        for i in xrange(n_state):
-            y, x = env.index2state(i)
+        for i in xrange(env.l_n_state):
+            y, x = env.local_index2state(i)
 
-            distance = math.sqrt((y-env.goal[0])**2 + (x-env.goal[1])**2)
+            distance = math.sqrt((y-env.local_goal[0])**2 + (x-env.local_goal[1])**2)
             if distance == 0.0:
                 feat_map[i, 0] = 1.0 / 0.9
             else:
                 feat_map[i, 0] = 1.0 / distance
-
+            
             object_dist_list = []
             for j in xrange(len(object_list)):
                 tmp_dist = math.sqrt((y-object_list[j][0])**2 + (x-object_list[j][1])**2)
                 object_dist_list.append(tmp_dist)
                 feat_map[i, 1] = min(object_dist_list)
-        
-        for i in xrange(feat_map.shape[1]):
-            feat_map[:, i] = normalize(feat_map[:, i])
+ 
+        if len(object_list) == 0:
+            feat_map[:, 1] = 0
+            feat_map[:, 0] = normalize(feat_map[:, 0])
+            #  feat_map[:, 0] = z_score_normalize(feat_map[:, 0])
+        else:
+            for i in xrange(feat_map.shape[1]):
+                feat_map[:, i] = normalize(feat_map[:, i])
             #  feat_map[:, i] = z_score_normalize(feat_map[:, i])
-        
 
     return feat_map
 
@@ -208,21 +212,28 @@ def create_feature_map(mode, n_state, env):
 def main(rows, cols, act_noise, n_objects, seed, l_rows, l_cols, model_name):
     n_state = rows * cols
     n_action = 5
-    r_max = 1.0
-
-
-    
+    r_max = 10.0
 
     env = LocalgridObjectworld(rows, cols, r_max, act_noise, n_objects, seed, l_rows, l_cols)
 
     env.show_global_grid()
 
-
     reward_map = env.ow.grid.transpose().reshape(-1)
 
     observation = env.reset()
-    kc = KeyboardController()
+    print observation[1]
 
+    feat_map = create_feature_map(5, env)
+    print "feat_map : "
+    print feat_map
+
+    #  model = DeepIRLNetwork(feat_map.shape[1], 1)
+    #  dirs = "/home/amsl/my_reinforcement_learning_tutorial/scripts/inverse_reinforcement_learning/models/"
+    #  serializers.load_npz(dirs+model_name, model)
+    #  print "model : ", model
+    
+
+    kc = KeyboardController()
 
     env.show_global_grid()
     
@@ -247,7 +258,7 @@ def main(rows, cols, act_noise, n_objects, seed, l_rows, l_cols, model_name):
             print "action : ", action, "(", env.ow.dirs[action], ")"
 
             observation, reward, done, info = env.step(action, reward_map)
-            print "state : ", observation[0]
+            print "next_state : ", observation[0]
             #  print "local_map : "
             #  print observation[1]
 
@@ -255,8 +266,15 @@ def main(rows, cols, act_noise, n_objects, seed, l_rows, l_cols, model_name):
             print "episode_end : ", done
 
             env.show_global_grid()
+            print "next_state : ", observation[0]
             print "local_map : "
             print observation[1]
+            print "local_goal : ", env.local_goal
+
+            feat_map = create_feature_map(5, env)
+            print "feat_map : "
+            print feat_map
+
 
             if done:
                 break
