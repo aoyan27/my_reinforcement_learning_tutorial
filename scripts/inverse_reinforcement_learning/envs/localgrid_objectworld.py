@@ -60,32 +60,44 @@ class LocalgridObjectworld(Objectworld):
         return local_grid
 
     def get_local_goal(self):
+        g_dist = math.sqrt((self.ow.goal[0]-self.ow.state_[0])**2 + (self.ow.goal[1]-self.ow.state_[1])**2)
+        print "g_dist : ", g_dist
         #  print math.degrees(math.atan2((self.ow.goal[0]-self.ow.state_[0]), (self.ow.goal[1]-self.ow.state_[1])))
         theta = math.atan2((self.ow.goal[0]-self.ow.state_[0]), (self.ow.goal[1]-self.ow.state_[1]))
 
-        diff_theta = math.pi / (2.0*self.l_rows)
+        diff_theta = (math.pi/2.0) / self.l_rows
         #  print math.degrees(diff_theta)
         i = theta / diff_theta
         #  print i
 
         center_y = int(self.l_rows / 2)
         center_x = int(self.l_cols / 2)
-        
-        local_goal_candidate = [(yi, self.l_cols-1) for yi in xrange(center_y, self.l_rows-1)]
-        local_goal_candidate.append((self.l_rows-1, self.l_cols-1))
-        local_goal_candidate.extend([(self.l_rows-1, xi) for xi in xrange(center_x, self.l_cols-1)][::-1])
 
-        #  for xi in xrange(self.l_cols-2, center_x+1, -1):
-            #  local_goal_candidate.append((self.l_rows-1, xi))
-        #  print local_goal_candidate
-
-        if i == self.l_rows:
-            self.local_goal = local_goal_candidate[self.l_rows-1]
-            #  print local_goal_candidate[self.l_rows-1]
+        l_dist = math.sqrt(((self.l_rows-1)-center_y)**2 + ((self.l_cols-1)-center_x)**2)
+        print "l_dist : ", l_dist
+        if g_dist < l_dist:
+            l_goal_y = self.ow.goal[0] - self.ow.state_[0]
+            l_goal_x = self.ow.goal[1] - self.ow.state_[1]
+            print "l_goal_y, l_goal_x : ", l_goal_y, l_goal_x
+            self.local_goal = (l_goal_y+center_y, l_goal_x+center_x)
+            print "self.local_goal(g_dist < l_dist) : ", self.local_goal
         else:
-            self.local_goal = local_goal_candidate[int(i)]
-            #  print local_goal_candidate[int(i)]
-    
+            local_goal_candidate = [(yi, self.l_cols-1) for yi in xrange(center_y, self.l_rows-1)]
+            local_goal_candidate.append((self.l_rows-1, self.l_cols-1))
+            local_goal_candidate.extend([(self.l_rows-1, xi) for xi in xrange(center_x, self.l_cols-1)][::-1])
+
+            #  for xi in xrange(self.l_cols-2, center_x+1, -1):
+                #  local_goal_candidate.append((self.l_rows-1, xi))
+            #  print local_goal_candidate
+
+            if i == self.l_rows:
+                self.local_goal = local_goal_candidate[self.l_rows-1]
+                #  print local_goal_candidate[self.l_rows-1]
+            else:
+                self.local_goal = local_goal_candidate[int(i)]
+                #  print local_goal_candidate[int(i)]
+        
+
     def get_sample_action(self):
         return self.ow.get_action_sample()
 
