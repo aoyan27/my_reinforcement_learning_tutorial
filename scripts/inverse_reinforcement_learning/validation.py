@@ -241,7 +241,7 @@ def main(rows, cols, gamma, act_noise, n_objects, seed, model_name):
 
     dirs = "/home/amsl/my_reinforcement_learning_tutorial/scripts/inverse_reinforcement_learning/models/"
     model = DeepIRLNetwork(feat_map.shape[1], 1)
-    serializers.load_npz(dirs+model_name, model)
+    model.load_model(dirs+model_name, model)
     print "model : ", model
 
     reward = normalize(model.get_reward(feat_map).data.reshape(-1))

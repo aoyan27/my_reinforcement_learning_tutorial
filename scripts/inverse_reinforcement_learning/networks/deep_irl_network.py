@@ -37,3 +37,6 @@ class DeepIRLNetwork(Chain):
         #  print reward
         #  reward = reward.data.reshape(-1)
         return reward
+
+    def load_model(self, model_name, model):
+        serializers.load_npz(model_name, model)

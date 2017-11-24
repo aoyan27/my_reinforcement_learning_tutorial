@@ -227,10 +227,10 @@ def main(rows, cols, act_noise, n_objects, seed, l_rows, l_cols, model_name):
     print "feat_map : "
     print feat_map
 
-    #  model = DeepIRLNetwork(feat_map.shape[1], 1)
-    #  dirs = "/home/amsl/my_reinforcement_learning_tutorial/scripts/inverse_reinforcement_learning/models/"
-    #  serializers.load_npz(dirs+model_name, model)
-    #  print "model : ", model
+    model = DeepIRLNetwork(feat_map.shape[1], 1)
+    dirs = "/home/amsl/my_reinforcement_learning_tutorial/scripts/inverse_reinforcement_learning/models/"
+    model.load_model(dirs+model_name, model)
+    print "model : ", model
     
 
     kc = KeyboardController()
@@ -249,8 +249,19 @@ def main(rows, cols, act_noise, n_objects, seed, l_rows, l_cols, model_name):
             print "step : ", j
 
             print "state : ", observation[0]
-            #  print "local map : "
-            #  print observation[1]
+
+            env.show_global_grid()
+            print "local_map : "
+            print observation[1]
+            print "local_goal : ", env.local_goal
+
+            feat_map = create_feature_map(5, env)
+            print "feat_map : "
+            print feat_map
+
+            reward = normalize(model.get_reward(feat_map).data.reshape(-1))
+            print "reward : "
+            print reward.reshape([l_rows, l_cols]).transpose()
         
             #  action = env.get_sample_action()
             action = kc.controller()
@@ -265,15 +276,7 @@ def main(rows, cols, act_noise, n_objects, seed, l_rows, l_cols, model_name):
             print "reward : ", reward
             print "episode_end : ", done
 
-            env.show_global_grid()
             print "next_state : ", observation[0]
-            print "local_map : "
-            print observation[1]
-            print "local_goal : ", env.local_goal
-
-            feat_map = create_feature_map(5, env)
-            print "feat_map : "
-            print feat_map
 
 
             if done:
