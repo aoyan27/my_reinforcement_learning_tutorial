@@ -61,7 +61,7 @@ class LocalgridObjectworld(Objectworld):
 
     def get_local_goal(self):
         g_dist = math.sqrt((self.ow.goal[0]-self.ow.state_[0])**2 + (self.ow.goal[1]-self.ow.state_[1])**2)
-        print "g_dist : ", g_dist
+        #  print "g_dist : ", g_dist
         #  print math.degrees(math.atan2((self.ow.goal[0]-self.ow.state_[0]), (self.ow.goal[1]-self.ow.state_[1])))
         theta = math.atan2((self.ow.goal[0]-self.ow.state_[0]), (self.ow.goal[1]-self.ow.state_[1]))
 
@@ -74,13 +74,13 @@ class LocalgridObjectworld(Objectworld):
         center_x = int(self.l_cols / 2)
 
         l_dist = math.sqrt(((self.l_rows-1)-center_y)**2 + ((self.l_cols-1)-center_x)**2)
-        print "l_dist : ", l_dist
+        #  print "l_dist : ", l_dist
         if g_dist < l_dist:
             l_goal_y = self.ow.goal[0] - self.ow.state_[0]
             l_goal_x = self.ow.goal[1] - self.ow.state_[1]
-            print "l_goal_y, l_goal_x : ", l_goal_y, l_goal_x
+            #  print "l_goal_y, l_goal_x : ", l_goal_y, l_goal_x
             self.local_goal = (l_goal_y+center_y, l_goal_x+center_x)
-            print "self.local_goal(g_dist < l_dist) : ", self.local_goal
+            #  print "self.local_goal(g_dist < l_dist) : ", self.local_goal
         else:
             local_goal_candidate = [(yi, self.l_cols-1) for yi in xrange(center_y, self.l_rows-1)]
             local_goal_candidate.append((self.l_rows-1, self.l_cols-1))
