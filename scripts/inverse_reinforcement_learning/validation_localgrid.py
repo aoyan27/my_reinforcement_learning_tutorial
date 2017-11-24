@@ -38,12 +38,13 @@ def heatmap_2d(input_array, title):
 
     for y in range(input_array.shape[0]):
       for x in range(input_array.shape[1]):
-        plt.text(x, y, '%.2f' % input_array[y, x],
+        plt.text(x, y, '%.3f' % input_array[y, x],
                  horizontalalignment='center',
                  verticalalignment='center',
                  )
-
-    plt.show()
+    plt.draw()  # グラフ(画像)の描画
+    plt.clf()  # 画面の初期化
+    #  plt.show()
 
 def heatmap_3d(input_array, title=''):
     data_2d = input_array
@@ -231,12 +232,14 @@ def main(rows, cols, act_noise, n_objects, seed, l_rows, l_cols, model_name):
     dirs = "/home/amsl/my_reinforcement_learning_tutorial/scripts/inverse_reinforcement_learning/models/"
     model.load_model(dirs+model_name, model)
     print "model : ", model
-    
 
     kc = KeyboardController()
 
     env.show_global_grid()
+
+    plt.ion()  # matplotlibの対話モードON(プログラム上での呼び出しは一回だけにしないと変な動作する)
     
+
     max_episode = 1
     max_step = 500
     for i in xrange(max_episode):
@@ -256,27 +259,26 @@ def main(rows, cols, act_noise, n_objects, seed, l_rows, l_cols, model_name):
             print "local_goal : ", env.local_goal
 
             feat_map = create_feature_map(5, env)
-            print "feat_map : "
-            print feat_map
+            #  print "feat_map : "
+            #  print feat_map
 
             reward = normalize(model.get_reward(feat_map).data.reshape(-1))
             print "reward : "
             print reward.reshape([l_rows, l_cols]).transpose()
+            heatmap_2d(reward.reshape([l_rows, l_cols]).transpose(), 'Reward Map')
         
             #  action = env.get_sample_action()
             action = kc.controller()
 
             print "action : ", action, "(", env.ow.dirs[action], ")"
 
-            observation, reward, done, info = env.step(action, reward_map)
+            observation, reward_, done, info = env.step(action, reward_map)
             print "next_state : ", observation[0]
             #  print "local_map : "
             #  print observation[1]
 
-            print "reward : ", reward
+            print "reward : ", reward_
             print "episode_end : ", done
-
-            print "next_state : ", observation[0]
 
 
             if done:
