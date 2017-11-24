@@ -215,7 +215,7 @@ def main(rows, cols, act_noise, n_objects, seed, l_rows, l_cols, model_name):
     n_action = 5
     r_max = 10.0
 
-    env = LocalgridObjectworld(rows, cols, r_max, act_noise, n_objects, seed, l_rows, l_cols)
+    env = LocalgridObjectworld(rows, cols, r_max, act_noise, n_objects, seed, l_rows, l_cols, [7, 7])
 
     env.show_global_grid()
 

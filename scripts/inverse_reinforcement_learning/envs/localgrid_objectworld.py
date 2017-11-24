@@ -10,14 +10,17 @@ import math
 from objectworld import Objectworld
 
 class LocalgridObjectworld(Objectworld):
-    def __init__(self, g_rows, g_cols, R_max, noise, n_objects, seed, l_rows, l_cols):
+    def __init__(self, g_rows, g_cols, R_max, noise, n_objects, seed, l_rows, l_cols, l_goal_range):
         self.ow = Objectworld(g_rows, g_cols, R_max, noise, n_objects, seed)
 
         self.l_rows = l_rows
         self.l_cols = l_cols
         self.l_n_state = self.l_rows * self.l_cols
+        self.l_goal_range = l_goal_range
+
         self.local_grid = np.zeros([self.l_rows, self.l_cols])
         self.local_goal = None
+        
 
     def local_state2index(self, state):
         # state[0] : y
@@ -34,6 +37,7 @@ class LocalgridObjectworld(Objectworld):
         self.get_local_goal()
         local_grid = self.extract_local_grid(state)
         local_grid_ = copy.deepcopy(local_grid)
+        print "self.local_goal : ", self.local_goal
         local_grid_[self.local_goal] = 1
         return local_grid, local_grid_
 
@@ -65,33 +69,41 @@ class LocalgridObjectworld(Objectworld):
         #  print math.degrees(math.atan2((self.ow.goal[0]-self.ow.state_[0]), (self.ow.goal[1]-self.ow.state_[1])))
         theta = math.atan2((self.ow.goal[0]-self.ow.state_[0]), (self.ow.goal[1]-self.ow.state_[1]))
 
-        diff_theta = (math.pi/2.0) / self.l_rows
+        diff_theta = (math.pi/2.0) / self.l_goal_range[0]
         #  print math.degrees(diff_theta)
         i = theta / diff_theta
         #  print i
 
+        diff_y = int(self.l_goal_range[1] / 2)
+        diff_x = int(self.l_goal_range[0] / 2)
+
         center_y = int(self.l_rows / 2)
         center_x = int(self.l_cols / 2)
+        #  print "center_y : ", center_y
+        #  print "center_x : ", center_x
 
-        l_dist = math.sqrt(((self.l_rows-1)-center_y)**2 + ((self.l_cols-1)-center_x)**2)
+        end_y = center_y + diff_y
+        end_x = center_x + diff_x
+        #  print "end_y : ", end_y
+        #  print "end_x : ", end_x
+
+        l_dist = math.sqrt((end_y-center_y)**2 + ((end_x-center_x)**2))
         #  print "l_dist : ", l_dist
-        if g_dist < l_dist:
-            l_goal_y = self.ow.goal[0] - self.ow.state_[0]
-            l_goal_x = self.ow.goal[1] - self.ow.state_[1]
+        l_goal_y = (self.ow.goal[0] - self.ow.state_[0]) + center_y
+        l_goal_x = (self.ow.goal[1] - self.ow.state_[1]) + center_x
+        if g_dist < l_dist and (l_goal_y < end_y and l_goal_x < end_x):
             #  print "l_goal_y, l_goal_x : ", l_goal_y, l_goal_x
-            self.local_goal = (l_goal_y+center_y, l_goal_x+center_x)
+            self.local_goal = (l_goal_y, l_goal_x)
             #  print "self.local_goal(g_dist < l_dist) : ", self.local_goal
         else:
-            local_goal_candidate = [(yi, self.l_cols-1) for yi in xrange(center_y, self.l_rows-1)]
-            local_goal_candidate.append((self.l_rows-1, self.l_cols-1))
-            local_goal_candidate.extend([(self.l_rows-1, xi) for xi in xrange(center_x, self.l_cols-1)][::-1])
-
-            #  for xi in xrange(self.l_cols-2, center_x+1, -1):
-                #  local_goal_candidate.append((self.l_rows-1, xi))
+            local_goal_candidate = [(yi, end_x) for yi in xrange(center_y, end_y)]
+            local_goal_candidate.append((end_y, end_x))
+            local_goal_candidate.extend([(end_y, xi) for xi in xrange(center_x, end_x)][::-1])
             #  print local_goal_candidate
 
-            if i == self.l_rows:
-                self.local_goal = local_goal_candidate[self.l_rows-1]
+
+            if i == self.l_goal_range[0]:
+                self.local_goal = local_goal_candidate[self.l_goal_range[0]-1]
                 #  print local_goal_candidate[self.l_rows-1]
             else:
                 self.local_goal = local_goal_candidate[int(i)]
@@ -134,7 +146,7 @@ if __name__ == "__main__":
 
     l_rows = l_cols = 5
 
-    lg_ow = LocalgridObjectworld(rows, cols, R_max, noise, n_objects, seed, l_rows, l_cols)
+    lg_ow = LocalgridObjectworld(rows, cols, R_max, noise, n_objects, seed, l_rows, l_cols, [l_rows, l_cols])
     #  print "global_grid : "
     #  print lg_ow.ow.grid
     lg_ow.show_global_grid()

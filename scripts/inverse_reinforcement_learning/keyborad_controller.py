@@ -82,7 +82,7 @@ if __name__ == "__main__":
 
     l_rows = l_cols = 5
 
-    lg_ow = LocalgridObjectworld(rows, cols, R_max, noise, n_objects, seed, l_rows, l_cols)
+    lg_ow = LocalgridObjectworld(rows, cols, R_max, noise, n_objects, seed, l_rows, l_cols, [l_rows, l_cols])
     #  print "global_grid : "
     #  print lg_ow.ow.grid
     lg_ow.show_global_grid()
