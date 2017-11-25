@@ -309,7 +309,7 @@ if __name__ == "__main__":
     parser.add_argument('-l_r', '--l_rows', default=5, type=int, help='row of local gridworld')
     parser.add_argument('-l_c', '--l_cols', default=5, type=int, help='column of local gridworld')
 
-    parser.add_argument('-m', '--model_name', default='deep_irl.model', type=str, help='model name')
+    parser.add_argument('-m', '--model_name', default='deep_irl_10x10_random_objects.model', type=str, help='model name')
 
     args = parser.parse_args()
     print args
