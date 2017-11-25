@@ -247,8 +247,8 @@ def main(rows, cols, gamma, act_noise, n_trajs, l_traj, learning_rate, n_itrs):
     n_action = 5
     r_max = 1.0
 
-    n_objects, seed = 6, 3
-    #  n_objects, seed = 30, 2
+    #  n_objects, seed = 6, 3
+    n_objects, seed = 30, 2
     #  n_objects, seed = 20, 1
     #  n_objects, seed = 15, 1
 
