@@ -28,7 +28,8 @@ def main(env_name, gpu, evaluation=False, monitor=True):
     model_path = "/media/amsl/HDCL-UT/my_reinforcement_learning_tutorial/models/deep_q_learning/my_dqn_" + env_name + "/" + env_name + "_"
 
     if monitor:
-        env = gym.wrappers.Monitor(env, video_path, force=True)
+        #  env = gym.wrappers.Monitor(env, video_path, force=True)
+        pass
     
     max_episode = 10001
     max_step = 2000
@@ -37,11 +38,11 @@ def main(env_name, gpu, evaluation=False, monitor=True):
     #  print "num_state : ", num_state
     
     ####  Pendulum-v0  ####
-    #  action_list = [np.array([a]) for a in [-2.0, 2.0]]
-    #  num_action = len(action_list)
+    action_list = [np.array([a]) for a in [-2.0, 2.0]]
+    num_action = len(action_list)
 
     ####  Acrobot-v1, CartPole-v0, MountainCar-v0  ####
-    num_action = env.action_space.n
+    #  num_action = env.action_space.n
 
     #### InvertedPenduum-v1 (MuJoCo) ####
     #  action_list = [np.array([a]) for a in [-0.3, -0.2, -0.1, 0.1, 0.2, 0.3]]
@@ -59,7 +60,7 @@ def main(env_name, gpu, evaluation=False, monitor=True):
         print "Train mode!!!"
     else:
         print "evaluation mode!!!"
-        agent.load_model(model_path, 0)
+        #  agent.load_model(model_path, 0)
     
     t = 0
 
@@ -78,11 +79,11 @@ def main(env_name, gpu, evaluation=False, monitor=True):
             #  print "state : ", state
             
             ####  Pendulum-v0  ####
-            #  act_i, q = agent.get_action(state, evaluation)
-            #  action = action_list[act_i]
+            act_i, q = agent.get_action(state, evaluation)
+            action = action_list[act_i]
             
             ####  Acrobot-v1, CartPole-v0, MountainCar-v0  ####
-            action, q = agent.get_action(state, evaluation)
+            #  action, q = agent.get_action(state, evaluation)
             #  print "action : ", action, type(action)
 
             ####  InvertedPendulum-v1 (MuJoCo) ####
@@ -100,10 +101,10 @@ def main(env_name, gpu, evaluation=False, monitor=True):
             
             if not evaluation:
                 ####  Pendulum-v0  ####
-                #  agent.stock_experience(t, state, act_i, next_state, reward, done)
+                agent.stock_experience(t, state, np.array([act_i]), next_state, reward, np.array([done]))
 
                 ####  Acrobot-v1, CartPole-v0, MountainCar-v0  ####
-                agent.stock_experience(t, state, action, next_state, reward, done)
+                #  agent.stock_experience(t, state, action, next_state, reward, done)
 
                 ####  InvertedPendulum-v1 (MuJoCo) ####
                 #  agent.stock_experience(t, state, act_i, next_state, reward, done)
@@ -130,10 +131,10 @@ def main(env_name, gpu, evaluation=False, monitor=True):
             success += 1
         print "Success : ", success, "\tSuccess rate : ", float(success)/float(i_episode+1)
 
-        if not evaluation:
-            agent.save_model(model_path, i_episode)
-        else:
-            agent.load_model(model_path, i_episode)
+        #  if not evaluation:
+            #  agent.save_model(model_path, i_episode)
+        #  else:
+            #  agent.load_model(model_path, i_episode)
 
 
 if __name__ == "__main__":
