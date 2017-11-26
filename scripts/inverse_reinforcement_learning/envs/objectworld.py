@@ -3,6 +3,8 @@
 
 import numpy as np
 
+import copy
+
 class Objectworld:
     def __init__(self, rows, cols, R_max, noise, n_objects, seed, object_list=None, random_objects=True):
         np.random.seed(seed)
@@ -186,6 +188,14 @@ class Objectworld:
         #  print P.shape
         return P
     
+    def show_objectworld(self):
+        grid_world = copy.deepcopy(self.grid)
+        for row in grid_world:
+            print "|",
+            for i in row:
+                print "%2d" % i,
+            print "|"
+    
     def show_policy(self, policy, deterministic=True):
         vis_policy = np.array([])
         if deterministic:
@@ -197,12 +207,17 @@ class Objectworld:
                 vis_policy = np.append(vis_policy, self.dirs[np.argmax(policy[i])])
 
         vis_policy = vis_policy.reshape((self.rows, self.cols)).transpose()
-        for y in xrange(self.rows):
-            for x in xrange(self.cols):
-                if self.grid[y, x] != 0:
-                    vis_policy[y, x] = '#'
         vis_policy[self.goal] = 'G'
-        print vis_policy
+        for y in xrange(self.rows):
+            print "|",
+            for x in xrange(self.cols):
+                if self.grid[y, x] == -1:
+                    vis_policy[y, x] = '#'
+                    print "#",
+                else:
+                    print vis_policy[y, x],
+            print "|"
+        #  print vis_policy
 
     def terminal(self, state, index):
         episode_end = False
@@ -260,6 +275,9 @@ if __name__ == "__main__":
     seed = 1
 
     ow = Objectworld(rows, cols, R_max, noise, n_objects, seed)
+    print "ow.grid : "
+    print ow.grid
+    ow.show_objectworld()
 
     print "ow.n_state : ", ow.n_state
     print "ow.n_action : ", ow.n_action
@@ -270,26 +288,26 @@ if __name__ == "__main__":
     
     max_episode = 100
     max_step = 100
-    for i in xrange(max_episode):
-        print "==========================="
-        print "episode : ", i
-        observation = ow.reset()
-        for j in xrange(max_step):
-            print "----------------------"
-            print "step : ", j
-            state = observation
-            print "state : ", state
-            action = ow.get_action_sample()
-            print "action : ", action, ow.dirs[action]
+    #  for i in xrange(max_episode):
+        #  print "==========================="
+        #  print "episode : ", i
+        #  observation = ow.reset()
+        #  for j in xrange(max_step):
+            #  print "----------------------"
+            #  print "step : ", j
+            #  state = observation
+            #  print "state : ", state
+            #  action = ow.get_action_sample()
+            #  print "action : ", action, ow.dirs[action]
 
-            observation, reward, done, info = ow.step(action, reward_map)
-            next_state = observation
-            print "observation : ", observation
-            print "next_state : ", next_state
-            print "reward : ", reward
-            print "episode_end : ", done
-            print "info : ", info
+            #  observation, reward, done, info = ow.step(action, reward_map)
+            #  next_state = observation
+            #  print "observation : ", observation
+            #  print "next_state : ", next_state
+            #  print "reward : ", reward
+            #  print "episode_end : ", done
+            #  print "info : ", info
 
-            if done:
-                break
+            #  if done:
+                #  break
 
