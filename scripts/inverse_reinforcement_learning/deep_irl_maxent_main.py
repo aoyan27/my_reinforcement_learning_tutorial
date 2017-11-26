@@ -248,7 +248,8 @@ def main(rows, cols, gamma, act_noise, n_trajs, l_traj, learning_rate, n_itrs):
     r_max = 1.0
 
     #  n_objects, seed = 6, 3
-    n_objects, seed = 30, 2
+    n_objects, seed = 50, 2
+    #  n_objects, seed = 30, 2
     #  n_objects, seed = 20, 1
     #  n_objects, seed = 15, 1
 
@@ -288,6 +289,7 @@ def main(rows, cols, gamma, act_noise, n_trajs, l_traj, learning_rate, n_itrs):
     P_a = env.get_transition_matrix()
     #  print "P_a : "
     #  print P_a
+    env.show_objectworld()
 
     #  reward_map_gt = np.zeros([rows, cols])
     #  reward_map_gt[rows-1, cols-1] = r_max
