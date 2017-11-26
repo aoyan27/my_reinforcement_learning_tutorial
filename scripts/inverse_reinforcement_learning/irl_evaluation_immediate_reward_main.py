@@ -216,7 +216,7 @@ def main(rows, cols, act_noise, n_objects, seed, l_rows, l_cols, model_name):
 
     env = LocalgridObjectworld(rows, cols, r_max, act_noise, n_objects, seed, l_rows, l_cols, [9, 9])
 
-    env.show_global_grid()
+    env.show_global_objectworld()
 
     reward_map = env.ow.grid.transpose().reshape(-1)
 
@@ -235,7 +235,7 @@ def main(rows, cols, act_noise, n_objects, seed, l_rows, l_cols, model_name):
 
     agent = ImmediateRewardAgent(env)
 
-    env.show_global_grid()
+    env.show_global_objectworld()
 
 
     plt.figure(figsize=(16,8))
@@ -256,7 +256,7 @@ def main(rows, cols, act_noise, n_objects, seed, l_rows, l_cols, model_name):
 
             print "state : ", observation[0]
 
-            env.show_global_grid()
+            env.show_global_objectworld()
             #  print "local_map : "
             #  print observation[1]
             #  print "local_goal : ", env.local_goal

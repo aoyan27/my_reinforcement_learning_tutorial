@@ -217,8 +217,6 @@ def main(rows, cols, act_noise, n_objects, seed, l_rows, l_cols, model_name):
 
     env = LocalgridObjectworld(rows, cols, r_max, act_noise, n_objects, seed, l_rows, l_cols, [7, 7])
 
-    env.show_global_grid()
-
     reward_map = env.ow.grid.transpose().reshape(-1)
 
     observation = env.reset()
@@ -235,7 +233,7 @@ def main(rows, cols, act_noise, n_objects, seed, l_rows, l_cols, model_name):
 
     kc = KeyboardController()
 
-    env.show_global_grid()
+    env.show_global_objectworld()
 
     plt.ion()  # matplotlibの対話モードON(プログラム上での呼び出しは一回だけにしないと変な動作する)
     
@@ -253,7 +251,7 @@ def main(rows, cols, act_noise, n_objects, seed, l_rows, l_cols, model_name):
 
             print "state : ", observation[0]
 
-            env.show_global_grid()
+            env.show_global_objectworld()
             print "local_map : "
             print observation[1]
             print "local_goal : ", env.local_goal

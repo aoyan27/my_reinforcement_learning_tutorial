@@ -125,7 +125,7 @@ class LocalgridObjectworld(Objectworld):
         info["local_grid"] = _
         return [next_state, self.local_grid], reward, done, info
     
-    def show_global_grid(self):
+    def show_global_objectworld(self):
         global_grid = copy.deepcopy(self.ow.grid)
         if self.ow.state_ != None:
             global_grid[tuple(self.ow.state_)] = 2
