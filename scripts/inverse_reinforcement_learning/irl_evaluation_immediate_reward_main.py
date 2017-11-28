@@ -228,8 +228,9 @@ def main(rows, cols, act_noise, n_objects, seed, l_rows, l_cols, model_name):
     print feat_map
 
     model = DeepIRLNetwork(feat_map.shape[1], 1)
-    dirs = "/home/amsl/my_reinforcement_learning_tutorial/scripts/inverse_reinforcement_learning/models/"
-    model.load_model(dirs+model_name, model)
+    #  dirs = "/home/amsl/my_reinforcement_learning_tutorial/scripts/inverse_reinforcement_learning/models/"
+    #  model.load_model(dirs+model_name, model)
+    model.load_model(model_name, model)
     print "model : ", model
 
 
