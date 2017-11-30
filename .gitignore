@@ -3,6 +3,7 @@
 *.npy
 *.model
 *.npz
+*.pkl
 /videos/*
 !.gitkeep
 /bin/*
