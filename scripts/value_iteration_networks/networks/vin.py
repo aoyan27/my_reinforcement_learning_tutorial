@@ -10,7 +10,7 @@ import chainer.functions as F
 import chainer.links as L
 
 class ValueIterationNetwork(Chain):
-    def __init__(self, n_in=2, l_h=150, l_q=8, n_out=8, k=10):
+    def __init__(self, n_in=2, l_h=120, l_q=4, n_out=4, k=10):
         super(ValueIterationNetwork, self).__init__(
             conv1 = L.Convolution2D(n_in, l_h, 3, stride=1, pad=1), 
             conv2 = L.Convolution2D(l_h, 1, 1, stride=1, pad=0, nobias=True),
@@ -55,7 +55,7 @@ class ValueIterationNetwork(Chain):
         return q_out
 
 
-    def __call__(self, input_data, state_list, action_list):
+    def __call__(self, input_data, state_list):
         input_data = Variable(input_data.astype(np.float32))
 
         h = F.relu(self.conv1(input_data))
@@ -83,7 +83,8 @@ class ValueIterationNetwork(Chain):
         return y
 
     def forward(self, input_data, state_list, action_list):
-        y = self.__call__(input_data, state_list, action_list)
+        y = self.__call__(input_data, state_list)
+        #  print "y : ", y
         
         t = Variable(action_list.astype(np.int32))
 

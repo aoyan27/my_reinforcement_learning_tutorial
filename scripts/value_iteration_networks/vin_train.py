@@ -88,7 +88,7 @@ def cvt_input_data(image, reward_map):
     return input_data
 
 
-def train_and_test(model, optimizer, gpu, train_data, test_data, n_epoch, batchsize):
+def train_and_test(model, optimizer, gpu, model_path, train_data, test_data, n_epoch, batchsize):
     epoch = 1
     accuracy = 0.0
     
@@ -164,6 +164,10 @@ def train_and_test(model, optimizer, gpu, train_data, test_data, n_epoch, batchs
 
         print 'test mean loss={}, accuracy={}'\
                 .format(sum_test_loss/n_test, sum_test_accuracy/n_test)         
+        model_name = 'vin_model_%d.model' % epoch
+        print model_name
+
+        save_model(model, model_path+model_name)
 
         epoch += 1
 
@@ -173,7 +177,7 @@ def save_model(model, filename):
     serializers.save_npz(filename, model)
 
 
-def main(dataset, n_epoch, batchsize, gpu, model_name):
+def main(dataset, n_epoch, batchsize, gpu, model_path):
     image_data, reward_map_data, state_list_data, action_list_data = load_dataset(dataset)
     #  print "image_data : ", image_data.shape
     #  view_image(image_data[0], 'map_image')
@@ -191,9 +195,7 @@ def main(dataset, n_epoch, batchsize, gpu, model_name):
     optimizer = optimizers.Adam()
     optimizer.setup(model)
     
-    train_and_test(model, optimizer, gpu, train_data, test_data, n_epoch, batchsize)
-    
-    save_model(model, model_name)
+    train_and_test(model, optimizer, gpu, model_path, train_data, test_data, n_epoch, batchsize)
 
 
 if __name__ == "__main__":
@@ -205,11 +207,11 @@ if __name__ == "__main__":
     parser.add_argument('-e', '--n_epoch', default=30, type=int, help='number of epoch')
     parser.add_argument('-b', '--batchsize', default=100, type=int, help='number of batchsize')
     parser.add_argument('-g', '--gpu', default=-1, type=int, help='number of gpu device')
-    parser.add_argument('-m', '--model_name', \
-            default='models/vin_model.model', type=str, help='model name')
+    parser.add_argument('-m', '--model_path', \
+            default='models/', type=str, help='model name')
 
     args = parser.parse_args()
     print args
     
-    main(args.dataset, args.n_epoch, args.batchsize, args.gpu, args.model_name)
+    main(args.dataset, args.n_epoch, args.batchsize, args.gpu, args.model_path)
 
