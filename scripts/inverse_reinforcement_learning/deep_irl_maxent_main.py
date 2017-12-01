@@ -248,9 +248,11 @@ def main(rows, cols, gamma, act_noise, n_trajs, l_traj, learning_rate, n_itrs):
     r_max = 1.0
 
     #  n_objects, seed = 6, 3
-    n_objects, seed = 50, 2
-    #  n_objects, seed = 30, 2
-    #  n_objects, seed = 20, 1
+    #  n_objects, seed = 150, 2    # 30x30 (failed)
+    n_objects, seed = 100, 2    # 25x25
+    #  n_objects, seed = 50, 2    # 20x20
+    #  n_objects, seed = 30, 2    # 10x10, 15x15のマップ
+    #  n_objects, seed = 20, 1    # 10x10
     #  n_objects, seed = 15, 1
 
     ################### ここからは逆強化学習のための前処理 #########################
