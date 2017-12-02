@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-#coding : utf-8
+#coding:utf-8
 
 import numpy as np
 
@@ -8,9 +8,11 @@ import copy
 class Objectworld:
 
     def __init__(self, rows, cols, goal, R_max, noise, n_objects, seed=None, \
-            object_list=None, random_objects=True):
+            object_list=None, random_objects=True, mode=0):
         if seed is not None:
             np.random.seed(seed)
+        
+        self.mode = mode # mode=0 : 行動４パターン, mode=1 : 行動８パターン
 
         self.rows = rows
         self.cols = cols
@@ -40,14 +42,26 @@ class Objectworld:
         self.n_objects = n_objects
         self.objects = []
         self.set_objects()
+        
 
-        self.action_list = [0, 1, 2, 3, 4]
-        self.n_action = len(self.action_list)
-        self.dirs = {0: '>', 1: '<', 2:'v', 3: '^', 4: '-'}
+        self.action_list = None
+        self.n_action = 0
+        self.dirs = {}
+        self.set_action()
 
         self.state_ = None
 
         self.collisions_ = []
+    
+    def set_action(self):
+        if self.mode == 0:    # mode=0 : 行動4パターン
+            self.action_list = [0, 1, 2, 3, 4]
+            self.n_action = len(self.action_list)
+            self.dirs = {0: '>', 1: '<', 2: 'v', 3: '^', 4: '-'}
+        elif self.mode == 1:    # mode=1 : 行動8パターン
+            self.action_list = [0, 1, 2, 3, 4, 5, 6, 7, 8]
+            self.n_action = len(self.action_list)
+            self.dirs = {0: '>', 1: '<', 2: 'v', 3: '^', 4: 'ur', 5: 'ul', 6: 'dr', 7: 'dl', 8: '-'}
 
     def set_goal(self, goal):
         self.goal = goal
@@ -96,23 +110,58 @@ class Objectworld:
     def move(self, state, action, reflect=1):
         y, x = state
         next_y, next_x = state
-
-        if action == 0:
-            #  right
-            next_x = x + reflect*1
-        elif action == 1:
-            #  left
-            next_x = x - reflect*1
-        elif action == 2:
-            #  down
-            next_y = y + reflect*1
-        elif action == 3:
-            #  up
-            next_y = y - reflect*1
-        else:
-            #  stay
-            next_x = x
-            next_y = y
+        
+        if self.mode == 0:
+            if action == 0:
+                #  right
+                next_x = x + reflect*1
+            elif action == 1:
+                #  left
+                next_x = x - reflect*1
+            elif action == 2:
+                #  down
+                next_y = y + reflect*1
+            elif action == 3:
+                #  up
+                next_y = y - reflect*1
+            else:
+                #  stay
+                next_x = x
+                next_y = y
+        elif self.mode == 1:
+            if action == 0:
+                #  right
+                next_x = x + reflect*1
+            elif action == 1:
+                #  left
+                next_x = x - reflect*1
+            elif action == 2:
+                #  down
+                next_y = y + reflect*1
+            elif action == 3:
+                #  up
+                next_y = y - reflect*1
+            elif action == 4:
+                # upper right
+                next_x = x + reflect*1
+                next_y = y - reflect*1
+            elif action == 5:
+                # upper left
+                next_x = x - reflect*1
+                next_y = y - reflect*1
+            elif action == 6:
+                # down right
+                next_x = x + reflect*1
+                next_y = y + reflect*1
+            elif action == 7:
+                # down left
+                next_x = x - reflect*1
+                next_y = y + reflect*1
+            else:
+                #  stay
+                next_x = x
+                next_y = y
+                 
         
         out_of_range = False
         if next_y < 0 or (self.rows-1) < next_y:
@@ -225,7 +274,7 @@ class Objectworld:
                 else:
                     print vis_policy[y, x],
             print "|"
-        #  print vis_policy
+
 
     def terminal(self, state, index):
         episode_end = False
@@ -283,46 +332,46 @@ if __name__ == "__main__":
     noise = 0.0
     n_objects = 5
     seed = 1
-
-    env = Objectworld(rows, cols, goal, R_max, noise, n_objects, seed)
+    
+    env = Objectworld(rows, cols, goal, R_max, noise, n_objects, seed, mode=1)
 
     print "env.grid : "
     env.show_objectworld()
     
-    for i in xrange(10):
-        env.set_objects()
-        print "env.grid : "
-        env.show_objectworld()
+    #  for i in xrange(10):
+        #  env.set_objects()
+        #  print "env.grid : "
+        #  env.show_objectworld()
 
-    #  print "env.n_state : ", env.n_state
-    #  print "env.n_action : ", env.n_action
+    print "env.n_state : ", env.n_state
+    print "env.n_action : ", env.n_action
 
-    #  reward_map = env.grid.transpose().reshape(-1)
-    #  print "reward_map : "
-    #  print reward_map
+    reward_map = env.grid.transpose().reshape(-1)
+    print "reward_map : "
+    print reward_map
     
-    #  max_episode = 100
-    #  max_step = 100
+    max_episode = 1
+    max_step = 100
 
-    #  for i in xrange(max_episode):
-        #  print "==========================="
-        #  print "episode : ", i
-        #  observation = env.reset()
-        #  for j in xrange(max_step):
-            #  print "----------------------"
-            #  print "step : ", j
-            #  state = observation
-            #  print "state : ", state
-            #  action = env.get_action_sample()
-            #  print "action : ", action, env.dirs[action]
+    for i in xrange(max_episode):
+        print "==========================="
+        print "episode : ", i
+        observation = env.reset()
+        for j in xrange(max_step):
+            print "----------------------"
+            print "step : ", j
+            state = observation
+            print "state : ", state
+            action = env.get_action_sample()
+            print "action : ", action, env.dirs[action]
 
-            #  observation, reward, done, info = env.step(action, reward_map)
-            #  next_state = observation
-            #  print "observation : ", observation
-            #  print "next_state : ", next_state
-            #  print "reward : ", reward
-            #  print "episode_end : ", done
-            #  print "info : ", info
+            observation, reward, done, info = env.step(action, reward_map)
+            next_state = observation
+            print "observation : ", observation
+            print "next_state : ", next_state
+            print "reward : ", reward
+            print "episode_end : ", done
+            print "info : ", info
 
-            #  if done:
-                #  break
+            if done:
+                break

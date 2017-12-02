@@ -81,7 +81,7 @@ class DijkstraAgent:
         
         if self.found:
             self.policy = np.empty([self.env.rows, self.env.cols])
-            self.policy.fill(4)
+            self.policy.fill(8)
             state = self.env.goal
             self.state_list.append(state)
             self.shortest_action_list.append(self.policy[tuple(state)])
@@ -112,7 +112,7 @@ if __name__ == "__main__":
     n_objects = 5
     seed = 1
 
-    env = Objectworld(rows, cols, goal, R_max, noise, n_objects, seed)
+    env = Objectworld(rows, cols, goal, R_max, noise, n_objects, seed, mode=1)
 
     #  print "env.grid : "
     #  env.show_objectworld()

@@ -100,7 +100,7 @@ def main(rows, cols, n_objects, n_domains, n_trajs, save_dirs):
     noise = 0.0
     seed = 1
 
-    env = Objectworld(rows, cols, goal, R_max, noise, n_objects, seed)
+    env = Objectworld(rows, cols, goal, R_max, noise, n_objects, seed, mode=1)
     
     max_samples = (rows + cols) * n_domains * n_trajs
     print "max_samples : ", max_samples
@@ -139,7 +139,9 @@ def main(rows, cols, n_objects, n_domains, n_trajs, save_dirs):
         state_list, action_list = get_trajs(env, n_trajs)
         if len(state_list) == 0:
             continue
-        
+        #  print "state_list : ", state_list[0]
+        #  print "action_list : ", action_list[0]
+            
         ns = 0
         for i in xrange(n_trajs):
             #  print "num_sample : ", num_sample
@@ -170,6 +172,7 @@ def main(rows, cols, n_objects, n_domains, n_trajs, save_dirs):
     data['reward'] = reward_map_data[0:num_sample]
     data['state'] = state_list_data[0:num_sample]
     data['action'] = action_list_data[0:num_sample]
+
     
     dataset_name ='map_dataset.pkl'
     save_dataset(data, save_dirs+dataset_name)
