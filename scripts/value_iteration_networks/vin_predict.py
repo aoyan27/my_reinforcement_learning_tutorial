@@ -56,8 +56,10 @@ def create_input_data(image, reward_map):
     #  print "input_data.shape : ", input_data.shape
     return input_data
 
-def create_map_data(env, goal):
+def create_map_data(env, start, goal):
+    print "start : ", start
     #  print "goal : ", goal
+    env.set_start(start)
     env.set_goal(goal)
 
     env.set_objects()
@@ -83,13 +85,13 @@ def set_start_and_goal(env):
         if start != goal and env.grid[tuple(start)] != -1:
             break
 
-    print "goal : ", goal
     print "start : ",  start
+    print "goal : ", goal
     return start, goal
 
 
 def main(rows, cols, n_objects, gpu, model_path):
-    model = ValueIterationNetwork(k=20)
+    model = ValueIterationNetwork(l_q=9, n_out=9, k=20)
     load_model(model, model_path)
     if gpu >= 0:
         cuda.get_device(gpu).use()
@@ -99,12 +101,12 @@ def main(rows, cols, n_objects, gpu, model_path):
     goal = [rows-1, cols-1]
     R_max = 1.0
     noise = 0.0
-    seed = 0
+    seed = 2
 
-    env = Objectworld(rows, cols, goal, R_max, noise, n_objects, seed)
+    env = Objectworld(rows, cols, goal, R_max, noise, n_objects, seed, mode=1)
 
     start, goal = set_start_and_goal(env)
-    image, reward_map = create_map_data(env, goal)
+    image, reward_map = create_map_data(env, start, goal)
     input_data = create_input_data(image, reward_map)
     print "input_data : "
     print input_data
@@ -114,6 +116,9 @@ def main(rows, cols, n_objects, gpu, model_path):
     print "state_data.shape : ", state_data.shape
     if gpu >= 0:
         input_data = cuda.to_gpu(input_data)
+
+    print "env.grid : "
+    env.show_objectworld()
     
     env.reset(start)
     for i in xrange(100):
