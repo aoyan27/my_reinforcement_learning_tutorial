@@ -92,7 +92,7 @@ def set_start_and_goal(env):
 
 
 def main(rows, cols, n_objects, gpu, model_path):
-    model = ValueIterationNetwork(l_q=5, n_out=5, k=20)
+    model = ValueIterationNetwork(l_q=9, n_out=9, k=20)
     load_model(model, model_path)
     if gpu >= 0:
         cuda.get_device(gpu).use()
@@ -104,7 +104,8 @@ def main(rows, cols, n_objects, gpu, model_path):
     noise = 0.0
     seed = 5
 
-    env = Objectworld(rows, cols, goal, R_max, noise, n_objects, seed, mode=0)
+    #  env = Objectworld(rows, cols, goal, R_max, noise, n_objects, seed, mode=0)
+    env = Objectworld(rows, cols, goal, R_max, noise, n_objects, seed, mode=1)
     
     start, goal = set_start_and_goal(env)
     print "start : ", start
