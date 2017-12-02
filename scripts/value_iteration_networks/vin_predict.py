@@ -91,7 +91,7 @@ def set_start_and_goal(env):
     return start, goal
 
 
-def main(rows, cols, n_objects, gpu, model_path):
+def main(rows, cols, n_objects, seed, gpu, model_path):
     model = ValueIterationNetwork(l_q=9, n_out=9, k=20)
     load_model(model, model_path)
     if gpu >= 0:
@@ -102,7 +102,6 @@ def main(rows, cols, n_objects, gpu, model_path):
     goal = [rows-1, cols-1]
     R_max = 1.0
     noise = 0.0
-    seed = 5
 
     #  env = Objectworld(rows, cols, goal, R_max, noise, n_objects, seed, mode=0)
     env = Objectworld(rows, cols, goal, R_max, noise, n_objects, seed, mode=1)
@@ -163,6 +162,7 @@ if __name__ == "__main__":
     parser.add_argument('-c', '--cols', default=16, type=int, help='column of global gridworld')
 
     parser.add_argument('-o', '--n_objects', default=40, type=int, help='number of objects')
+    parser.add_argument('-s', '--seed', default=0, type=int, help='number of random seed')
     parser.add_argument('-g', '--gpu', default=-1, type=int, help='number of gpu device')
 
     parser.add_argument('-m', '--model_path', default='models/vin_model_1.model', type=str, help="load model path")
@@ -170,5 +170,5 @@ if __name__ == "__main__":
     args = parser.parse_args()
     print args
     
-    main(args.rows, args.cols, args.n_objects, args.gpu, args.model_path)
+    main(args.rows, args.cols, args.n_objects, args.seed, args.gpu, args.model_path)
 
