@@ -281,6 +281,15 @@ class Objectworld:
                     print vis_policy[y, x],
             print "|"
 
+    def show_objectworld_with_state(self):
+        grid = copy.deepcopy(self.grid)
+        if self.state_ != None:
+            grid[tuple(self.state_)] = 2
+        for row in grid:
+            print "|",
+            for i in row:
+                print "%2d" % i,
+            print "|"
 
     def terminal(self, state, index):
         episode_end = False
@@ -368,6 +377,7 @@ if __name__ == "__main__":
             print "step : ", j
             state = observation
             print "state : ", state
+            env.show_objectworld_with_state()
             action = env.get_action_sample()
             print "action : ", action, env.dirs[action]
 

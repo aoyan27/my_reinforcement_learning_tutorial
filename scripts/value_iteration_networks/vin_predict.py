@@ -18,6 +18,7 @@ import chainer.links as L
 
 import copy
 import pickle
+import time
 
 from networks.vin import ValueIterationNetwork
 from envs.object_world import Objectworld
@@ -57,7 +58,7 @@ def create_input_data(image, reward_map):
     return input_data
 
 def create_map_data(env, start, goal):
-    print "start : ", start
+    #  print "start : ", start
     #  print "goal : ", goal
     env.set_start(start)
     env.set_goal(goal)
@@ -85,13 +86,13 @@ def set_start_and_goal(env):
         if start != goal and env.grid[tuple(start)] != -1:
             break
 
-    print "start : ",  start
-    print "goal : ", goal
+    #  print "start : ",  start
+    #  print "goal : ", goal
     return start, goal
 
 
 def main(rows, cols, n_objects, gpu, model_path):
-    model = ValueIterationNetwork(l_q=9, n_out=9, k=20)
+    model = ValueIterationNetwork(l_q=5, n_out=5, k=20)
     load_model(model, model_path)
     if gpu >= 0:
         cuda.get_device(gpu).use()
@@ -101,11 +102,13 @@ def main(rows, cols, n_objects, gpu, model_path):
     goal = [rows-1, cols-1]
     R_max = 1.0
     noise = 0.0
-    seed = 2
+    seed = 5
 
-    env = Objectworld(rows, cols, goal, R_max, noise, n_objects, seed, mode=1)
-
+    env = Objectworld(rows, cols, goal, R_max, noise, n_objects, seed, mode=0)
+    
     start, goal = set_start_and_goal(env)
+    print "start : ", start
+    print "goal : ", goal
     image, reward_map = create_map_data(env, start, goal)
     input_data = create_input_data(image, reward_map)
     print "input_data : "
@@ -120,24 +123,33 @@ def main(rows, cols, n_objects, gpu, model_path):
     print "env.grid : "
     env.show_objectworld()
     
-    env.reset(start)
-    for i in xrange(100):
-        print "================================="
-        print "step : ", i
-        print "state : ", state_data
-        p = model(input_data, state_data)
-        print "p : ", p
-        action = np.argmax(p.data)
-        print "action : ",action
-        next_state, reward, done, _ = env.step(action, reward_map.transpose().reshape(-1))
-        print "next_state : ", next_state
-        print "reward : ", reward
-        print "done : ", done, " (collisions : ", env.collisions_[action], ")"
+    for i_episode in xrange(10):
+        print "=============================="
+        print "episode : ", i_episode
+        start, _ = set_start_and_goal(env)
+        state_data[0] = start
+        print "start : ", start
+        env.reset(start)
+        for i_step in xrange(100):
+            print "-----------------------------------"
+            print "step : ", i_step
+            print "state : ", state_data, ", goal : ", goal
+            env.show_objectworld_with_state()
+            p = model(input_data, state_data)
+            #  print "p : ", p
+            action = np.argmax(p.data)
+            print "action : ",action
+            next_state, reward, done, _ = env.step(action, reward_map.transpose().reshape(-1))
+            print "next_state : ", next_state
+            print "reward : ", reward
+            print "done : ", done, " (collisions : ", env.collisions_[action], ")"
 
-        state_data[0] = next_state
+            state_data[0] = next_state
 
-        if done:
-            break
+            time.sleep(0.5)
+
+            if done:
+                break
 
 
 
