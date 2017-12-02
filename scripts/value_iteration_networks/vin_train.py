@@ -103,7 +103,7 @@ def train_and_test(model, optimizer, gpu, model_path, train_data, test_data, n_e
 
         perm = np.random.permutation(n_train)
         for i in xrange(0, n_train, batchsize):
-            #  print "-----------------------------------"
+            print " i : ", i
             batch_image = train_data['image'][perm[i:i+batchsize \
                     if i+batchsize < n_train else n_train]]
             batch_reward_map = train_data['reward'][perm[i:i+batchsize \
@@ -125,8 +125,9 @@ def train_and_test(model, optimizer, gpu, model_path, train_data, test_data, n_e
             #  print "batch_state_list : ", batch_state_list[0]
             #  print "batch_action_list : ", batch_action_list[0]
 
-            model.cleargrads()
+            model.zerograds()
             loss, acc = model.forward(batch_input_data, batch_state_list, batch_action_list)
+            print "loss(train) : ", loss
             loss.backward()
             optimizer.update()
 
@@ -194,6 +195,8 @@ def main(dataset, n_epoch, batchsize, gpu, model_path):
 
     optimizer = optimizers.Adam()
     optimizer.setup(model)
+    optimizer.add_hook(chainer.optimizer.WeightDecay(1e-4))
+    optimizer.add_hook(chainer.optimizer.GradientClipping(10.0))
     
     train_and_test(model, optimizer, gpu, model_path, train_data, test_data, n_epoch, batchsize)
 
