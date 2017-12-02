@@ -8,7 +8,7 @@ import copy
 class Objectworld:
 
     def __init__(self, rows, cols, goal, R_max, noise, n_objects, seed=None, \
-            object_list=None, random_objects=True, mode=0):
+            object_list=None, random_objects=True, start=[0,0], mode=0):
         if seed is not None:
             np.random.seed(seed)
         
@@ -35,6 +35,9 @@ class Objectworld:
         # |
         # V
         # y
+        
+        self.start = None
+        self.set_start(start)
 
         self.goal = None
         self.set_goal(goal)
@@ -62,6 +65,9 @@ class Objectworld:
             self.action_list = [0, 1, 2, 3, 4, 5, 6, 7, 8]
             self.n_action = len(self.action_list)
             self.dirs = {0: '>', 1: '<', 2: 'v', 3: '^', 4: 'ur', 5: 'ul', 6: 'dr', 7: 'dl', 8: '-'}
+    
+    def set_start(self, start):
+        self.start = start
 
     def set_goal(self, goal):
         self.goal = goal
@@ -77,7 +83,7 @@ class Objectworld:
                 #  print " i : ", i
                 y = np.random.randint(0, self.rows)
                 x = np.random.randint(0, self.cols)
-                if (y, x) != (0, 0) and (y, x) != tuple(self.goal) and self.grid[y, x] != -1:
+                if (y, x) != tuple(self.start) and (y, x) != tuple(self.goal) and self.grid[y, x] != -1:
                     self.objects.append((y, x))
                     self.grid[y, x] = -1
                     i += 1
