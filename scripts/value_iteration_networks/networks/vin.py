@@ -10,11 +10,7 @@ import chainer.functions as F
 import chainer.links as L
 
 class ValueIterationNetwork(Chain):
-<<<<<<< HEAD
-    def __init__(self, n_in=2, l_h=120, l_q=9, n_out=9, k=10):
-=======
     def __init__(self, n_in=2, l_h=150, l_q=4, n_out=4, k=10):
->>>>>>> e7f8eb4464dfc4478d302b8912a6ec183a5fcd6f
         super(ValueIterationNetwork, self).__init__(
             conv1 = L.Convolution2D(n_in, l_h, 3, stride=1, pad=1), 
             conv2 = L.Convolution2D(l_h, 1, 1, stride=1, pad=0, nobias=True),
