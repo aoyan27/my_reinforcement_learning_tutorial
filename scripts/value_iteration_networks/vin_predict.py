@@ -29,7 +29,7 @@ def grid2image(array):
 
     index = np.where(image == 1)
     for i in xrange(len(index[0])):
-        image[index[0][i], index[1][i]] = 1
+        image[index[0][i], index[1][i]] = 0
 
     index = np.where(image == -1)
     for i in xrange(len(index[0])):
