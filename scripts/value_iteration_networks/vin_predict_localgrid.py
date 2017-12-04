@@ -2,6 +2,7 @@
 #coding:utf-8
 
 import argparse
+import sys
 
 import numpy as np
 np.set_printoptions(suppress=True, threshold=np.inf)
@@ -129,6 +130,9 @@ def get_action(keyboard_controller, path_data, control_mode):
     elif control_mode == 1:
         action = path_data['action_list'][0]
         time.sleep(0.5)
+    else:
+        print "Error!!! Please set control_mode parameter, mode=0 or mode=1 !!!!!!"
+        sys.exit()
 
     return action
 
