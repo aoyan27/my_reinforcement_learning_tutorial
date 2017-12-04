@@ -92,8 +92,8 @@ def set_start_and_goal(env):
 
 
 def main(rows, cols, n_objects, seed, gpu, model_path):
-    #  model = ValueIterationNetwork(l_q=9, n_out=9, k=20)
-    model = ValueIterationNetwork(l_h=200, l_q=9, n_out=9, k=20)
+    model = ValueIterationNetwork(l_q=9, n_out=9, k=20)
+    #  model = ValueIterationNetwork(l_h=200, l_q=9, n_out=9, k=20)
     load_model(model, model_path)
     if gpu >= 0:
         cuda.get_device(gpu).use()
@@ -159,8 +159,6 @@ def main(rows, cols, n_objects, seed, gpu, model_path):
             if done:
                 if reward == R_max:
                     success_times += 1
-                else:
-                    failed_times += 1
                 break
         if reward != R_max:
             failed_times += 1
