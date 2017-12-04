@@ -158,6 +158,7 @@ def main(rows, cols, n_objects, seed, l_rows, l_cols, control_mode, gpu, model_p
     
     
     model = ValueIterationNetwork(l_q=9, n_out=9, k=20)
+    #  model = ValueIterationNetwork(l_h=200, l_q=9, n_out=9, k=20)
     load_model(model, model_path)
     if gpu >= 0:
         cuda.get_device(gpu).use()
