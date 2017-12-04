@@ -123,6 +123,15 @@ def show_path(env, state_list, action_list, local_grid, local_goal):
     
     return path_data
 
+def view_path(path):
+    grid = copy.deepcopy(path)
+    for row in grid:
+        print "|",
+        for i in row:
+            print "%2c" % i,
+        print "|"
+
+
 def get_action(keyboard_controller, path_data, control_mode):
     action = None
     if control_mode == 0:
@@ -135,7 +144,6 @@ def get_action(keyboard_controller, path_data, control_mode):
         sys.exit()
 
     return action
-
 
 
 def load_model(model, filename):
@@ -205,8 +213,9 @@ def main(rows, cols, n_objects, seed, l_rows, l_cols, control_mode, gpu, model_p
             state_list, action_list, resign = \
                     get_path(env, model, input_data, state_data, observation[1], env.local_goal)
             path_data = show_path(env, state_list, action_list, observation[1], env.local_goal)
-            print "path_data['vis_path'] : "
-            print path_data['vis_path']
+            #  print "path_data['vis_path'] : "
+            #  print path_data['vis_path']
+            view_path(path_data['vis_path'])
 
             action = get_action(kc, path_data, control_mode)
             #  action = env.get_sample_action()
