@@ -63,6 +63,65 @@ def cvt_local_grid2input_data(local_grid, local_goal):
 
     return input_data
 
+def get_path(env, model, input_data, state_data, local_grid, local_goal):
+    state_list = []
+    action_list = []
+
+    state_data_ = copy.deepcopy(state_data)
+    #  print "state_data_ : ", state_data_
+    state = state_data_[0]
+    #  print "state : ", state
+    #  print "local_goal : ", local_goal
+    max_challenge_times = local_grid.shape[0] + local_grid.shape[1]
+    challenge_times = 0
+    resign = False
+    while tuple(state) != local_goal:
+        challenge_times += 1
+        if challenge_times >= max_challenge_times:
+            #  state_list = []
+            #  action_list = []
+            resign = True
+            break
+
+        #  print "state_data_ : ", state_data_
+        p = model(input_data, state_data_)
+        #  print "p : ", p
+        action = np.argmax(p.data)
+        #  print "action : ", action, " (", env.ow.dirs[action], ")"
+        
+        next_state, _, _ = env.ow.move(state, action, grid_range=[env.l_rows, env.l_cols])
+        #  print "next_state : ", next_state
+
+        state_list.append(list(state))
+        action_list.append(action)
+
+        state_data_[0] = next_state
+        state = next_state
+    state_list.append(list(state))
+
+    #  print "state_list : ", state_list
+    #  print "action_list : ", action_list 
+    return state_list, action_list, resign
+
+def show_path(env, state_list, action_list, local_grid, local_goal):
+    n_local_state = local_grid.shape[0] * local_grid.shape[1]
+    vis_path = np.array(['-']*n_local_state).reshape(local_grid.shape)
+    index = np.where(local_grid == -1)
+    vis_path[index] = '#'
+    state_list = np.asarray(state_list)
+    for i in xrange(len(state_list)):
+        vis_path[tuple(state_list[i])] = '*'
+    vis_path[int(local_grid.shape[0]/2), int(local_grid.shape[1]/2)] = '$'
+    if len(state_list[state_list==local_goal]) == 2:
+        vis_path[tuple(local_goal)] = 'G'
+
+    path_data = {}
+    path_data['vis_path'] = vis_path
+    path_data['state_list'] = state_list
+    path_data['action_list'] = action_list
+    
+    return path_data
+
 
 def load_model(model, filename):
     print "Load {}!!".format(filename)
@@ -122,16 +181,16 @@ def main(rows, cols, n_objects, seed, l_rows, l_cols, gpu, model_path):
             print "local_goal : ", env.local_goal
 
             input_data = cvt_local_grid2input_data(observation[1], env.local_goal)
-            print "input_data : "
-            print input_data, input_data.shape
+            #  print "input_data : "
+            #  print input_data, input_data.shape
             if gpu >= 0:
                 input_data = cuda.to_gpu(input_data)
             
-            p = model(input_data, state_data)
-            #  print "p : ", p
-            a = np.argmax(p.data)
-            print "a : ", a, " (", env.ow.dirs[a], ")"
-            
+            state_list, action_list, resign = \
+                    get_path(env, model, input_data, state_data, observation[1], env.local_goal)
+            path_data = show_path(env, state_list, action_list, observation[1], env.local_goal)
+            print "path_data['vis_path'] : "
+            print path_data['vis_path']
 
             #  action = env.get_sample_action()
             action = kc.controller()
@@ -156,8 +215,8 @@ if __name__ == "__main__":
     parser.add_argument('-o', '--n_objects', default=200, type=int, help='number of objects')
     parser.add_argument('-s', '--seed', default=3, type=int, help='seed')
 
-    parser.add_argument('-l_r', '--l_rows', default=5, type=int, help='row of local gridworld')
-    parser.add_argument('-l_c', '--l_cols', default=5, type=int, help='column of local gridworld')
+    parser.add_argument('-l_r', '--l_rows', default=15, type=int, help='row of local gridworld')
+    parser.add_argument('-l_c', '--l_cols', default=15, type=int, help='column of local gridworld')
 
     parser.add_argument('-g', '--gpu', default=-1, type=int, help='number of gpu device')
     parser.add_argument('-m', '--model_path', \

@@ -113,7 +113,9 @@ class Objectworld:
     def get_action_sample(self):
         return np.random.randint(self.n_action)
 
-    def move(self, state, action, reflect=1):
+    def move(self, state, action, grid_range=None, reflect=1):
+        if grid_range is None:
+            grid_range = [self.rows, self.cols]
         y, x = state
         next_y, next_x = state
         
@@ -170,12 +172,12 @@ class Objectworld:
                  
         
         out_of_range = False
-        if next_y < 0 or (self.rows-1) < next_y:
+        if next_y < 0 or (grid_range[0]-1) < next_y:
             #  print "y, out_of_range!!!!"
             next_y = y
             out_of_range = True
 
-        if next_x < 0 or (self.cols-1) < next_x:
+        if next_x < 0 or (grid_range[1]-1) < next_x:
             #  print "x, out of range!!!!!"
             next_x = x
             out_of_range = True
