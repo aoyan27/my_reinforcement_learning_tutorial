@@ -189,8 +189,8 @@ def main(dataset, n_epoch, batchsize, gpu, model_path):
     
 
     #  model = ValueIterationNetwork(l_q=5, n_out=5, k=20)
-    #  model = ValueIterationNetwork(l_q=9, n_out=9, k=20)
-    model = ValueIterationNetwork(l_h=200, l_q=9, n_out=9, k=20)
+    model = ValueIterationNetwork(l_q=9, n_out=9, k=20)
+    #  model = ValueIterationNetwork(l_h=200, l_q=9, n_out=9, k=20)
     if gpu >= 0:
         cuda.get_device(gpu).use()
         model.to_gpu()
