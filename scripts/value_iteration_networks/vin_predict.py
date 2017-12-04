@@ -92,7 +92,8 @@ def set_start_and_goal(env):
 
 
 def main(rows, cols, n_objects, seed, gpu, model_path):
-    model = ValueIterationNetwork(l_q=9, n_out=9, k=20)
+    #  model = ValueIterationNetwork(l_q=9, n_out=9, k=20)
+    model = ValueIterationNetwork(l_h=200, l_q=9, n_out=9, k=20)
     load_model(model, model_path)
     if gpu >= 0:
         cuda.get_device(gpu).use()
@@ -111,8 +112,8 @@ def main(rows, cols, n_objects, seed, gpu, model_path):
     print "goal : ", goal
     image, reward_map = create_map_data(env, start, goal)
     input_data = create_input_data(image, reward_map)
-    print "input_data : "
-    print input_data
+    #  print "input_data : "
+    #  print input_data
     print "input_data.shape : ", input_data.shape
     state_data = np.expand_dims(np.asarray(start), 0)
     print "state_data : ", state_data
@@ -122,35 +123,50 @@ def main(rows, cols, n_objects, seed, gpu, model_path):
 
     print "env.grid : "
     env.show_objectworld()
+
+    success_times = 0
+    failed_times = 0
     
-    for i_episode in xrange(10):
-        print "=============================="
-        print "episode : ", i_episode
+    max_episode = 100
+    max_step = rows + cols
+    prog = ProgressBar(0, max_episode)
+
+    
+    for i_episode in xrange(max_episode):
+        prog.update(i_episode)
+        #  print "=============================="
+        #  print "episode : ", i_episode
         start, _ = set_start_and_goal(env)
         state_data[0] = start
-        print "start : ", start
+        #  print "start : ", start
         env.reset(start)
-        for i_step in xrange(100):
-            print "-----------------------------------"
-            print "step : ", i_step
-            print "state : ", state_data, ", goal : ", goal
-            env.show_objectworld_with_state()
+        for i_step in xrange(max_step):
+            #  print "-----------------------------------"
+            #  print "step : ", i_step
+            #  print "state : ", state_data, ", goal : ", goal
+            #  env.show_objectworld_with_state()
             p = model(input_data, state_data)
             #  print "p : ", p
             action = np.argmax(p.data)
-            print "action : ",action
+            #  print "action : ",action
             next_state, reward, done, _ = env.step(action, reward_map.transpose().reshape(-1))
-            print "next_state : ", next_state
-            print "reward : ", reward
-            print "done : ", done, " (collisions : ", env.collisions_[action], ")"
+            #  print "next_state : ", next_state
+            #  print "reward : ", reward
+            #  print "done : ", done, " (collisions : ", env.collisions_[action], ")"
 
             state_data[0] = next_state
 
-            time.sleep(0.5)
-
             if done:
+                if reward == R_max:
+                    success_times += 1
+                else:
+                    failed_times += 1
                 break
-
+        if reward != R_max:
+            failed_times += 1
+    
+    print "success_times : ", success_times
+    print "failed_times : ", failed_times
 
 
 
