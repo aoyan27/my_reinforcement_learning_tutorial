@@ -82,7 +82,7 @@ class KeyboardController:
         return action
 
 
-    def controller(self):
+    def control(self):
         #  標準入力のファイルディスクリプタを取得
         fd = sys.stdin.fileno()
 
@@ -166,7 +166,7 @@ if __name__ == "__main__":
             #  print observation[1]
         
             #  action = lg_ow.get_sample_action()
-            action = kc.controller()
+            action = kc.control()
 
             print "action : ", action, "(", lg_ow.ow.dirs[action], ")"
 

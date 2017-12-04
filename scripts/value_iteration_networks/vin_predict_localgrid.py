@@ -122,12 +122,23 @@ def show_path(env, state_list, action_list, local_grid, local_goal):
     
     return path_data
 
+def get_action(keyboard_controller, path_data, control_mode):
+    action = None
+    if control_mode == 0:
+        action = keyboard_controller.control()
+    elif control_mode == 1:
+        action = path_data['action_list'][0]
+        time.sleep(0.5)
+
+    return action
+
+
 
 def load_model(model, filename):
     print "Load {}!!".format(filename)
     serializers.load_npz(filename, model)
 
-def main(rows, cols, n_objects, seed, l_rows, l_cols, gpu, model_path):
+def main(rows, cols, n_objects, seed, l_rows, l_cols, control_mode, gpu, model_path):
     g_goal = [rows-1, cols-1]
     R_max = 1.0
     noise = 0.0
@@ -153,15 +164,15 @@ def main(rows, cols, n_objects, seed, l_rows, l_cols, gpu, model_path):
     center_x = l_cols / 2
     #  print "center_x : ", center_x
     state_data = np.expand_dims(np.asarray([center_y, center_x]), 0)
-    print "state_data : ", state_data 
+    #  print "state_data : ", state_data 
 
 
     observation = env.reset()
-    print observation[1]
+    #  print observation[1]
 
     kc = KeyboardController(mode)
 
-    env.show_global_objectworld()
+    #  env.show_global_objectworld()
     max_episode = 1
     max_step = 500
     for i_episode in xrange(max_episode):
@@ -176,8 +187,8 @@ def main(rows, cols, n_objects, seed, l_rows, l_cols, gpu, model_path):
             print "state : ", observation[0]
             
             env.show_global_objectworld()
-            print "local_map : "
-            print observation[1]
+            #  print "local_map : "
+            #  print observation[1]
             print "local_goal : ", env.local_goal
 
             input_data = cvt_local_grid2input_data(observation[1], env.local_goal)
@@ -192,8 +203,8 @@ def main(rows, cols, n_objects, seed, l_rows, l_cols, gpu, model_path):
             print "path_data['vis_path'] : "
             print path_data['vis_path']
 
+            action = get_action(kc, path_data, control_mode)
             #  action = env.get_sample_action()
-            action = kc.controller()
             print "action : ", action, "(", env.ow.dirs[action], ")"
 
             observation, reward, done, info = env.step(action, reward_map)
@@ -218,6 +229,9 @@ if __name__ == "__main__":
     parser.add_argument('-l_r', '--l_rows', default=15, type=int, help='row of local gridworld')
     parser.add_argument('-l_c', '--l_cols', default=15, type=int, help='column of local gridworld')
 
+    parser.add_argument('-cm', '--control_mode', default=0, \
+            type=int, help='select keyboard control mode(= 0) or automatic control mode(= 1)')
+
     parser.add_argument('-g', '--gpu', default=-1, type=int, help='number of gpu device')
     parser.add_argument('-m', '--model_path', \
             default='models/vin_model_1.model', type=str, help='load model path')
@@ -226,4 +240,4 @@ if __name__ == "__main__":
     print args
 
     main(args.rows, args.cols, args.n_objects, args.seed, \
-            args.l_rows, args.l_cols, args.gpu, args.model_path)
+            args.l_rows, args.l_cols, args.control_mode, args.gpu, args.model_path)
