@@ -199,7 +199,7 @@ def main(rows, cols, n_objects, seed, l_rows, l_cols, control_mode, gpu, model_p
 
             print "state : ", observation[0]
             
-            env.show_global_objectworld()
+            #  env.show_global_objectworld()
             #  print "local_map : "
             #  print observation[1]
             print "local_goal : ", env.local_goal
