@@ -8,6 +8,9 @@ import copy
 import math
 
 from object_world import Objectworld
+import sys
+sys.path.append('../')
+from agents.a_star_agent import AstarAgent
 
 class LocalgridObjectworld(Objectworld):
     def __init__(self, g_rows, g_cols, g_goal, R_max, noise, n_objects, seed, mode, l_rows, l_cols, l_goal_range):
@@ -34,7 +37,8 @@ class LocalgridObjectworld(Objectworld):
         return state
 
     def create_local_grid(self, state):
-        self.get_local_goal()
+        #  self.get_local_goal()
+        self.get_local_goal_a_star(state)
         local_grid = self.extract_local_grid(state)
         local_grid_ = copy.deepcopy(local_grid)
         #  print "self.local_goal : ", self.local_goal
@@ -108,7 +112,37 @@ class LocalgridObjectworld(Objectworld):
             else:
                 self.local_goal = local_goal_candidate[int(i)]
                 #  print local_goal_candidate[int(i)]
+
+    def get_local_goal_a_star(self, state):
+        a_agent = AstarAgent(self.ow)
+        a_agent.get_shortest_path(state)
+        if a_agent.found:
+            pass
+            #  print "a_agent.state_list : "
+            #  print a_agent.state_list
+            #  print "a_agent.shrotest_action_list : "
+            #  print a_agent.shortest_action_list
+            #  env.show_policy(a_agent.policy.transpose().reshape(-1))
+            path_data = a_agent.show_path()
+            print "view_path : "
+            a_agent.view_path(path_data['vis_path'])
         
+        center_y = int(self.l_rows / 2)
+        center_x = int(self.l_cols / 2)
+        near_state_list = [list(np.asarray(path_state) - np.asarray([state[0], state[1]]))\
+                for path_state in a_agent.state_list \
+                if (path_state[0]-state[0]) <= (self.l_rows-1)/2 \
+                and (path_state[1]-state[1]) <= (self.l_cols-1)/2]
+        #  print "near_state_list : ", near_state_list
+        distance_list = [near_state[0]**2 + near_state[1]**2 \
+                for near_state in near_state_list]
+        #  print "distance_list", distance_list
+        index = np.argmax(np.asarray(distance_list))
+        #  print "index : ", index
+        self.local_goal = tuple(np.asarray(near_state_list[index]) + np.asarray([center_y, center_x]))
+        #  print "self.local_goal : ", local_goal
+
+
 
     def get_sample_action(self):
         return self.ow.get_action_sample()
@@ -145,7 +179,7 @@ if __name__ == "__main__":
     n_objects = 100
     seed = 1
 
-    mode = 0
+    mode = 1
 
     l_rows = l_cols = 5
     l_goal_range = [l_rows, l_cols] 
@@ -184,7 +218,7 @@ if __name__ == "__main__":
             print "state : ", observation[0]
             print "local_map : "
             print observation[1]
-            lg_ow.show_global_objectworld()
+            #  lg_ow.show_global_objectworld()
 
             print "reward : ", reward
             print "episode_end : ", done
