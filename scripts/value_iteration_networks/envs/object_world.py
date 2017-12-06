@@ -9,8 +9,7 @@ class Objectworld:
 
     def __init__(self, rows, cols, goal, R_max, noise, n_objects, seed=None, \
             object_list=None, random_objects=True, start=[0,0], mode=0):
-        if seed is not None:
-            np.random.seed(seed)
+        np.random.seed(seed)
         
         self.mode = mode # mode=0 : 行動４パターン, mode=1 : 行動８パターン
 
@@ -77,9 +76,11 @@ class Objectworld:
         self.objects = []
         self.grid = np.zeros([self.rows, self.cols])
         self.set_goal(self.goal)
+        n_objects_ = np.random.randint(0, self.n_objects)
+        print "n_objects_ : ", n_objects_
         if self.random_objects:
             i = 0
-            while i < self.n_objects:
+            while i < n_objects_:
                 #  print " i : ", i
                 y = np.random.randint(0, self.rows)
                 x = np.random.randint(0, self.cols)
@@ -355,41 +356,41 @@ if __name__ == "__main__":
     print "env.grid : "
     env.show_objectworld()
     
-    #  for i in xrange(10):
-        #  env.set_objects()
-        #  print "env.grid : "
-        #  env.show_objectworld()
+    for i in xrange(10):
+        env.set_objects()
+        print "env.grid : "
+        env.show_objectworld()
 
-    print "env.n_state : ", env.n_state
-    print "env.n_action : ", env.n_action
+    #  print "env.n_state : ", env.n_state
+    #  print "env.n_action : ", env.n_action
 
-    reward_map = env.grid.transpose().reshape(-1)
-    print "reward_map : "
-    print reward_map
+    #  reward_map = env.grid.transpose().reshape(-1)
+    #  print "reward_map : "
+    #  print reward_map
     
-    max_episode = 1
-    max_step = 100
+    #  max_episode = 1
+    #  max_step = 100
 
-    for i in xrange(max_episode):
-        print "==========================="
-        print "episode : ", i
-        observation = env.reset()
-        for j in xrange(max_step):
-            print "----------------------"
-            print "step : ", j
-            state = observation
-            print "state : ", state
-            env.show_objectworld_with_state()
-            action = env.get_action_sample()
-            print "action : ", action, env.dirs[action]
+    #  for i in xrange(max_episode):
+        #  print "==========================="
+        #  print "episode : ", i
+        #  observation = env.reset()
+        #  for j in xrange(max_step):
+            #  print "----------------------"
+            #  print "step : ", j
+            #  state = observation
+            #  print "state : ", state
+            #  env.show_objectworld_with_state()
+            #  action = env.get_action_sample()
+            #  print "action : ", action, env.dirs[action]
 
-            observation, reward, done, info = env.step(action, reward_map)
-            next_state = observation
-            print "observation : ", observation
-            print "next_state : ", next_state
-            print "reward : ", reward
-            print "episode_end : ", done
-            print "info : ", info
+            #  observation, reward, done, info = env.step(action, reward_map)
+            #  next_state = observation
+            #  print "observation : ", observation
+            #  print "next_state : ", next_state
+            #  print "reward : ", reward
+            #  print "episode_end : ", done
+            #  print "info : ", info
 
-            if done:
-                break
+            #  if done:
+                #  break
