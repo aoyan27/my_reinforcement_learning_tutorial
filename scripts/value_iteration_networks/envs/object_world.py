@@ -77,7 +77,7 @@ class Objectworld:
         self.grid = np.zeros([self.rows, self.cols])
         self.set_goal(self.goal)
         n_objects_ = np.random.randint(0, self.n_objects)
-        print "n_objects_ : ", n_objects_
+        #  print "n_objects_ : ", n_objects_
         if self.random_objects:
             i = 0
             while i < n_objects_:
