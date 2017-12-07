@@ -107,22 +107,22 @@ def main(rows, cols, n_objects, seed, gpu, model_path):
     #  env = Objectworld(rows, cols, goal, R_max, noise, n_objects, seed, mode=0)
     env = Objectworld(rows, cols, goal, R_max, noise, n_objects, seed, mode=1)
     
-    start, goal = set_start_and_goal(env)
-    print "start : ", start
-    print "goal : ", goal
-    image, reward_map = create_map_data(env, start, goal)
-    input_data = create_input_data(image, reward_map)
+    # start, goal = set_start_and_goal(env)
+    # print "start : ", start
+    # print "goal : ", goal
+    # image, reward_map = create_map_data(env, start, goal)
+    # input_data = create_input_data(image, reward_map)
     #  print "input_data : "
     #  print input_data
-    print "input_data.shape : ", input_data.shape
-    state_data = np.expand_dims(np.asarray(start), 0)
-    print "state_data : ", state_data
-    print "state_data.shape : ", state_data.shape
-    if gpu >= 0:
-        input_data = cuda.to_gpu(input_data)
-
-    print "env.grid : "
-    env.show_objectworld()
+    # print "input_data.shape : ", input_data.shape
+    # state_data = np.expand_dims(np.asarray(start), 0)
+    # print "state_data : ", state_data
+    # print "state_data.shape : ", state_data.shape
+    # if gpu >= 0:
+    #     input_data = cuda.to_gpu(input_data)
+    #
+    # print "env.grid : "
+    # env.show_objectworld()
 
     success_times = 0
     failed_times = 0
@@ -136,8 +136,18 @@ def main(rows, cols, n_objects, seed, gpu, model_path):
         prog.update(i_episode)
         #  print "=============================="
         #  print "episode : ", i_episode
-        start, _ = set_start_and_goal(env)
+        start, goal = set_start_and_goal(env)
+        state_data = np.expand_dims(np.asarray(start), 0)
         state_data[0] = start
+        env.set_goal(goal)
+
+        image, reward_map = create_map_data(env, start, goal)
+        input_data = create_input_data(image, reward_map)
+
+        env.show_objectworld()
+
+        if gpu >= 0:
+            input_data = cuda.to_gpu(input_data)
         #  print "start : ", start
         env.reset(start)
         for i_step in xrange(max_step):
