@@ -95,6 +95,9 @@ def train_and_test(model, optimizer, gpu, model_path, train_data, test_data, n_e
     
     n_train = train_data['image'].shape[0]
     n_test = test_data['image'].shape[0]
+    
+    prog_train = ProgressBar(0, n_train)
+    prog_test = ProgressBar(0, n_test)
 
     while epoch <= n_epoch:
         print "========================================="
@@ -134,6 +137,9 @@ def train_and_test(model, optimizer, gpu, model_path, train_data, test_data, n_e
 
             sum_train_loss += float(cuda.to_cpu(loss.data)) * real_batchsize
             sum_train_accuracy += float(cuda.to_cpu(acc.data)) * real_batchsize
+            
+            prog_train.update(i)
+
         print 'train mean loss={}, accuracy={}'\
                 .format(sum_train_loss/n_train, sum_train_accuracy/n_train)
         
@@ -163,6 +169,8 @@ def train_and_test(model, optimizer, gpu, model_path, train_data, test_data, n_e
 
             sum_test_loss += float(cuda.to_cpu(loss.data)) * real_batchsize
             sum_test_accuracy += float(cuda.to_cpu(acc.data)) * real_batchsize
+
+            prog_test.update(i)
 
         print 'test mean loss={}, accuracy={}'\
                 .format(sum_test_loss/n_test, sum_test_accuracy/n_test)         
