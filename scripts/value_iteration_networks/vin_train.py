@@ -18,7 +18,8 @@ import chainer.links as L
 import copy
 import pickle
 
-from networks.vin import ValueIterationNetwork
+#  from networks.vin import ValueIterationNetwork
+from networks.vin2 import ValueIterationNetwork
 
 
 def view_image(array, title):
