@@ -3,10 +3,7 @@
 
 import numpy as np
 import sys
-sys.path.append('../')
 import copy
-
-from agents.a_star_agent import AstarAgent
 
 class Gridworld:
     def __init__(self, rows, cols, num_agent, noise, start={0: [0, 0], 1: [4, 4]}, goal={0: [4, 4], 1: [0, 0]}, seed=0, mode=0):
@@ -70,9 +67,9 @@ class Gridworld:
 
 
     def set_start_random(self):
-        self.start_index = np.random.choice(xrange(self.n_state), num_agent, replace=False)
+        self.start_index = np.random.choice(xrange(self.n_state), self.num_agent, replace=False)
         #  print "self.start_index : ", self.start_index
-        for i in xrange(num_agent):
+        for i in xrange(self.num_agent):
             self.start[i] = self.index2state(self.start_index[i])
         self._state = self.start
         #  print "self.start", self.start
@@ -82,11 +79,11 @@ class Gridworld:
 
     def set_goal_random(self):
         while 1:
-            self.goal_index = np.random.choice(xrange(self.n_state), num_agent, replace=False)
+            self.goal_index = np.random.choice(xrange(self.n_state), self.num_agent, replace=False)
             #  print "self.goal_index : ", self.goal_index
             if tuple(self.start_index) != tuple(self.goal_index):
                 break
-        for i in xrange(num_agent):
+        for i in xrange(self.num_agent):
             self.goal[i] = self.index2state(self.goal_index[i])
         #  print "self.goal", self.goal
 
