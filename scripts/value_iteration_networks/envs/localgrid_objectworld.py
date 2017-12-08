@@ -21,7 +21,8 @@ class LocalgridObjectworld(Objectworld):
         self.l_n_state = self.l_rows * self.l_cols
         self.l_goal_range = l_goal_range
 
-        self.local_grid = np.zeros([self.l_rows, self.l_cols])
+        self.local_grid = np.empty([self.l_rows, self.l_cols])
+        self.local_grid.fill(-1)
         self.local_goal = None
         
 
@@ -46,6 +47,8 @@ class LocalgridObjectworld(Objectworld):
         return local_grid, local_grid_
 
     def extract_local_grid(self, state):
+        self.local_grid = np.empty([self.l_rows, self.l_cols])
+        self.local_grid.fill(-1)
         local_grid = self.local_grid
         #  print "state : ", state
         y, x = state
@@ -53,17 +56,32 @@ class LocalgridObjectworld(Objectworld):
         center_x = int(self.l_cols / 2)
         #  print "center_y : ", center_y
         #  print "center_x : ", center_x
+        min_y = int(y - center_y)
+        max_y = int(y + center_y) + 1
+        min_x = int(x - center_x)
+        max_x = int(x + center_x) + 1
+        if min_y < 0:
+            min_y = 0
+        if self.ow.rows < max_y:
+            max_y =  self.ow.rows
+        if min_x < 0:
+            min_x = 0
+        if self.ow.cols < max_x:
+            max_x = self.ow.cols
 
-        for l_y in xrange(self.l_rows):
-            for l_x in xrange(self.l_cols):
-                g_y = y + (l_y - center_y)
-                g_x = x + (l_x - center_x)
-                #  print "g_y : ", g_y
-                #  print "g_x : ", g_x 
-                if (g_x < 0 or self.ow.cols-1 < g_x) or (g_y < 0 or self.ow.rows-1 < g_y):
-                    local_grid[l_y, l_x] = -1
-                else:
-                    local_grid[l_y, l_x] = self.ow.grid[g_y, g_x]
+        diff_min_y = min_y - y
+        diff_max_y = max_y - y
+        diff_min_x = min_x - x
+        diff_max_x = max_x - x
+
+        local_min_y = int(center_y + diff_min_y)
+        local_max_y = int(center_y + diff_max_y)
+        local_min_x = int(center_x + diff_min_x)
+        local_max_x = int(center_x + diff_max_x)
+        
+        local_grid[local_min_y:local_max_y, local_min_x:local_max_x] = \
+                self.ow.grid[min_y:max_y, min_x:max_x]
+        
         
         return local_grid
 
@@ -96,7 +114,7 @@ class LocalgridObjectworld(Objectworld):
         l_goal_y = (self.ow.goal[0] - self.ow.state_[0]) + center_y
         l_goal_x = (self.ow.goal[1] - self.ow.state_[1]) + center_x
         if g_dist < l_dist and (l_goal_y < end_y and l_goal_x < end_x):
-            #  print "l_goal_y, l_goal_x : ", l_goal_y, l_goal_x
+            print "l_goal_y, l_goal_x : ", l_goal_y, l_goal_x
             self.local_goal = (l_goal_y, l_goal_x)
             #  print "self.local_goal(g_dist < l_dist) : ", self.local_goal
         else:
@@ -137,7 +155,13 @@ class LocalgridObjectworld(Objectworld):
         distance_list = [near_state[0]**2 + near_state[1]**2 \
                 for near_state in near_state_list]
         #  print "distance_list", distance_list
-        index = np.argmax(np.asarray(distance_list))
+        #  print "self.l_goal_range : ", self.l_goal_range 
+        reff_distance = (self.l_goal_range[0]-1-center_y)**2 + (self.l_goal_range[1]-1-center_x)**2
+        #  print "reff_distance : ", reff_distance
+        index = np.abs(np.asarray(distance_list) - reff_distance).argmin()
+        #  print "index : ", index
+
+        #  index = np.argmax(np.asarray(distance_list))
         #  print "index : ", index
         self.local_goal = tuple(np.asarray(near_state_list[index]) + np.asarray([center_y, center_x]))
         #  print "self.local_goal : ", local_goal
