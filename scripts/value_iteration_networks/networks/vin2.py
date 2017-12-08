@@ -19,10 +19,10 @@ class ValueIterationNetwork(Chain):
             conv3a = L.Convolution2D(1, l_q, 3, stride=1, pad=1, nobias=True),
             conv3b = L.Convolution2D(1, l_q, 3, stride=1, pad=1, nobias=True),
 
-            l4 = L.Linear(25, n_out, nobias=True),
-            #  l4 = L.Linear(25, 512, nobias=True),
-            #  l5 = L.Linear(512, 128, nobias=True),
-            #  l6 = L.Linear(128, n_out, nobias=True),
+            # l4 = L.Linear(25, n_out, nobias=True),
+             l4 = L.Linear(25, 512, nobias=True),
+             l5 = L.Linear(512, 128, nobias=True),
+             l6 = L.Linear(128, n_out, nobias=True),
         )
 
         self.k = k
@@ -86,7 +86,8 @@ class ValueIterationNetwork(Chain):
         #  print "attention_grid() : "
         #  print attention_grid.shape
         #  print attention_grid
-        a = F.reshape(attention_grid, (attention_grid.shape[0], attention_grid.shape[1], -1))
+        #  a = F.reshape(attention_grid, (attention_grid.shape[0], attention_grid.shape[1], -1))
+        a = Variable(attention_grid)
         #  print "a() : "
         #  print a.shape
         
@@ -114,10 +115,10 @@ class ValueIterationNetwork(Chain):
 
         v_out = self.attention(self.v, state_list)
         
-        y = self.l4(v_out)
-        #  h1 = F.relu(self.l4(v_out))
-        #  h2 = F.relu(self.l5(h1))
-        #  y = self.l6(h2)
+        # y = self.l4(v_out)
+        h1 = self.l4(v_out)
+        h2 = self.l5(h1)
+        y = self.l6(h2)
 
         return y
 
