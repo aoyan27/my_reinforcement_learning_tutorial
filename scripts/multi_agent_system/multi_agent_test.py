@@ -7,7 +7,7 @@ np.set_printoptions(suppress=True, threshold=np.inf)
 import copy
 import sys
 
-from envs.grid_world import Gridworld
+from envs.multi_agent_grid_world import Gridworld
 from agents.a_star_agent import AstarAgent
 
 def get_enemy_agent_action(env, agent_id=1):

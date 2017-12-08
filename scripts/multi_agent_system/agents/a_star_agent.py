@@ -173,7 +173,7 @@ if __name__ == "__main__":
     import sys
     sys.path.append('../')
     from envs.object_world import Objectworld
-    from envs.grid_world import Gridworld
+    from envs.multi_agent_grid_world import Gridworld
     rows = cols = 50
     goal = [rows-1, cols-1]
     #  goal = [23, 28]
