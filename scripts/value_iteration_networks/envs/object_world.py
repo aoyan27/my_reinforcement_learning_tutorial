@@ -43,7 +43,7 @@ class Objectworld:
 
         self.n_objects = n_objects
         self.objects = []
-        self.set_objects()
+        self.set_objects(n_objects_random=False)
         
 
         self.action_list = None
@@ -72,11 +72,15 @@ class Objectworld:
         self.goal = goal
         self.grid[tuple(self.goal)] = self.R_max
 
-    def set_objects(self):
+    def set_objects(self, n_objects_random=True):
         self.objects = []
         self.grid = np.zeros([self.rows, self.cols])
         self.set_goal(self.goal)
-        n_objects_ = np.random.randint(0, self.n_objects)
+        n_objects_ = None
+        if n_objects_random:
+            n_objects_ = np.random.randint(0, self.n_objects)
+        else:
+            n_objects_ = self.n_objects
         #  print "n_objects_ : ", n_objects_
         if self.random_objects:
             i = 0
