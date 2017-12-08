@@ -86,7 +86,8 @@ class ValueIterationNetwork(Chain):
         #  print "attention_grid() : "
         #  print attention_grid.shape
         #  print attention_grid
-        a = F.reshape(attention_grid, (attention_grid.shape[0], attention_grid.shape[1], -1))
+        #  a = F.reshape(attention_grid, (attention_grid.shape[0], attention_grid.shape[1], -1))
+        a = Variable(attention_grid)
         #  print "a() : "
         #  print a.shape
         
