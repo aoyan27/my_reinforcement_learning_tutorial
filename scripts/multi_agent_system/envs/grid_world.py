@@ -80,7 +80,7 @@ class Gridworld:
     def set_goal_random(self):
         while 1:
             self.goal_index = np.random.choice(xrange(self.n_state), self.num_agent, replace=False)
-            #  print "self.goal_index : ", self.goal_index
+            print "self.goal_index : ", self.goal_index
             if tuple(self.start_index) != tuple(self.goal_index):
                 break
         for i in xrange(self.num_agent):
@@ -98,6 +98,19 @@ class Gridworld:
         state[0] = index / self.cols #  y
         return state
     
+    def get_sample_action_single_agent(self):
+        action = None
+        if self.mode == 0:
+            action = np.random.randint(0, 4)
+        elif self.mode == 1:
+            action = np.random.randint(0, 8)
+        else:
+            sys.stderr.write('Error occurred! Please set mode 0 or 1 !!')
+            sys.exit()
+
+        return action
+
+
     def get_sample_action(self):
         action = {}
         if self.mode == 0:
@@ -253,7 +266,7 @@ class Gridworld:
             self.set_goal(goal_position)
         else:
             self.set_start_random()
-            self.set_goal_ramdom()
+            self.set_goal_random()
         
         self.agent_collision = False
 
