@@ -7,8 +7,10 @@ import copy
 
 
 class AstarAgent:
-    def __init__(self, env):
+    def __init__(self, env, agent_id=1):
         self.env = env
+
+        self.agent_id = agent_id
 
         self.cost = 1
         self.open_list = []
@@ -32,12 +34,12 @@ class AstarAgent:
         self.heuristic = np.zeros([self.env.rows, self.env.cols])
         #  print "self.heuristic : "
         #  print self.heuristic
-        self.heuristic[tuple(self.env.goal)] = 0
+        self.heuristic[tuple(self.env.goal[self.agent_id])] = 0
         for i in xrange(self.env.n_state):
             state = self.env.index2state(i)
             #  print "state : ", state
-            diff_y = self.env.goal[0] - state[0]
-            diff_x = self.env.goal[1] - state[1]
+            diff_y = self.env.goal[self.agent_id][0] - state[0]
+            diff_x = self.env.goal[self.agent_id][1] - state[1]
             #  print "diff_y, diff_x : ", diff_y, diff_x
             self.heuristic[tuple(state)] = diff_y**2 + diff_x**2
 
@@ -72,19 +74,22 @@ class AstarAgent:
                 f = current[0]
                 g = current[1]
                 h = current[2]
+                
 
                 state = [current[3], current[4]]
                 #  print "state : ", state
 
                 self.expand_list[tuple(state)] = n
                 n += 1
-
-                #  print "self.env.goal : ", self.env.goal
-                if state == self.env.goal:
+            
+                #  print "self.env.goal[self.agent_id] : ", self.env.goal[self.agent_id]
+                if state == self.env.goal[self.agent_id]:
                     found = True
                     self.found = found
 
                 for a in xrange(len(self.env.action_list)):
+                    #  print "state : ", state
+                    #  print "a : ", a
                     next_state, out_of_range, collision = self.env.move(state, a)
                     #  print "next_state : ", next_state
                     #  print "out_of_range : ", out_of_range
@@ -103,6 +108,10 @@ class AstarAgent:
                             # (self.closed_listでその状態に訪問したかをカウントされているため、
                             # その状態への２回目の訪問はないから)
                             self.action_list[tuple(next_state)] = a 
+        #  print "self.action_list : "
+        #  print self.action_list
+        #  print "self.expand_list : "
+        #  print self.expand_list
 
     def get_shortest_path(self, start_position):
         self.a_star(start_position)
@@ -111,7 +120,8 @@ class AstarAgent:
         if self.found:
             self.policy = np.empty([self.env.rows, self.env.cols])
             self.policy.fill(stay_action)
-            state = self.env.goal
+            state = self.env.goal[self.agent_id]
+            #  print "state : ", state
             self.state_list.append(state)
             self.shortest_action_list.append(self.policy[tuple(state)])
             
@@ -135,12 +145,12 @@ class AstarAgent:
         state_list = np.asarray(self.state_list)
         for i in xrange(len(state_list)):
             vis_path[tuple(state_list[i])] = '@'
-            if tuple(state_list[i])==tuple(self.env.goal):
-                vis_path[tuple(self.env.goal)] = 'G'
+            if tuple(state_list[i])==tuple(self.env.goal[self.agent_id]):
+                vis_path[tuple(self.env.goal[self.agent_id])] = 'G'
 
         vis_path[tuple(state_list[0])] = '$'
-        #  if len(state_list[state_list==self.env.goal]) == 2:
-            #  vis_path[tuple(self.env.goal)] = 'G'
+        #  if len(state_list[state_list==self.env.goal[self.agent_id]) == 2:
+            #  vis_path[tuple(self.env.goal[self.agent_id])] = 'G'
 
         path_data = {}
         path_data['vis_path'] = vis_path
@@ -163,14 +173,17 @@ if __name__ == "__main__":
     import sys
     sys.path.append('../')
     from envs.object_world import Objectworld
+    from envs.grid_world import Gridworld
     rows = cols = 50
-    #  goal = [rows-1, cols-1]
-    goal = [23, 28]
+    goal = [rows-1, cols-1]
+    #  goal = [23, 28]
 
     R_max = 1.0
     noise = 0.0
     n_objects = 500
     seed = 1
+    num_agent = 2
+    mode = 1
     
     object_list = [
                 (0, 1), (1, 1), (2, 1), (3, 1)
@@ -178,7 +191,9 @@ if __name__ == "__main__":
 
     #  env = Objectworld(rows, cols, goal, R_max, noise, n_objects, seed, object_list=object_list, random_objects=False, mode=0)
     #  env = Objectworld(rows, cols, goal, R_max, noise, n_objects, seed, object_list=object_list, random_objects=False, mode=1)
-    env = Objectworld(rows, cols, goal, R_max, noise, n_objects, seed, mode=1)
+    #  env = Objectworld(rows, cols, goal, R_max, noise, n_objects, seed, mode=1)
+    #  env = Objectworld(rows, cols, goal, R_max, noise, n_objects, seed, mode=1)
+    env = Gridworld(rows, cols, num_agent, noise, seed=seed, mode=mode)
 
     #  print "env.grid : "
     #  env.show_objectworld()
@@ -193,14 +208,16 @@ if __name__ == "__main__":
         print "i : ", i
         env.set_start_random()
         env.set_goal_random()
-        env.set_objects()
-        print "env.grid : "
-        env.show_objectworld()
+        #  env.set_objects()
+        #  print "env.grid : "
+        #  env.show_objectworld()
+        #  print "env.start[1] : "
+        #  print env.start[1]
 
         a_agent = AstarAgent(env)
 
         #  a_agent.a_star(start_position)
-        a_agent.get_shortest_path(env.start)
+        a_agent.get_shortest_path(env.start[1])
         #  print "a_agent.expand_list : "
         #  print a_agent.expand_list
         #  print "a_agent.action_list : "
