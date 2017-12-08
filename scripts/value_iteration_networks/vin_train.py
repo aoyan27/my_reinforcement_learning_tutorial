@@ -18,8 +18,8 @@ import chainer.links as L
 import copy
 import pickle
 
-#  from networks.vin import ValueIterationNetwork
-from networks.vin2 import ValueIterationNetwork
+from networks.vin import ValueIterationNetwork
+#  from networks.vin2 import ValueIterationNetwork
 
 
 def view_image(array, title):
@@ -38,6 +38,7 @@ def load_dataset(path):
     reward_map_data = data['reward']
     state_list_data = data['state']
     action_list_data = data['action']
+    print "Load %d data!!!" % len(image_data)
 
     return image_data, reward_map_data, state_list_data, action_list_data
 

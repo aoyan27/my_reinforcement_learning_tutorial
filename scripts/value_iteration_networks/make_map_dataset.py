@@ -87,8 +87,8 @@ def get_trajs(env, n_trajs):
     return domain_state_list, domain_action_list
 
 def save_dataset(data, filename):
+    print "Save %d map_dataset.pkl!!!!!" % len(data['image'])
     with open(filename, mode='wb') as f:
-        print "Save map_dataset.pkl!!!!!"
         pickle.dump(data, f)
 
 
