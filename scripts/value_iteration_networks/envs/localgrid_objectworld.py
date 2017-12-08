@@ -135,7 +135,6 @@ class LocalgridObjectworld(Objectworld):
         a_agent = AstarAgent(self.ow)
         a_agent.get_shortest_path(state)
         if a_agent.found:
-            pass
             #  print "a_agent.state_list : "
             #  print a_agent.state_list
             #  print "a_agent.shrotest_action_list : "
