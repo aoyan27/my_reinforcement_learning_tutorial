@@ -12,7 +12,8 @@ from agents.a_star_agent import AstarAgent
 
 def get_enemy_agent_action(env, agent_id=1):
     a_agent = AstarAgent(env, agent_id)
-    a_agent.get_shortest_path(env._state[agent_id])
+    a_agent.get_shortest_path(env._state[agent_id], env.grid)
+    #  a_agent.get_shortest_path(env._state[agent_id], env.agent_grid[agent_id])
     if a_agent.found:
         pass
         #  print "a_agent.state_list : "
@@ -26,12 +27,14 @@ def get_enemy_agent_action(env, agent_id=1):
     #  print "a_agent.shortest_action_list[0] : "
     #  print a_agent.shortest_action_list[0]
     action = int(a_agent.shortest_action_list[0])
+    #  print "action : ", action
 
     return action
 
 def get_my_agent_action(env, agent_id=0):
     a_agent = AstarAgent(env, agent_id)
-    a_agent.get_shortest_path(env._state[agent_id])
+    #  a_agent.get_shortest_path(env._state[agent_id], env.grid)
+    a_agent.get_shortest_path(env._state[agent_id], env.agent_grid[agent_id])
     if a_agent.found:
         pass
         #  print "a_agent.state_list : "
@@ -45,6 +48,7 @@ def get_my_agent_action(env, agent_id=0):
     #  print "a_agent.shortest_action_list[0] : "
     #  print a_agent.shortest_action_list[0]
     action = int(a_agent.shortest_action_list[0])
+    print "action : ", action
 
     return action
     
@@ -77,8 +81,14 @@ def main(rows, cols, noise, num_agent, seed):
             print "goal : ", env.goal
             print "state : ", observation
             env.show_objectworld_with_state()
-            actions[1] = enemy_action = get_enemy_agent_action(env)
+            print "env.agent_grid[0] : "
+            print env.agent_grid[0]
+
+            print "env.agent_grid[1] : "
+            print env.agent_grid[1]
+
             actions[0] = my_action = get_my_agent_action(env)
+            actions[1] = enemy_action = get_enemy_agent_action(env)
             #  actions[0] = my_action = env.get_sample_action_single_agent()
             print "actions : ", actions
             

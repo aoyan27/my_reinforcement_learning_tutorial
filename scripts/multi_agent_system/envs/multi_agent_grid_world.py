@@ -19,6 +19,7 @@ class Gridworld:
         self.noise = noise
 
         self.grid = np.zeros((self.rows, self.cols))
+        self.agent_grid = {0: copy.deepcopy(self.grid), 1: copy.deepcopy(self.grid)}
         # +------------> x
         # |
         # |
@@ -60,10 +61,18 @@ class Gridworld:
             self.action_list = [0, 1, 2, 3, 4, 5, 6, 7, 8]
             self.n_action = len(self.action_list)
             self.dirs = {0: '>', 1: '<', 2: 'v', 3: '^', 4: 'ur', 5: 'ul', 6: 'dr', 7: 'dl', 8: '-'}
+    
+    def set_agent_grid(self):
+        self.agent_grid = {0: copy.deepcopy(self.grid), 1: copy.deepcopy(self.grid)}
+        for i in xrange(self.num_agent):
+            for j in xrange(self.num_agent):
+                if i != j:
+                    self.agent_grid[i][tuple(self._state[j])] = -1
 
     def set_start(self, start):
         self.start = start
         self._state = start
+        self.set_agent_grid()
 
 
     def set_start_random(self):
@@ -73,6 +82,8 @@ class Gridworld:
             self.start[i] = self.index2state(self.start_index[i])
         self._state = self.start
         #  print "self.start", self.start
+        self.set_agent_grid()
+        
 
     def set_goal(self, goal):
         self.goal = goal
@@ -80,7 +91,7 @@ class Gridworld:
     def set_goal_random(self):
         while 1:
             self.goal_index = np.random.choice(xrange(self.n_state), self.num_agent, replace=False)
-            print "self.goal_index : ", self.goal_index
+            #  print "self.goal_index : ", self.goal_index
             if tuple(self.start_index) != tuple(self.goal_index):
                 break
         for i in xrange(self.num_agent):
@@ -126,9 +137,12 @@ class Gridworld:
 
         return action
 
-    def move(self, state, action, grid_range=None, reflect=1):
+    def move(self, state, action, grid_range=None, grid=None, reflect=1):
         if grid_range is None:
             grid_range = [self.rows, self.cols]
+        if grid is None:
+            grid = self.grid
+
         y, x = state
         next_y, next_x = state
         
@@ -182,7 +196,6 @@ class Gridworld:
                 #  stay
                 next_x = x
                 next_y = y
-                 
         
         out_of_range = False
         if next_y < 0 or (grid_range[0]-1) < next_y:
@@ -196,7 +209,7 @@ class Gridworld:
             out_of_range = True
 
         collision = False
-        if self.grid[next_y, next_x] == -1:
+        if grid[next_y, next_x] == -1:
             #  print "collision!!!!!"
             collision = True
             #  if action == 0 or action == 1:
@@ -298,6 +311,7 @@ class Gridworld:
             #  print "next_state_list[i] : ", next_state_list[i]
             #  print "probs[i] : ", probs[i]
             self._state[i] = next_state_list[i][action_index]
+        self.set_agent_grid()
         
         reward = self.reward_function(self._state, self.goal)
 

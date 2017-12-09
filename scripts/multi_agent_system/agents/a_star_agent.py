@@ -34,6 +34,9 @@ class AstarAgent:
         self.heuristic = np.zeros([self.env.rows, self.env.cols])
         #  print "self.heuristic : "
         #  print self.heuristic
+        print "self.env.goal[self.agent_id] : "
+        print self.agent_id
+        #  print self.env.goal[self.agent_id]
         self.heuristic[tuple(self.env.goal[self.agent_id])] = 0
         for i in xrange(self.env.n_state):
             state = self.env.index2state(i)
@@ -46,7 +49,7 @@ class AstarAgent:
         #  print "self.heuristic : "
         #  print self.heuristic
 
-    def a_star(self, start_position):
+    def a_star(self, start_position, grid):
 
         g = 0
         h = self.heuristic[tuple(start_position)]
@@ -90,7 +93,8 @@ class AstarAgent:
                 for a in xrange(len(self.env.action_list)):
                     #  print "state : ", state
                     #  print "a : ", a
-                    next_state, out_of_range, collision = self.env.move(state, a)
+                    next_state, out_of_range, collision = \
+                            self.env.move(state, a, grid=grid)
                     #  print "next_state : ", next_state
                     #  print "out_of_range : ", out_of_range
                     #  print "collision : ", collision
@@ -101,7 +105,8 @@ class AstarAgent:
                             next_g = g + self.cost
                             next_h = self.heuristic[tuple(next_state)]
                             next_f = next_g + next_h
-                            self.open_list.append([next_f, next_g, next_h, next_state[0], next_state[1]])
+                            self.open_list.append\
+                                    ([next_f, next_g, next_h, next_state[0], next_state[1]])
                             self.closed_list[tuple(next_state)] = 1
                             # self.action_listは、その状態に最初に訪れるときに、
                             # 直前の状態において実行した行動が格納される
@@ -113,9 +118,10 @@ class AstarAgent:
         #  print "self.expand_list : "
         #  print self.expand_list
 
-    def get_shortest_path(self, start_position):
-        self.a_star(start_position)
+    def get_shortest_path(self, start_position, grid):
+        self.a_star(start_position, grid)
         stay_action = len(self.env.action_list) - 1
+        print "self.found : ", self.found
         
         if self.found:
             self.policy = np.empty([self.env.rows, self.env.cols])
@@ -127,7 +133,8 @@ class AstarAgent:
             
             while state != start_position:
                 before_state, _, _ = \
-                        self.env.move(state, self.action_list[tuple(state)], reflect=-1)
+                        self.env.move(state, self.action_list[tuple(state)], \
+                        grid=grid, reflect=-1)
                 #  print "before_state : ", before_state
                 self.policy[tuple(before_state)] = self.action_list[tuple(state)]
                 self.state_list.append(before_state)
@@ -135,6 +142,9 @@ class AstarAgent:
                 state = before_state
             self.state_list.reverse()
             self.shortest_action_list.reverse()
+        else:
+            self.shortest_action_list.append(stay_action)
+            self.state_list.append(start_position)
 
 
     def show_path(self):
@@ -217,7 +227,7 @@ if __name__ == "__main__":
         a_agent = AstarAgent(env)
 
         #  a_agent.a_star(start_position)
-        a_agent.get_shortest_path(env.start[1])
+        a_agent.get_shortest_path(env.start[1], env.grid)
         #  print "a_agent.expand_list : "
         #  print a_agent.expand_list
         #  print "a_agent.action_list : "
