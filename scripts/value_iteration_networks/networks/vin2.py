@@ -3,6 +3,7 @@
 
 import numpy as np
 np.set_printoptions(precision=1, suppress=True, threshold=np.inf)
+import cupy as xp
 
 import chainer 
 from chainer import cuda, Variable, optimizers, serializers
@@ -19,32 +20,32 @@ class ValueIterationNetwork(Chain):
             conv3a = L.Convolution2D(1, l_q, 3, stride=1, pad=1, nobias=True),
             conv3b = L.Convolution2D(1, l_q, 3, stride=1, pad=1, nobias=True),
 
-            # l4 = L.Linear(25, n_out, nobias=True),
-             l4 = L.Linear(25, 512, nobias=True),
+            #  l4 = L.Linear(None, n_out, nobias=True),
+             l4 = L.Linear(None, 512, nobias=True),
              l5 = L.Linear(512, 128, nobias=True),
              l6 = L.Linear(128, n_out, nobias=True),
         )
 
         self.k = k
     
-    def attention(self, v, state_list):
-        #  print "v : ", type(v), v.shape
-        #  print "v[0][0] : "
-        #  print v.data[0][0]
-        extract_size = [5, 5]
+    def attention(self, q, state_list):
+        #  print "q : ", type(q), q.shape
+        #  print "q.data : "
+        #  print q.data[0]
+        w = np.zeros(q.shape)
+        extract_size = [1, 1]
         attention_grid = \
-            np.zeros((v.shape[0], v.shape[1], extract_size[0], extract_size[1]), dtype=np.float32)
-        #  print "attention_grid : "
-        #  print attention_grid.shape
-        #  print attention_grid
+            np.empty((q.shape[0], q.shape[1], extract_size[0], extract_size[1]))
+        attention_grid.fill(1.0)
 
-        if isinstance(v.data, cuda.ndarray):
+        if isinstance(q.data, cuda.ndarray):
+            w = cuda.to_gpu(w)
             attention_grid = cuda.to_gpu(attention_grid)
         
         center_y = int(extract_size[0] / 2)
         center_x = int(extract_size[1] / 2)
 
-        for i in xrange(len(state_list)):
+        for i in xrange(q.data.shape[0]):
             #  print "========================================="
             #  print "i : ", i
             y, x = state_list[i]
@@ -55,17 +56,14 @@ class ValueIterationNetwork(Chain):
             max_x = int(x + center_x) + 1
             if min_y < 0:
                 min_y = 0
-            if v.shape[2] < max_y:
-                max_y =  v.shape[2]
+            if q.shape[2] < max_y:
+                max_y =  q.shape[2]
             if min_x < 0:
                 min_x = 0
-            if v.shape[3] < max_x:
-                max_x = v.shape[3]
+            if q.shape[3] < max_x:
+                max_x = q.shape[3]
             #  print "min_y, max_y : ", min_y, max_y
             #  print "min_x, max_x : ", min_x, max_x
-            #  v.data[i][0][min_y:max_y, min_x:max_x]
-            #  print "v.data[i][0][min_y:max_y, min_x:max_x] : "
-            #  print v.data[i][0][min_y:max_y, min_x:max_x]
             
             diff_min_y = min_y - y
             diff_max_y = max_y - y
@@ -76,19 +74,30 @@ class ValueIterationNetwork(Chain):
             attention_max_y = int(center_y + diff_max_y)
             attention_min_x = int(center_x + diff_min_x)
             attention_max_x = int(center_x + diff_max_x)
+            
+            #  print "attentino_grid : "
+            #  print attention_grid[i][:, attention_min_y:attention_max_y, attention_min_x:attention_max_x]
 
-            attention_grid[i][0][attention_min_y:attention_max_y, attention_min_x:attention_max_x]\
-                = v.data[i][0][min_y:max_y, min_x:max_x]
-            #  print "attention_grid[i][0] : "
-            #  print attention_grid[i][0]
+            w[i][:, min_y:max_y, min_x:max_x] = \
+                    attention_grid[i]\
+                    [:, attention_min_y:attention_max_y, attention_min_x:attention_max_x]
+            #  print "w[i] : "
+            #  print w[i]
 
-        #  print "state_list[0] : ", state_list[0]
-        #  print "attention_grid() : "
-        #  print attention_grid.shape
-        #  print attention_grid
-        #  a = F.reshape(attention_grid, (attention_grid.shape[0], attention_grid.shape[1], -1))
-        a = Variable(attention_grid)
+        w = Variable(w.astype(np.float32))
+
+        a = q * w
+        #  print "a : "
+        #  print a
+        #  print a.shape
+        a = F.reshape(a, (q.shape[0], q.shape[1], -1))
         #  print "a() : "
+        #  print a
+        #  print a.shape
+        #  a = F.sum(a ,axis=2)
+        #  a = Variable(attention_grid)
+        #  print "a()() : "
+        #  print a
         #  print a.shape
         
         return a
@@ -112,13 +121,16 @@ class ValueIterationNetwork(Chain):
         for i in xrange(self.k):
             q = self.conv3a(self.r) + self.conv3b(self.v)
             self.v = F.max(q, axis=1, keepdims=True)
-
-        v_out = self.attention(self.v, state_list)
         
-        # y = self.l4(v_out)
-        h1 = self.l4(v_out)
+
+        q = self.conv3a(self.r) + self.conv3b(self.v)
+        q_out = self.attention(q, state_list)
+        
+        h1 = self.l4(q_out)
         h2 = self.l5(h1)
         y = self.l6(h2)
+
+        #  y = self.l4(q_out)
 
         return y
 

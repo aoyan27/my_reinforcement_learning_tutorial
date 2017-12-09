@@ -2,6 +2,7 @@
 #coding : utf-8
 
 import numpy as np
+np.set_printoptions(precision=1, suppress=True, threshold=np.inf)
 
 import chainer 
 from chainer import cuda, Variable, optimizers, serializers
@@ -24,7 +25,8 @@ class ValueIterationNetwork(Chain):
         self.k = k
     
     def attention(self, q, state_list):
-        #  print q.data.shape
+        #  print "q.data : ",
+        #  print q.data[0]
         w = np.zeros(q.data.shape)
         #  print "w : ", w.shape
         for i in xrange(len(state_list)):
@@ -51,6 +53,7 @@ class ValueIterationNetwork(Chain):
 
         q_out = F.sum(a, axis=2)
         #  print "q_out : "
+        #  print q_out
         #  print q_out.shape
         return q_out
 
