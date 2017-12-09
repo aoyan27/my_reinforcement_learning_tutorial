@@ -156,7 +156,7 @@ def main(rows, cols, n_objects, seed, l_rows, l_cols, control_mode, gpu, model_p
     noise = 0.0
     mode = 1
 
-    l_goal_range = [l_rows, l_cols]
+    l_goal_range = [l_rows-3, l_cols-3]
 
     env = LocalgridObjectworld(rows, cols, g_goal, R_max, noise, n_objects, seed, mode, \
             l_rows, l_cols, l_goal_range)

@@ -87,18 +87,17 @@ def get_trajs(env, n_trajs):
     return domain_state_list, domain_action_list
 
 def save_dataset(data, filename):
+    print "Save %d map_dataset.pkl!!!!!" % len(data['image'])
     with open(filename, mode='wb') as f:
-        print "Save map_dataset.pkl!!!!!"
         pickle.dump(data, f)
 
 
-def main(rows, cols, n_objects, n_domains, n_trajs, save_dirs):
+def main(rows, cols, n_objects, n_domains, n_trajs, seed, save_dirs):
     n_state = rows * cols
     
     goal = [rows-1, cols-1]
     R_max = 1.0
     noise = 0.0
-    seed = 1
 
     #  env = Objectworld(rows, cols, goal, R_max, noise, n_objects, seed, mode=0)
     env = Objectworld(rows, cols, goal, R_max, noise, n_objects, seed, mode=1)
@@ -189,10 +188,12 @@ if __name__ == "__main__":
     parser.add_argument('-d', '--n_domains', default=5000, type=int, help='number of domains')
     parser.add_argument('-t', '--n_trajs', default=10, type=int, help='number of trajs')
 
+    parser.add_argument('-s', '--seed', default=0, type=int, help='number of seed')
+
     parser.add_argument('-m', '--dataset_dirs', default='datasets/', \
             type=str, help="save dataset directory")
 
     args = parser.parse_args()
     print args
     
-    main(args.rows, args.cols, args.n_objects, args.n_domains, args.n_trajs, args.dataset_dirs)
+    main(args.rows, args.cols, args.n_objects, args.n_domains, args.n_trajs, args.seed, args.dataset_dirs)

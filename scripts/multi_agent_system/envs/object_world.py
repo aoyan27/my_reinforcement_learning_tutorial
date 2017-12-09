@@ -7,7 +7,7 @@ import copy
 
 class Objectworld:
 
-    def __init__(self, rows, cols, goal, R_max, noise, n_objects, seed=None, \
+    def __init__(self, rows, cols, goal, R_max, noise, n_objects, seed=0, \
             object_list=None, random_objects=True, start=[0,0], mode=0):
         np.random.seed(seed)
         
@@ -41,9 +41,12 @@ class Objectworld:
         self.goal = None
         self.set_goal(goal)
 
+        self.start_index = None
+        self.goal_index = None
+
         self.n_objects = n_objects
         self.objects = []
-        self.set_objects(n_objects_random=False)
+        self.set_objects()
         
 
         self.action_list = None
@@ -68,19 +71,26 @@ class Objectworld:
     def set_start(self, start):
         self.start = start
 
+    def set_start_random(self):
+        self.start_index = np.random.choice(xrange(self.n_state), 1, replace=False)
+        self.start = self.index2state(self.start_index)
+
     def set_goal(self, goal):
         self.goal = goal
         self.grid[tuple(self.goal)] = self.R_max
 
-    def set_objects(self, n_objects_random=True):
+    def set_goal_random(self):
+        while 1:
+            self.goal_index = np.random.choice(xrange(self.n_state), 1, replace=False)
+            if tuple(self.start_index) != tuple(self.goal_index):
+                break
+        self.goal = self.index2state(self.goal_index)
+
+    def set_objects(self):
         self.objects = []
         self.grid = np.zeros([self.rows, self.cols])
         self.set_goal(self.goal)
-        n_objects_ = None
-        if n_objects_random:
-            n_objects_ = np.random.randint(0, self.n_objects)
-        else:
-            n_objects_ = self.n_objects
+        n_objects_ = np.random.randint(0, self.n_objects)
         #  print "n_objects_ : ", n_objects_
         if self.random_objects:
             i = 0
