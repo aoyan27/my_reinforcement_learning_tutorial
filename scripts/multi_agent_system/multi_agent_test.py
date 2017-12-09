@@ -48,7 +48,7 @@ def get_my_agent_action(env, agent_id=0):
     #  print "a_agent.shortest_action_list[0] : "
     #  print a_agent.shortest_action_list[0]
     action = int(a_agent.shortest_action_list[0])
-    print "action : ", action
+    #  print "action : ", action
 
     return action
     
@@ -106,8 +106,8 @@ def main(rows, cols, noise, num_agent, seed):
 
 
 if __name__ == "__main__":
-    rows = 5
-    cols = 5
+    rows = 9
+    cols = 9
     noise = 0.0
     num_agent = 2
     seed = 2

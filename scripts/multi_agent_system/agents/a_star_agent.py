@@ -34,8 +34,8 @@ class AstarAgent:
         self.heuristic = np.zeros([self.env.rows, self.env.cols])
         #  print "self.heuristic : "
         #  print self.heuristic
-        print "self.env.goal[self.agent_id] : "
-        print self.agent_id
+        #  print "self.env.goal[self.agent_id] : "
+        #  print self.agent_id
         #  print self.env.goal[self.agent_id]
         self.heuristic[tuple(self.env.goal[self.agent_id])] = 0
         for i in xrange(self.env.n_state):
