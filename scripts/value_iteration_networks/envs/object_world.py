@@ -78,7 +78,10 @@ class Objectworld:
         self.set_goal(self.goal)
         n_objects_ = None
         if n_objects_random:
-            n_objects_ = np.random.randint(0, self.n_objects)
+            if n_objects_ > 0:
+                n_objects_ = np.random.randint(0, self.n_objects)
+            else:
+                n_objects_ = self.n_objects
         else:
             n_objects_ = self.n_objects
         #  print "n_objects_ : ", n_objects_
