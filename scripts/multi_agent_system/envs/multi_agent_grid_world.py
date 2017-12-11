@@ -18,6 +18,8 @@ class Gridworld:
 
         self.noise = noise
 
+        self.R_max = 1.0
+
         self.grid = np.zeros((self.rows, self.cols))
         self.agent_grid = {0: copy.deepcopy(self.grid), 1: copy.deepcopy(self.grid)}
         # +------------> x
