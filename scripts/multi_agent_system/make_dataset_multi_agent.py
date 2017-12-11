@@ -10,6 +10,7 @@ from progressbar import ProgressBar
 
 import copy
 import pickle
+import time
 
 from envs.multi_agent_grid_world import Gridworld
 from agents.dijkstra_agent import DijkstraAgent
@@ -35,10 +36,36 @@ def view_image(array, title):
     plt.title(title)
     plt.show()
 
-def get_reward_map(env):
-    reward_map = np.zeros([env.rows, env.cols])
-    reward_map[tuple(env.goal)] = env.R_max
+def get_reward_map(env, n_agents):
+    reward_map = np.zeros((n_agents, env.rows, env.cols))
+    for i in xrange(n_agents):
+        reward_map[i, env.goal[i][0], env.goal[i][1]] = env.R_max
+    #  print "reward_map : "
+    #  print reward_map
     return reward_map
+
+def get_trajs(env, n_agents, n_trajs):
+    domain_state_list = []
+    domain_action_list = []
+    
+    failed = False
+
+    j = 0
+    challenge_times = 0
+    while j < n_trajs:
+        #  print "challenge_times : ", challenge_times
+        challenge_times += 1
+        if challenge_times > 50:
+            failed = True
+            break
+
+
+    if failed:
+        del domain_state_list[:]
+        del domain_action_list[:]
+
+
+    return domain_state_list, domain_action_list
 
 
 def save_dataset(data, filename):
@@ -57,10 +84,46 @@ def main(rows, cols, n_agents, n_domains, n_trajs, seed, save_dirs):
     env = Gridworld(rows, cols, n_agents, noise, seed=seed, mode=mode)
     print env.grid
 
-    print "env.n_state : ", env.n_state
-    print "env.n_action : ", env.n_action
+    #  print "env.n_state : ", env.n_state
+    #  print "env.n_action : ", env.n_action
 
     print "env._state : ", env._state
+    print "env.goal : ", env.goal
+
+    max_samples = (rows + cols) * n_domains * n_trajs
+    print "max_samples : ", max_samples
+
+    image_data = np.zeros((max_samples, rows, cols))
+    reward_map_data = np.zeros((n_agents, max_samples, rows, cols))
+    state_list_data = np.zeros((n_agents, max_samples, 2))
+    action_list_data = np.zeros((n_agents, max_samples))
+    #  print "image_data : ", image_data.shape
+    #  print "reward_map_data : ", reward_map_data.shape
+    #  print "state_list_data : ", state_list_data.shape
+    #  print "action_list_data : ", action_list_data.shape
+
+    prog = ProgressBar(0, n_domains)
+
+    dom = 0
+
+    num_sample = 0
+    while dom < n_domains:
+        _ = env.reset(random=True)
+        print "env._state : ", env._state
+        print "env.goal : ", env.goal
+
+        image = grid2image(env.grid)
+        view_image(image, 'Gridworld')
+
+        reward_map = get_reward_map(env, n_agents)
+
+        state_list, action_list = get_trajs(env, n_agents, n_trajs)
+
+        if len(state_list) == 0:
+            continue
+
+        prog.update(dom)
+        dom += 1
 
 
 if __name__ == "__main__":
