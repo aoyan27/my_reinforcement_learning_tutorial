@@ -121,7 +121,7 @@ class AstarAgent:
     def get_shortest_path(self, start_position, grid):
         self.a_star(start_position, grid)
         stay_action = len(self.env.action_list) - 1
-        print "self.found : ", self.found
+        #  print "self.found : ", self.found
         
         if self.found:
             self.policy = np.empty([self.env.rows, self.env.cols])

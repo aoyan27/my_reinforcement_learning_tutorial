@@ -77,28 +77,46 @@ class Gridworld:
         self.set_agent_grid()
 
 
-    def set_start_random(self):
-        self.start_index = np.random.choice(xrange(self.n_state), self.num_agent, replace=False)
-        #  print "self.start_index : ", self.start_index
-        for i in xrange(self.num_agent):
-            self.start[i] = self.index2state(self.start_index[i])
-        self._state = self.start
-        #  print "self.start", self.start
-        self.set_agent_grid()
-        
+    def set_start_random(self, check_goal=False):
+        if not check_goal:
+            self.start_index = np.random.choice(xrange(self.n_state), self.num_agent, replace=False)
+            #  print "self.start_index : ", self.start_index
+            for i in xrange(self.num_agent):
+                self.start[i] = self.index2state(self.start_index[i])
+            self._state = self.start
+            #  print "self.start", self.start
+            self.set_agent_grid()
+        else:
+            while 1:
+                self.start_index = np.random.choice(xrange(self.n_state), self.num_agent, replace=False)
+                if tuple(self.start_index) != tuple(self.goal_index):
+                    break
+            for i in xrange(self.num_agent):
+                self.start[i] = self.index2state(self.start_index[i])
+            self._state = self.start
+            #  print "self.start", self.start
+            self.set_agent_grid()
 
     def set_goal(self, goal):
         self.goal = goal
 
-    def set_goal_random(self):
-        while 1:
+    def set_goal_random(self, check_start=True):
+        if check_start:
+            while 1:
+                self.goal_index = np.random.choice(xrange(self.n_state), self.num_agent, replace=False)
+                #  print "self.goal_index : ", self.goal_index
+                if tuple(self.start_index) != tuple(self.goal_index):
+                    break
+            for i in xrange(self.num_agent):
+                self.goal[i] = self.index2state(self.goal_index[i])
+            #  print "self.goal", self.goal
+        else:
             self.goal_index = np.random.choice(xrange(self.n_state), self.num_agent, replace=False)
             #  print "self.goal_index : ", self.goal_index
-            if tuple(self.start_index) != tuple(self.goal_index):
-                break
-        for i in xrange(self.num_agent):
-            self.goal[i] = self.index2state(self.goal_index[i])
-        #  print "self.goal", self.goal
+            for i in xrange(self.num_agent):
+                self.goal[i] = self.index2state(self.goal_index[i])
+            #  print "self.goal", self.goal
+
 
     def state2index(self, state):
         #  state[1] : x
