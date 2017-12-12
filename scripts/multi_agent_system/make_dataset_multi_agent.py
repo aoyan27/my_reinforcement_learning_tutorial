@@ -65,6 +65,8 @@ def get_agent_state_and_action(env, agent_id):
 
     return state_list, action_list, a_agent.found
 
+def map_all(es):
+    return all([e == es[0] for e in es[1:]]) if es else False
 
 def get_trajs(env, n_agents, n_trajs):
     state_list = []
@@ -78,6 +80,7 @@ def get_trajs(env, n_agents, n_trajs):
     found = [False for i in xrange(n_agents)]
     found_success = [True for i in xrange(n_agents)]
     while j < n_trajs:
+        #  print "-----------------------------------------------"
         #  print "j : ", j
         #  print "challenge_times : ", challenge_times
         challenge_times += 1
@@ -86,33 +89,50 @@ def get_trajs(env, n_agents, n_trajs):
             break
         
         env.set_start_random(check_goal=True)
+        #  print "env.start : ", env.start
 
+        step_count_list = []
         for i in xrange(n_agents):
             domain_state_list, domain_action_list, found[i] = get_agent_state_and_action(env, i)
             state_list.append(domain_state_list)
             action_list.append(domain_action_list)
-            #  print "domain_state_list : "
-            #  print domain_state_list
-            #  print "domain_action_list : "
-            #  print domain_action_list
+            #  print "state_list : "
+            #  print state_list
+            #  print "action_list : "
+            #  print action_list
 
-        #  print "state_list : "
+            step_count_list.append(len(state_list[n_agents*j+i]))
+        #  print "step_count_list : ", step_count_list
+        if not map_all(step_count_list):
+            max_index = np.argmax(np.asarray(step_count_list))
+            max_value = np.max(np.asarray(step_count_list))
+            #  print "max_value", max_value
+            clone_count_list = []
+            for i in xrange(n_agents):
+                if i != max_index:
+                    list_length = len(state_list[n_agents*j+i])
+                    #  print "list_length : ", list_length
+                    diff_length = max_value - len(state_list[n_agents*j+i])
+                    #  print "diff_length : ", diff_length
+                    for k in xrange(diff_length):
+                        state_list[n_agents*j+i].append(state_list[n_agents*j+i][list_length-1])
+                        action_list[n_agents*j+i].append(action_list[n_agents*j+i][list_length-1])
+            #  print "clone_count_list : ", clone_count_list
+
+        #  print "state_list_ : "
         #  print state_list
-        #  print "action_list : "
+        #  print "action_list_ : "
         #  print action_list
+
+
         if found == found_success:
             j += 1
             challenge_times = 0
 
-
     if failed:
         del state_list[:]
         del action_list[:]
-
-    #  print "state_list : "
-    #  print state_list
-    #  print "action_list : "
-    #  print action_list
+        return state_list, action_list
     
     agent_state_list = []
     agent_action_list = []
@@ -241,7 +261,7 @@ if __name__ == "__main__":
 
     parser.add_argument('-a', '--n_agents', default=2, type=int, help='number of agents')
     
-    parser.add_argument('-d', '--n_domains', default=10, type=int, help='number of domains')
+    parser.add_argument('-d', '--n_domains', default=5000, type=int, help='number of domains')
     parser.add_argument('-t', '--n_trajs', default=10, type=int, help='number of trajs')
     
 
