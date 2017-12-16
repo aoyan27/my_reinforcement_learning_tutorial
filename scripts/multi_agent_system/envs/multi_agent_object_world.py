@@ -103,7 +103,8 @@ class Objectworld:
                         np.random.choice(xrange(self.n_state), self.num_agent, replace=False)
                 for i in xrange(self.num_agent):
                     for j in xrange(self.num_agent):
-                        if self.start_index[i] == self.goal_index[j]:
+                        if self.start_index[i] == self.goal_index[j] \
+                                or self.grid[tuple(self.index2state(self.start_index[j]))] == -1:
                             continue
                 break
             for i in xrange(self.num_agent):
@@ -139,25 +140,35 @@ class Objectworld:
         self.grid = np.zeros([self.rows, self.cols])
         #  self.set_goal(self.goal)
         n_objects_ = np.random.randint(0, self.n_objects)
-        print "n_objects_ : ", n_objects_
+        #  print "n_objects_ : ", n_objects_
         if self.random_objects:
             i = 0
-            while i < n_objects_:
+            while i <= n_objects_:
                 #  print " i : ", i
                 y = np.random.randint(0, self.rows)
                 x = np.random.randint(0, self.cols)
                 #  print "self.start : ", self.start
                 #  print "self.goal : ", self.goal
-                for agent_id in xrange(self.num_agent):
-                    if (y, x) != tuple(self.start[agent_id]) \
-                            and (y, x) != tuple(self.goal[agent_id]) \
-                            and self.grid[y, x] != -1:
-                        self.objects.append((y, x))
-                        self.grid[y, x] = -1
-                        i += 1
-                        #  print "(y, x) : ", (y, x)
+                #  print "(y, x)_ : ", (y, x)
+                check_list = []
+                for j in xrange(self.num_agent):
+                    check_list.append(self.start[j])
+                    check_list.append(self.goal[j])
+                #  print "check_list : ", check_list
+                matched_list = []
+                for check in check_list:
+                    if (y, x) == tuple(check):
+                        matched_list.append((y, x))
+                
+                if len(matched_list) == 0:
+                    self.objects.append((y, x))
+                    self.grid[y, x] = -1
+                    #  print "(y, x) : ", (y, x)
+                    i += 1
         else:
             self.objects = self.object_list
+
+        self.set_agent_grid()
         #  print self.objects
 
 
