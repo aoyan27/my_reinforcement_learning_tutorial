@@ -16,7 +16,8 @@ from envs.multi_agent_grid_world import Gridworld
 from agents.a_star_agent import AstarAgent
 
 
-def grid2image(array):
+def grid2image(array, state_list, n_agents, n_trajs):
+    image_list = []
     image = copy.deepcopy(array)
 
     index = np.where(image == 1)
@@ -26,8 +27,23 @@ def grid2image(array):
     index = np.where(image == -1)
     for i in xrange(len(index[0])):
         image[index[0][i], index[1][i]] = 1
-    #  print image
-    return image
+
+    #  print "state_list : "
+    #  print state_list
+    for h in xrange(n_agents):
+        for i in xrange(n_agents):
+            if i != h:
+                for j in xrange(n_trajs):
+                    for k in xrange(len(state_list[i][j])):
+                        image_ = copy.deepcopy(image)
+                        image_[tuple(state_list[i][j][k])] = -1
+                        #  print "image_ : "
+                        #  print image_
+                        image_list.append(image_)
+
+
+    #  print len(image_list)
+    return image_list
 
 def view_image(array, title):
     image = cv.cvtColor(array.astype(np.uint8), cv.COLOR_GRAY2RGB)
@@ -49,15 +65,16 @@ def get_agent_state_and_action(env, agent_id):
     #  a_agent.get_shortest_path(env._state[agent_id], env.grid)
     a_agent.get_shortest_path(env._state[agent_id], env.agent_grid[agent_id])
     if a_agent.found:
-        pass
+        #  pass
         #  print "a_agent.state_list : "
         #  print a_agent.state_list
         #  print "a_agent.shrotest_action_list : "
         #  print a_agent.shortest_action_list
         #  env.show_policy(a_agent.policy.transpose().reshape(-1))
         path_data = a_agent.show_path()
-        #  print "view_path_my : "
-        #  a_agent.view_path(path_data['vis_path'])
+        print "agent_id : ", agent_id
+        print "view_path_my : "
+        a_agent.view_path(path_data['vis_path'])
     #  print "a_agent.shortest_action_list[0] : "
     #  print a_agent.shortest_action_list[0]
     state_list = a_agent.state_list
@@ -87,9 +104,11 @@ def get_trajs(env, n_agents, n_trajs):
         if challenge_times > 50:
             failed = True
             break
-        
+        """
         env.set_start_random(check_goal=True)
+        """
         #  print "env.start : ", env.start
+        #  print "env.goal : ", env.goal
 
         step_count_list = []
         for i in xrange(n_agents):
@@ -189,23 +208,27 @@ def main(rows, cols, n_agents, n_domains, n_trajs, seed, save_dirs):
     while dom < n_domains:
         #  print "===================================================="
         #  print "dom : ", dom
+        """
         env.set_goal_random(check_start=False)
+        """
         #  print "env._state : ", env._state
         #  print "env.goal : ", env.goal
 
-        image = grid2image(env.grid)
-        #  view_image(image, 'Gridworld')
 
-        reward_map = get_reward_map(env, n_agents)
-        #  print "reward_map : "
-        #  print reward_map
+        reward_map_list = get_reward_map(env, n_agents)
+        #  print "reward_map_list : "
+        #  print reward_map_list
 
         state_list, action_list = get_trajs(env, n_agents, n_trajs)
+
+        image_list = grid2image(env.grid, state_list, n_agents, n_trajs)
+        #  view_image(image, 'Gridworld')
 
         if len(state_list) == 0:
             continue
 
         ns = 0
+        count = 0
         for j in xrange(n_agents):
             #  print "num_sample[j] : ", num_sample[j]
             #  print "j : ", j
@@ -215,17 +238,23 @@ def main(rows, cols, n_agents, n_domains, n_trajs, seed, save_dirs):
                 #  print "i : ", i
                 ns = len(state_list[j][i])
                 #  print "ns : ", ns
-                image_data[j][num_sample[j]:num_sample[j]+ns] = image
-                reward_map_data[j][num_sample[j]:num_sample[j]+ns] = reward_map[j]
+                image_data[j][num_sample[j]:num_sample[j]+ns] = image_list[count:count+ns]
+                reward_map_data[j][num_sample[j]:num_sample[j]+ns] = reward_map_list[j]
                 #  print "state_list : "
                 #  print state_list[j][i][:]
                 state_list_data[j][num_sample[j]:num_sample[j]+ns] = state_list[j][i][:]
                 action_list_data[j][num_sample[j]:num_sample[j]+ns] = action_list[j][i][:]
 
                 num_sample[j] += ns
-
-        #  print image_data[0:num_sample[0]]
-        #  print reward_map_data[0:num_sample[0]]
+                count += ns
+        
+        #  print "env.goal : ", env.goal
+        #  print max_samples
+        #  print num_sample
+        #  print "image_data : "
+        #  print image_data[0][0:num_sample[0]]
+        #  print "reward_map_data : "
+        #  print reward_map_data[0][0:num_sample[0]]
         #  print state_list_data[0][0:num_sample[0]]
         #  print action_list_data[0]
         #  print max_samples
@@ -256,8 +285,8 @@ def main(rows, cols, n_agents, n_domains, n_trajs, seed, save_dirs):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='This script is make_dataset_multi_agent ...')
     
-    parser.add_argument('-r', '--rows', default=9, type=int, help='row of global gridworld')
-    parser.add_argument('-c', '--cols', default=9, type=int, help='column of global gridworld')
+    parser.add_argument('-r', '--rows', default=5, type=int, help='row of global gridworld')
+    parser.add_argument('-c', '--cols', default=5, type=int, help='column of global gridworld')
 
     parser.add_argument('-a', '--n_agents', default=2, type=int, help='number of agents')
     
