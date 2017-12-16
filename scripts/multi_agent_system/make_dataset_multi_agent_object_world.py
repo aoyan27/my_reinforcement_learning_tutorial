@@ -288,15 +288,15 @@ def main(rows, cols, n_objects, n_agents, n_domains, n_trajs, seed, save_dirs):
     #  print data['state']
     #  print data['action']
     
-    #  dataset_name ='multi_agent_map_dataset.pkl'
-    #  save_dataset(data, save_dirs+dataset_name)
+    dataset_name ='multi_agent_object_world_map_dataset.pkl'
+    save_dataset(data, save_dirs+dataset_name)
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='This script is make_dataset_multi_agent ...')
     
-    parser.add_argument('-r', '--rows', default=5, type=int, help='row of global gridworld')
-    parser.add_argument('-c', '--cols', default=5, type=int, help='column of global gridworld')
+    parser.add_argument('-r', '--rows', default=9, type=int, help='row of global gridworld')
+    parser.add_argument('-c', '--cols', default=9, type=int, help='column of global gridworld')
 
     parser.add_argument('-o', '--n_objects', default=10, type=int, help='number of objects')
     parser.add_argument('-a', '--n_agents', default=2, type=int, help='number of agents')
