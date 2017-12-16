@@ -104,9 +104,7 @@ def get_trajs(env, n_agents, n_trajs):
         if challenge_times > 50:
             failed = True
             break
-        """
         env.set_start_random(check_goal=True)
-        """
         #  print "env.start : ", env.start
         #  print "env.goal : ", env.goal
 
@@ -167,7 +165,8 @@ def get_trajs(env, n_agents, n_trajs):
 
 
 def save_dataset(data, filename):
-    print "Save %d-%d multi_agent_map_dataset.pkl!!!!!" % (len(data['image'][0]), len(data['image'][1]))
+    print "Save %d-%d multi_agent_map_dataset.pkl!!!!!" \
+			% (len(data['image'][0]), len(data['image'][1]))
     with open(filename, mode='wb') as f:
         pickle.dump(data, f)
 
@@ -208,9 +207,7 @@ def main(rows, cols, n_agents, n_domains, n_trajs, seed, save_dirs):
     while dom < n_domains:
         #  print "===================================================="
         #  print "dom : ", dom
-        """
         env.set_goal_random(check_start=False)
-        """
         #  print "env._state : ", env._state
         #  print "env.goal : ", env.goal
 
@@ -302,6 +299,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
     print args
 
-    main(args.rows, args.cols, args.n_agents, args.n_domains, args.n_trajs, args.seed, args.dataset_dirs)
+    main(args.rows, args.cols, args.n_agents, args.n_domains,\
+			args.n_trajs, args.seed, args.dataset_dirs)
 
 
