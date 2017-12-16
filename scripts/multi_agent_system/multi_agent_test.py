@@ -64,8 +64,8 @@ def main(rows, cols, noise, num_agent, seed):
 
     print "env._state : ", env._state
     
-    env.set_start_random()
-    env.set_goal_random()
+    #  env.set_start_random()
+    #  env.set_goal_random()
     
     actions = {0: 0, 1: 0}
 
@@ -74,6 +74,7 @@ def main(rows, cols, noise, num_agent, seed):
         print "episode : ", i
 
         observation = env.reset(random=True)
+        #  observation = env.reset(random=False)
         for j in xrange(10):
             print "-----------------------------"
             print "step : ", j
@@ -106,8 +107,8 @@ def main(rows, cols, noise, num_agent, seed):
 
 
 if __name__ == "__main__":
-    rows = 9
-    cols = 9
+    rows = 5
+    cols = 5
     noise = 0.0
     num_agent = 2
     seed = 2
