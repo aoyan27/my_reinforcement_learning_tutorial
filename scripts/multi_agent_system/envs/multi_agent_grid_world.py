@@ -6,7 +6,8 @@ import sys
 import copy
 
 class Gridworld:
-    def __init__(self, rows, cols, num_agent, noise, start={0: [0, 0], 1: [4, 4]}, goal={0: [4, 4], 1: [0, 0]}, seed=0, mode=0):
+    def __init__(self, rows, cols, num_agent, noise, \
+			start={0: [0, 0], 1: [4, 4]}, goal={0: [4, 4], 1: [0, 0]}, seed=0, mode=0):
         np.random.seed(seed)
 
         self.mode = mode # mode=0 : 行動４パターン, mode=1 : 行動８パターン
@@ -62,7 +63,8 @@ class Gridworld:
         elif self.mode == 1:    # mode=1 : 行動8パターン
             self.action_list = [0, 1, 2, 3, 4, 5, 6, 7, 8]
             self.n_action = len(self.action_list)
-            self.dirs = {0: '>', 1: '<', 2: 'v', 3: '^', 4: 'ur', 5: 'ul', 6: 'dr', 7: 'dl', 8: '-'}
+            self.dirs = \
+					{0: '>', 1: '<', 2: 'v', 3: '^', 4: 'ur', 5: 'ul', 6: 'dr', 7: 'dl', 8: '-'}
     
     def set_agent_grid(self):
         self.agent_grid = {0: copy.deepcopy(self.grid), 1: copy.deepcopy(self.grid)}
@@ -95,7 +97,8 @@ class Gridworld:
             self.set_agent_grid()
         else:
             while 1:
-                self.start_index = np.random.choice(xrange(self.n_state), self.num_agent, replace=False)
+                self.start_index = \
+						np.random.choice(xrange(self.n_state), self.num_agent, replace=False)
                 for i in xrange(self.num_agent):
                     for j in xrange(self.num_agent):
                         if self.start_index[i] == self.goal_index[j]:
@@ -113,7 +116,8 @@ class Gridworld:
     def set_goal_random(self, check_start=True):
         if check_start:
             while 1:
-                self.goal_index = np.random.choice(xrange(self.n_state), self.num_agent, replace=False)
+                self.goal_index = \
+						np.random.choice(xrange(self.n_state), self.num_agent, replace=False)
                 #  print "self.goal_index : ", self.goal_index
                 if tuple(self.start_index) != tuple(self.goal_index):
                     break
@@ -151,7 +155,6 @@ class Gridworld:
 
         return action
 
-
     def get_sample_action(self):
         action = {}
         if self.mode == 0:
@@ -163,7 +166,6 @@ class Gridworld:
         else:
             sys.stderr.write('Error occurred! Please set mode 0 or 1 !!')
             sys.exit()
-
 
         return action
 
@@ -303,7 +305,8 @@ class Gridworld:
         return P
 
 
-    def reset(self, start_position={0: [0, 0], 1: [4, 4]}, goal_position={0: [4, 4], 1: [0, 0]}, random=False):
+    def reset(self, start_position={0: [0, 0], 1: [4, 4]}, goal_position={0: [4, 4], 1: [0, 0]}, \
+			random=False):
         #  self.set_start_and_goal_cross_scenario()
         if not random:
             self.set_start(start_position)

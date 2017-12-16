@@ -98,7 +98,8 @@ class Objectworld:
                 #  print " i : ", i
                 y = np.random.randint(0, self.rows)
                 x = np.random.randint(0, self.cols)
-                if (y, x) != tuple(self.start) and (y, x) != tuple(self.goal) and self.grid[y, x] != -1:
+                if (y, x) != tuple(self.start) \
+						and (y, x) != tuple(self.goal) and self.grid[y, x] != -1:
                     self.objects.append((y, x))
                     self.grid[y, x] = -1
                     i += 1
