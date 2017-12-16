@@ -70,6 +70,13 @@ class Gridworld:
             for j in xrange(self.num_agent):
                 if i != j:
                     self.agent_grid[i][tuple(self._state[j])] = -1
+    
+    #  def set_start_and_goal_cross_scenario(self):
+        #  center = int(self.rows / 2.0)
+        #  print "center : ", center
+        #  quadrant
+
+
 
     def set_start(self, start):
         self.start = start
@@ -89,8 +96,11 @@ class Gridworld:
         else:
             while 1:
                 self.start_index = np.random.choice(xrange(self.n_state), self.num_agent, replace=False)
-                if tuple(self.start_index) != tuple(self.goal_index):
-                    break
+                for i in xrange(self.num_agent):
+                    for j in xrange(self.num_agent):
+                        if self.start_index[i] == self.goal_index[j]:
+                            continue
+                break
             for i in xrange(self.num_agent):
                 self.start[i] = self.index2state(self.start_index[i])
             self._state = self.start
@@ -294,6 +304,7 @@ class Gridworld:
 
 
     def reset(self, start_position={0: [0, 0], 1: [4, 4]}, goal_position={0: [4, 4], 1: [0, 0]}, random=False):
+        #  self.set_start_and_goal_cross_scenario()
         if not random:
             self.set_start(start_position)
             self.set_goal(goal_position)
@@ -377,6 +388,7 @@ class Gridworld:
     def show_objectworld_with_state(self):
         grid = copy.deepcopy(self.grid)
         for i in xrange(self.num_agent):
+            grid[tuple(self.goal[i])] = i+7
             if self._state[i] != None:
                 grid[tuple(self._state[i])] = i+2
         for row in grid:
