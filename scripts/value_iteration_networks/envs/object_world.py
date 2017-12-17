@@ -34,11 +34,15 @@ class Objectworld:
         # |
         # V
         # y
+
+        self.state_ = None
         
         self.start = None
+        self.start_index = None
         self.set_start(start)
 
         self.goal = None
+        self.goal_index = None
         self.set_goal(goal)
 
         self.n_objects = n_objects
@@ -51,7 +55,6 @@ class Objectworld:
         self.dirs = {}
         self.set_action()
 
-        self.state_ = None
 
         self.collisions_ = []
     
@@ -67,10 +70,49 @@ class Objectworld:
     
     def set_start(self, start):
         self.start = start
+        self.state_ = start
+
+    def set_start_random(self, check_goal=False):
+        start = None
+        if not check_goal:
+            self.start_index = \
+                    np.random.choice(xrange(self.n_state), 1, replace=False)
+            #  print "self.start_index : ", self.start_index
+        else:
+            while 1:
+                self.start_index = \
+                        np.random.choice(xrange(self.n_state), 1, replace=False)
+                if tuple(self.start_index) != tuple(self.goal_index) \
+                        and self.grid[tuple(self.index2state(self.start_index))] != -1:
+                    break
+
+        start = self.index2state(self.start_index)
+        self.set_start(start)
+        #  print "self.start", self.start
 
     def set_goal(self, goal):
         self.goal = goal
         self.grid[tuple(self.goal)] = self.R_max
+
+    def set_goal_random(self, check_start=True):
+        goal = None
+        if check_start:
+            while 1:
+                self.goal_index = \
+                        np.random.choice(xrange(self.n_state), 1, replace=False)
+                #  print "self.goal_index : ", self.goal_index
+                if tuple(self.start_index) != tuple(self.goal_index) \
+                        and self.grid[tuple(self.index2state(self.goal_index))] != -1:
+                    break
+        else:
+            self.goal_index = \
+                    np.random.choice(xrange(self.n_state), 1, replace=False)
+            #  print "self.goal_index : ", self.goal_index
+
+        goal = self.index2state(self.goal_index)
+        self.set_goal(goal)
+        #  print "self.goal", self.goal
+
 
     def set_objects(self, n_objects_random=True):
         self.objects = []
@@ -78,10 +120,7 @@ class Objectworld:
         self.set_goal(self.goal)
         n_objects_ = None
         if n_objects_random:
-            if n_objects_ > 0:
-                n_objects_ = np.random.randint(0, self.n_objects)
-            else:
-                n_objects_ = self.n_objects
+            n_objects_ = np.random.randint(0, self.n_objects)
         else:
             n_objects_ = self.n_objects
         #  print "n_objects_ : ", n_objects_
@@ -91,7 +130,9 @@ class Objectworld:
                 #  print " i : ", i
                 y = np.random.randint(0, self.rows)
                 x = np.random.randint(0, self.cols)
-                if (y, x) != tuple(self.start) and (y, x) != tuple(self.goal) and self.grid[y, x] != -1:
+                if (y, x) != tuple(self.start) \
+                        and (y, x) != tuple(self.goal)\
+                        and self.grid[y, x] != -1:
                     self.objects.append((y, x))
                     self.grid[y, x] = -1
                     i += 1
@@ -108,6 +149,16 @@ class Objectworld:
                 print "%2d" % i,
             print "|"
 
+    def show_objectworld_with_state(self):
+        grid = copy.deepcopy(self.grid)
+        grid[tuple(self.goal)] = 9
+        if self.state_ != None:
+            grid[tuple(self.state_)] = 1
+        for row in grid:
+            print "|",
+            for i in row:
+                print "%2d" % i,
+            print "|"
 
     def state2index(self, state):
         return state[0] + self.cols*state[1]
@@ -291,16 +342,6 @@ class Objectworld:
                     print vis_policy[y, x],
             print "|"
 
-    def show_objectworld_with_state(self):
-        grid = copy.deepcopy(self.grid)
-        if self.state_ != None:
-            grid[tuple(self.state_)] = 2
-        for row in grid:
-            print "|",
-            for i in row:
-                print "%2d" % i,
-            print "|"
-
     def terminal(self, state, index):
         episode_end = False
         if state == self.goal or self.collisions_[index]:
@@ -359,14 +400,20 @@ if __name__ == "__main__":
     seed = 1
     
     env = Objectworld(rows, cols, goal, R_max, noise, n_objects, seed, mode=1)
-
+    
+    print "env.state_ : ", env.state_
+    print "env.start : ", env.start
+    print "env.goal : ", env.goal
     print "env.grid : "
-    env.show_objectworld()
+    env.show_objectworld_with_state()
     
     for i in xrange(10):
+        env.set_start_random()
+        env.set_goal_random()
         env.set_objects()
         print "env.grid : "
-        env.show_objectworld()
+        #  env.show_objectworld()
+        env.show_objectworld_with_state()
 
     #  print "env.n_state : ", env.n_state
     #  print "env.n_action : ", env.n_action
