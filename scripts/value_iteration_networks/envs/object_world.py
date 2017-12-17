@@ -11,7 +11,8 @@ class Objectworld:
             object_list=None, random_objects=True, start=[0,0], mode=0):
         np.random.seed(seed)
         
-        self.mode = mode # mode=0 : 行動４パターン, mode=1 : 行動８パターン
+        self.mode = mode 
+        # mode=0 : 行動４パターン, mode=1 : 行動８パターン, mode=2 : 行動７パターン(左右ダメ)
 
         self.rows = rows
         self.cols = cols
@@ -67,6 +68,10 @@ class Objectworld:
             self.action_list = [0, 1, 2, 3, 4, 5, 6, 7, 8]
             self.n_action = len(self.action_list)
             self.dirs = {0: '>', 1: '<', 2: 'v', 3: '^', 4: 'ur', 5: 'ul', 6: 'dr', 7: 'dl', 8: '-'}
+        elif self.mode == 2:    # mode=2 : 行動7パター(左右ダメ)
+            self.action_list = [0, 1, 2, 3, 4, 5, 6]
+            self.n_action = len(self.action_list)
+            self.dirs = {0: 'v', 1: '^', 2: 'ur', 3: 'ul', 4: 'dr', 5: 'dl', 6: '-'}
     
     def set_start(self, start):
         self.start = start
@@ -221,6 +226,33 @@ class Objectworld:
                 next_x = x + reflect*1
                 next_y = y + reflect*1
             elif action == 7:
+                # down left
+                next_x = x - reflect*1
+                next_y = y + reflect*1
+            else:
+                #  stay
+                next_x = x
+                next_y = y
+        elif self.mode == 2:
+            if action == 0:
+                #  down
+                next_y = y + reflect*1
+            elif action == 1:
+                #  up
+                next_y = y - reflect*1
+            elif action == 2:
+                # upper right
+                next_x = x + reflect*1
+                next_y = y - reflect*1
+            elif action == 3:
+                # upper left
+                next_x = x - reflect*1
+                next_y = y - reflect*1
+            elif action == 4:
+                # down right
+                next_x = x + reflect*1
+                next_y = y + reflect*1
+            elif action == 5:
                 # down left
                 next_x = x - reflect*1
                 next_y = y + reflect*1
