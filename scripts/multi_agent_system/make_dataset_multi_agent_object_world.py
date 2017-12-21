@@ -232,11 +232,12 @@ def main(rows, cols, n_objects, n_agents, n_domains, n_trajs, seed, save_dirs):
 
         state_list, action_list = get_trajs(env, n_agents, n_trajs)
 
+        if len(state_list) == 0:
+            continue
+
         image_list = grid2image(env.grid, state_list, n_agents, n_trajs)
         #  view_image(image, 'Gridworld')
 
-        if len(state_list) == 0:
-            continue
 
         ns = 0
         count = 0

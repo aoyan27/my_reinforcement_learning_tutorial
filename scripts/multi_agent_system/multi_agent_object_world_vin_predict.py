@@ -91,13 +91,17 @@ def get_my_agent_action(env, model, grid_map, reward_map, state, goal, gpu, agen
         state_data = cuda.to_gpu(state_data)
     state_list, action_list, resign = \
             get_path(env, model, input_data, state_data, grid_map, goal)
-    print "state_list : ", state_list
-    print "resign : ", resign
+    #  print "state_list : ", state_list
+    #  print "resign : ", resign
     path_data = show_path(env, state_list, action_list, grid_map, goal)
     view_path(path_data['vis_path'])
-
-    action = action_list[0]
-    print "action : ", action
+    
+    if len(action_list) == 0:
+        action = len(env.action_list) - 1
+    else:
+        #  print "action_list : ", action_list
+        action = action_list[0]
+    #  print "action : ", action
     return action
 
 def get_path(env, model, input_data, state_data, grid, goal):

@@ -199,14 +199,14 @@ def main(rows, cols, n_agents, seed, gpu, model_path):
     """
     cross scenario
     """
-    start = {0: [0, 0], 1: [8, 0]}
-    goal = {0: [8, 8], 1:[0, 8]}
+    #  start = {0: [0, 0], 1: [8, 0]}
+    #  goal = {0: [8, 8], 1:[0, 8]}
 
     """
     passing scenario
     """
-    #  start = {0: [0, 0], 1: [8, 8]}
-    #  goal = {0: [8, 8], 1:[0, 0]}
+    start = {0: [0, 0], 1: [8, 8]}
+    goal = {0: [8, 8], 1:[0, 0]}
     
     """
     overtaking scenario
