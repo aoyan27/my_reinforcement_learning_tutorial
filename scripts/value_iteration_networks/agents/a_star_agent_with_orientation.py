@@ -24,6 +24,8 @@ class AstarAgent:
         self.action_list.fill(-1)
         self.policy = None
         self.state_list = []
+        self.orientation_candidate = {}
+        self.orientation_list = []
         self.shortest_action_list = []
 
         self.found = False
@@ -78,6 +80,9 @@ class AstarAgent:
 
         state = None
         next_state = None
+        
+        self.orientation_candidate[self.env.state2index(start_position)] = start_orientation
+
         while not found and not resign:
             #  print "========================================="
             if len(self.open_list) == 0:
@@ -113,7 +118,7 @@ class AstarAgent:
                 for a in self.env.get_action_list_by_my_orientation(orientation):
                     #  print "-----------------------------------------------------"
                     next_state, out_of_range, collision = self.env.move(state, a)
-                    next_orientation = self.env.get_next_orientation(state, a)
+                    next_orientation = self.env.get_next_orientation(state, orientation, a)
                     #  print "next_state : ", next_state
                     #  print "out_of_range : ", out_of_range
                     #  print "collision : ", collision
@@ -134,6 +139,10 @@ class AstarAgent:
                             # (self.closed_listでその状態に訪問したかをカウントされているため、
                             # その状態への２回目の訪問はないから)
                             self.action_list[tuple(next_state)] = a 
+                            self.orientation_candidate[self.env.state2index(next_state)] \
+                                    = next_orientation
+
+        #  print "self.orientation_candidate : ", self.orientation_candidate
 
     def get_shortest_path(self, start_position, start_orientation=0.0):
         self.a_star(start_position, start_orientation=start_orientation)
@@ -144,6 +153,7 @@ class AstarAgent:
             self.policy.fill(stay_action)
             state = self.env.goal
             self.state_list.append(state)
+            self.orientation_list.append(self.orientation_candidate[self.env.state2index(state)])
             self.shortest_action_list.append(self.policy[tuple(state)])
             
             while state != start_position:
@@ -152,9 +162,12 @@ class AstarAgent:
                 #  print "before_state : ", before_state
                 self.policy[tuple(before_state)] = self.action_list[tuple(state)]
                 self.state_list.append(before_state)
+                self.orientation_list.append(\
+                        self.orientation_candidate[self.env.state2index(before_state)])
                 self.shortest_action_list.append(self.policy[tuple(before_state)])
                 state = before_state
             self.state_list.reverse()
+            self.orientation_list.reverse()
             self.shortest_action_list.reverse()
 
 
@@ -195,13 +208,13 @@ if __name__ == "__main__":
     sys.path.append('../')
     #  from envs.object_world import Objectworld
     from envs.object_world_with_orientation import Objectworld
-    rows = cols = 50
+    rows = cols = 5
     goal = [rows-1, cols-1]
 
     R_max = 1.0
     noise = 0.0
-    n_objects = 500
-    seed = 1
+    n_objects = 5
+    seed = 0
     
     object_list = [
                 (0, 1), (1, 1), (2, 1), (3, 1)
@@ -228,7 +241,8 @@ if __name__ == "__main__":
         print "env.grid : "
         env.show_objectworld_with_state()
         print "env.state_ : ", env.state_
-        print "env.orientation : ", math.degrees(env.orientation_)
+        print "env.orientation : ", env.orientation_
+        print "env.orientation(deg) : ", math.degrees(env.orientation_)
         print "env.goal : ", env.goal
 
         print "=================================================="
@@ -245,10 +259,12 @@ if __name__ == "__main__":
         #  print a_agent.action_list
         
         if a_agent.found:
-            #  print "a_agent.state_list : "
-            #  print a_agent.state_list
-            #  print "a_agent.shrotest_action_list : "
-            #  print a_agent.shortest_action_list
+            print "a_agent.state_list : "
+            print a_agent.state_list
+            print "a_agent.orientation_list : "
+            print a_agent.orientation_list
+            print "a_agent.shrotest_action_list : "
+            print a_agent.shortest_action_list
             #  env.show_policy(a_agent.policy.transpose().reshape(-1))
             path_data = a_agent.show_path()
             print "view_path : "

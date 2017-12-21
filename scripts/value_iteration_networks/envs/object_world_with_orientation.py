@@ -58,7 +58,8 @@ class Objectworld:
         self.n_action = 0
         self.dirs = {}
         self.set_action()
-
+        
+        self.orientation_res = None
         if self.mode == 0:
             self.orientation_res = 2.0*math.pi / 4.0
         elif self.mode == 1:
@@ -126,7 +127,7 @@ class Objectworld:
         self.orientation_ = orientation
 
     def set_orientation_random(self):
-        self.orientation_ = np.random.rand() * 2.0*math.pi
+        self.orientation_ = np.random.rand() * 2.0*math.pi - math.pi
         #  print "self.orientation_ : ", self.orientation_
     
     def set_start(self, start):
@@ -316,18 +317,18 @@ class Objectworld:
 
         return [next_y, next_x], out_of_range, collision
     
-    def get_next_orientation(self, state, action):
+    def get_next_orientation(self, state, orientation, action):
         if state != self.goal:
             next_state, out_of_range, collision = self.move(state, action)
             if not out_of_range or not collision:
                 diff_y = next_state[0] - state[0]
                 diff_x = next_state[1] - state[1]
-                self.orientation_ = math.atan2(diff_y, diff_x)
-                #  print "self.orientation_ : ", math.degrees(self.orientation_)
-                #  if self.orientation_ < 0.0:
-                    #  self.orientation_ = 2.0*math.pi + self.orientation_
-                #  print "self.orientation_ : ", math.degrees(self.orientation_)
-        return self.orientation_
+                orientation = math.atan2(diff_y, diff_x)
+                #  print "orientation : ", math.degrees(orientation)
+                #  if orientation < 0.0:
+                    #  orientation = 2.0*math.pi + orientation
+                #  print "orientation : ", math.degrees(orientation)
+        return orientation
 
 
     def get_next_state_and_probs(self, state, action):
@@ -457,6 +458,8 @@ class Objectworld:
 
         self.state_ = next_state_list[index]
         #  print "self.satte_ : ", self.state_
+        self.orientation_ = self.get_next_orientation(self.state_, self.orientation_, index)
+        print "self.orientation_ : ", self.orientation_
 
         reward = None
         if reward_map is None:
@@ -531,8 +534,6 @@ if __name__ == "__main__":
             env.show_objectworld_with_state()
             action = env.get_action_sample()
             print "action : ", action, env.dirs[action]
-            orientation = env.get_next_orientation(observation, action)
-            print "env.orientation : ", env.orientation_
 
             observation, reward, done, info = env.step(action, reward_map)
             next_state = observation
