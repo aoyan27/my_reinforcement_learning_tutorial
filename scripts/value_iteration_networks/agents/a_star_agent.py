@@ -84,7 +84,7 @@ class AstarAgent:
                     found = True
                     self.found = found
 
-                for a in xrange(len(self.env.action_list)):
+                for a in self.env.action_list:
                     next_state, out_of_range, collision = self.env.move(state, a)
                     #  print "next_state : ", next_state
                     #  print "out_of_range : ", out_of_range
