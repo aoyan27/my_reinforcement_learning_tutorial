@@ -21,9 +21,9 @@ class ValueIterationNetwork(Chain):
             conv3b = L.Convolution2D(1, l_q, 3, stride=1, pad=1, nobias=True),
 
             #  l4 = L.Linear(None, n_out, nobias=True),
-             l4 = L.Linear(None, 512, nobias=True),
-             l5 = L.Linear(512, 128, nobias=True),
-             l6 = L.Linear(128, n_out, nobias=True),
+             l4 = L.Linear(None, 1024, nobias=True),
+             l5 = L.Linear(1024, 258, nobias=True),
+             l6 = L.Linear(258, n_out, nobias=True),
         )
 
         self.k = k
@@ -34,6 +34,7 @@ class ValueIterationNetwork(Chain):
         #  print q.data[0]
         w = np.zeros(q.shape)
         extract_size = [1, 1]
+        #  extract_size = [3, 3]
         attention_grid = \
             np.empty((q.shape[0], q.shape[1], extract_size[0], extract_size[1]))
         attention_grid.fill(1.0)
