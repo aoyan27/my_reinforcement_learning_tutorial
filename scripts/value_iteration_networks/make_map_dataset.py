@@ -12,7 +12,8 @@ import copy
 import pickle
 
 from envs.object_world import Objectworld
-from agents.dijkstra_agent import DijkstraAgent
+#  from agents.dijkstra_agent import DijkstraAgent
+from agents.a_star_agent import AstarAgent
 
 def grid2image(array):
     image = copy.deepcopy(array)
@@ -62,7 +63,9 @@ def get_trajs(env, n_trajs):
                 break
         #  print "start_position : ", start_position
 
-        agent = DijkstraAgent(env)
+        #  agent = DijkstraAgent(env)
+        #  agent.get_shortest_path(start_position)
+        agent = AstarAgent(env)
         agent.get_shortest_path(start_position)
         
         if agent.found:
@@ -71,6 +74,9 @@ def get_trajs(env, n_trajs):
             #  env.show_policy(agent.policy.transpose().reshape(-1))
             j += 1
             challenge_times = 0
+            path_data = agent.show_path()
+            #  print "view_path_my : "
+            #  agent.view_path(path_data['vis_path'])
 
             domain_state_list.append(agent.state_list)
             domain_action_list.append(agent.shortest_action_list)
@@ -100,7 +106,8 @@ def main(rows, cols, n_objects, n_domains, n_trajs, seed, save_dirs):
     noise = 0.0
 
     #  env = Objectworld(rows, cols, goal, R_max, noise, n_objects, seed, mode=0)
-    env = Objectworld(rows, cols, goal, R_max, noise, n_objects, seed, mode=1)
+    #  env = Objectworld(rows, cols, goal, R_max, noise, n_objects, seed, mode=1)
+    env = Objectworld(rows, cols, goal, R_max, noise, n_objects, seed, mode=2)
     
     max_samples = (rows + cols) * n_domains * n_trajs
     print "max_samples : ", max_samples

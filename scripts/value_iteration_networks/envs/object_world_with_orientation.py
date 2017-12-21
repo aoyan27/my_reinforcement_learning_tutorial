@@ -4,11 +4,12 @@
 import numpy as np
 
 import copy
+import math
 
 class Objectworld:
 
     def __init__(self, rows, cols, goal, R_max, noise, n_objects, seed=None, \
-            object_list=None, random_objects=True, start=[0,0], mode=0):
+            object_list=None, random_objects=True, start=[0,0], orientation=0.0, mode=0):
         np.random.seed(seed)
         
         self.mode = mode 
@@ -37,6 +38,8 @@ class Objectworld:
         # y
 
         self.state_ = None
+        self.orientation_ = None
+        self.set_orientation(orientation)
         
         self.start = None
         self.start_index = None
@@ -56,6 +59,10 @@ class Objectworld:
         self.dirs = {}
         self.set_action()
 
+        if self.mode == 0:
+            self.orientation_res = 2.0*math.pi / 4.0
+        elif self.mode == 1:
+            self.orientation_res = 2.0*math.pi / 8.0
 
         self.collisions_ = []
     
@@ -63,15 +70,64 @@ class Objectworld:
         if self.mode == 0:    # mode=0 : 行動4パターン
             self.action_list = [0, 1, 2, 3, 4]
             self.n_action = len(self.action_list)
-            self.dirs = {0: '>', 1: '<', 2: 'v', 3: '^', 4: '-'}
+            self.dirs = {0: '>', 1: 'v', 2: '<', 3: '^', 4: '-'}
         elif self.mode == 1:    # mode=1 : 行動8パターン
             self.action_list = [0, 1, 2, 3, 4, 5, 6, 7, 8]
             self.n_action = len(self.action_list)
-            self.dirs = {0: '>', 1: '<', 2: 'v', 3: '^', 4: 'ur', 5: 'ul', 6: 'dr', 7: 'dl', 8: '-'}
-        elif self.mode == 2:    # mode=2 : 行動7パター(左右ダメ)
-            self.action_list = [0, 1, 2, 3, 4, 5, 6]
-            self.n_action = len(self.action_list)
-            self.dirs = {0: 'v', 1: '^', 2: 'ur', 3: 'ul', 4: 'dr', 5: 'dl', 6: '-'}
+            self.dirs = \
+                    {0: '>', 1: 'dr', 2: 'v', 3: 'dl', 4: '<', 5: 'ul', 6: '^', 7: 'ur', 8: '-'}
+
+    def get_action_list_by_direction(self, state):
+        #  print "state : ", state
+        #  print "self.goal : ", self.goal
+        relative_orientation = math.atan2(self.goal[0]-state[0], self.goal[1]-state[1])
+        #  print "relative_orientation : ", math.degrees(relative_orientation)
+        if relative_orientation < 0.0:
+            relative_orientation = 2.0*math.pi + relative_orientation
+        #  print "relative_orientation : ", math.degrees(relative_orientation)
+        dir_index = (relative_orientation+0.5*self.orientation_res)/self.orientation_res
+        #  print "dir_index : ", dir_index
+        #  print "len(self.action_list) : ", len(self.action_list)-1
+        action_list_ = range(len(self.action_list)-1)
+        #  print "action_list_ : ", action_list_
+        if dir_index >= len(action_list_):
+            dir_index = 0
+        dir_index = int(dir_index)
+        #  print "dir_index : ", dir_index
+
+        action_list_by_direction = \
+                [action_list_[0] if dir_index+i>=len(action_list_) \
+                else action_list_[dir_index+i] for i in xrange(-1, 2)]
+        #  print action_list_by_direction
+        return action_list_by_direction
+
+    def get_action_list_by_my_orientation(self, orientation):
+        #  print "self.goal : ", self.goal
+        #  print "orientation : ", math.degrees(orientation)
+        if orientation < 0.0:
+            orientation = 2.0*math.pi + orientation
+        dir_index = (orientation+0.5*self.orientation_res)/self.orientation_res
+        #  print "dir_index : ", dir_index
+        #  print "len(self.action_list) : ", len(self.action_list)-1
+        action_list_ = range(len(self.action_list)-1)
+        #  print "action_list_ : ", action_list_
+        if dir_index >= len(action_list_):
+            dir_index = 0
+        dir_index = int(dir_index)
+        #  print "dir_index : ", dir_index
+
+        action_list_by_my_orientation = \
+                [action_list_[0] if dir_index+i>=len(action_list_) \
+                else action_list_[dir_index+i] for i in xrange(-1, 2)]
+        #  print action_list_by_my_orientation
+        return action_list_by_my_orientation
+
+    def set_orientation(self, orientation):
+        self.orientation_ = orientation
+
+    def set_orientation_random(self):
+        self.orientation_ = np.random.rand() * 2.0*math.pi
+        #  print "self.orientation_ : ", self.orientation_
     
     def set_start(self, start):
         self.start = start
@@ -91,7 +147,7 @@ class Objectworld:
                         and self.grid[tuple(self.index2state(self.start_index))] != -1:
                     break
 
-        start = self.index2state(self.start_index)
+        start = self.index2state(self.start_index[0])
         self.set_start(start)
         #  print "self.start", self.start
 
@@ -114,7 +170,7 @@ class Objectworld:
                     np.random.choice(xrange(self.n_state), 1, replace=False)
             #  print "self.goal_index : ", self.goal_index
 
-        goal = self.index2state(self.goal_index)
+        goal = self.index2state(self.goal_index[0])
         self.set_goal(goal)
         #  print "self.goal", self.goal
 
@@ -191,11 +247,11 @@ class Objectworld:
                 #  right
                 next_x = x + reflect*1
             elif action == 1:
-                #  left
-                next_x = x - reflect*1
-            elif action == 2:
                 #  down
                 next_y = y + reflect*1
+            elif action == 2:
+                #  left
+                next_x = x - reflect*1
             elif action == 3:
                 #  up
                 next_y = y - reflect*1
@@ -208,57 +264,30 @@ class Objectworld:
                 #  right
                 next_x = x + reflect*1
             elif action == 1:
-                #  left
-                next_x = x - reflect*1
+                # down right
+                next_x = x + reflect*1
+                next_y = y + reflect*1
             elif action == 2:
                 #  down
                 next_y = y + reflect*1
             elif action == 3:
-                #  up
-                next_y = y - reflect*1
+                # down left
+                next_x = x - reflect*1
+                next_y = y + reflect*1
             elif action == 4:
-                # upper right
-                next_x = x + reflect*1
-                next_y = y - reflect*1
+                #  left
+                next_x = x - reflect*1
             elif action == 5:
                 # upper left
                 next_x = x - reflect*1
                 next_y = y - reflect*1
             elif action == 6:
-                # down right
-                next_x = x + reflect*1
-                next_y = y + reflect*1
-            elif action == 7:
-                # down left
-                next_x = x - reflect*1
-                next_y = y + reflect*1
-            else:
-                #  stay
-                next_x = x
-                next_y = y
-        elif self.mode == 2:
-            if action == 0:
-                #  down
-                next_y = y + reflect*1
-            elif action == 1:
                 #  up
                 next_y = y - reflect*1
-            elif action == 2:
+            elif action == 7:
                 # upper right
                 next_x = x + reflect*1
                 next_y = y - reflect*1
-            elif action == 3:
-                # upper left
-                next_x = x - reflect*1
-                next_y = y - reflect*1
-            elif action == 4:
-                # down right
-                next_x = x + reflect*1
-                next_y = y + reflect*1
-            elif action == 5:
-                # down left
-                next_x = x - reflect*1
-                next_y = y + reflect*1
             else:
                 #  stay
                 next_x = x
@@ -286,6 +315,20 @@ class Objectworld:
                 #  next_y = y
 
         return [next_y, next_x], out_of_range, collision
+    
+    def get_next_orientation(self, state, action):
+        if state != self.goal:
+            next_state, out_of_range, collision = self.move(state, action)
+            if not out_of_range or not collision:
+                diff_y = next_state[0] - state[0]
+                diff_x = next_state[1] - state[1]
+                self.orientation_ = math.atan2(diff_y, diff_x)
+                #  print "self.orientation_ : ", math.degrees(self.orientation_)
+                #  if self.orientation_ < 0.0:
+                    #  self.orientation_ = 2.0*math.pi + self.orientation_
+                #  print "self.orientation_ : ", math.degrees(self.orientation_)
+        return self.orientation_
+
 
     def get_next_state_and_probs(self, state, action):
         transition_probability = 1 - self.noise
@@ -385,8 +428,15 @@ class Objectworld:
 
         return episode_end
 
-    def reset(self, start_position=[0,0]):
-        self.state_ = start_position
+    def reset(self, start_position=[0,0], start_orientation=0.0, random=False):
+        if not random:
+            self.state_ = start_position
+            self.orientation_ = start_orientation
+        else:
+            self.set_orientation_random()
+            self.set_start_random()
+            self.set_goal_random()
+            self.state_ = self.start
         return self.state_
 
     def step(self, action, reward_map=None):
@@ -442,44 +492,55 @@ if __name__ == "__main__":
     print "env.grid : "
     env.show_objectworld_with_state()
     
-    for i in xrange(10):
-        env.set_start_random()
-        env.set_goal_random()
-        env.set_objects()
-        print "env.grid : "
-        #  env.show_objectworld()
-        env.show_objectworld_with_state()
+    #  for i in xrange(100):
+        #  print "i : ", i
+        #  #  env.set_start_random()
+        #  #  env.set_goal_random()
+        #  #  env.set_objects()
+        #  observation = env.reset(random=True)
+        #  #  observation = env.reset()
+        #  print "env.state_ : ", env.state_
+        #  print "env.goal : ", env.goal
+        #  #  print "env.orientation : ", env.orientation_
+        #  env.get_action_list_by_direction(env.state_)
+        #  #  env.get_action_list_by_my_orientation()
+        #  print "env.grid : "
+        #  #  env.show_objectworld()
+        #  env.show_objectworld_with_state()
 
-    #  print "env.n_state : ", env.n_state
-    #  print "env.n_action : ", env.n_action
 
-    #  reward_map = env.grid.transpose().reshape(-1)
-    #  print "reward_map : "
-    #  print reward_map
+    print "env.n_state : ", env.n_state
+    print "env.n_action : ", env.n_action
+
+    reward_map = env.grid.transpose().reshape(-1)
+    print "reward_map : "
+    print reward_map
     
-    #  max_episode = 1
-    #  max_step = 100
+    max_episode = 1
+    max_step = 100
 
-    #  for i in xrange(max_episode):
-        #  print "==========================="
-        #  print "episode : ", i
-        #  observation = env.reset()
-        #  for j in xrange(max_step):
-            #  print "----------------------"
-            #  print "step : ", j
-            #  state = observation
-            #  print "state : ", state
-            #  env.show_objectworld_with_state()
-            #  action = env.get_action_sample()
-            #  print "action : ", action, env.dirs[action]
+    for i in xrange(max_episode):
+        print "==========================="
+        print "episode : ", i
+        observation = env.reset()
+        for j in xrange(max_step):
+            print "----------------------"
+            print "step : ", j
+            state = observation
+            print "state : ", state
+            env.show_objectworld_with_state()
+            action = env.get_action_sample()
+            print "action : ", action, env.dirs[action]
+            orientation = env.get_next_orientation(observation, action)
+            print "env.orientation : ", env.orientation_
 
-            #  observation, reward, done, info = env.step(action, reward_map)
-            #  next_state = observation
-            #  print "observation : ", observation
-            #  print "next_state : ", next_state
-            #  print "reward : ", reward
-            #  print "episode_end : ", done
-            #  print "info : ", info
+            observation, reward, done, info = env.step(action, reward_map)
+            next_state = observation
+            print "observation : ", observation
+            print "next_state : ", next_state
+            print "reward : ", reward
+            print "episode_end : ", done
+            print "info : ", info
 
-            #  if done:
-                #  break
+            if done:
+                break
