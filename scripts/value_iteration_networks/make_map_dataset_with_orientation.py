@@ -63,7 +63,7 @@ def get_trajs(env, n_trajs):
         #  print "env.state_ : ", env.state_
 
         env.set_orientation_random()
-        #  print "env.orientation_ : ", env.orientation_
+        #  print "env.orientation__ : ", env.orientation_
 
         #  agent = DijkstraAgent(env)
         #  agent.get_shortest_path(start_position)
@@ -120,7 +120,7 @@ def main(rows, cols, n_objects, n_domains, n_trajs, seed, save_dirs):
     image_data = np.zeros((max_samples, rows, cols))
     reward_map_data = np.zeros((max_samples, rows, cols))
     state_list_data = np.zeros((max_samples, 2))
-    orientation_list_data = np.zeros(max_samples)
+    orientation_list_data = np.zeros((max_samples, 4))
     action_list_data = np.zeros(max_samples)
     #  print "image_data : ", image_data.shape
     #  print "reward_map_data : ", reward_map_data.shape

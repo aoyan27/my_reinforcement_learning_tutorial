@@ -7,6 +7,9 @@ import copy
 import math
 
 
+import tf
+
+
 class AstarAgent:
     def __init__(self, env):
         self.env = env
@@ -46,6 +49,12 @@ class AstarAgent:
 
         #  #  print "self.heuristic : "
         #  #  print self.heuristic
+
+    def euler_to_quaternion(self, roll, pitch, yaw):
+        q = tf.transformations.quaternion_from_euler(roll, pitch, yaw)
+        #  print "q : ", q, type(q)
+        return q
+    
 
     def create_heuristic(self):
         self.heuristic = np.zeros([self.env.rows, self.env.cols])
@@ -153,7 +162,10 @@ class AstarAgent:
             self.policy.fill(stay_action)
             state = self.env.goal
             self.state_list.append(state)
-            self.orientation_list.append(self.orientation_candidate[self.env.state2index(state)])
+            #  self.orientation_list.append(self.orientation_candidate[self.env.state2index(state)])
+            q = self.euler_to_quaternion(\
+                    0.0, 0.0, self.orientation_candidate[self.env.state2index(state)])
+            self.orientation_list.append(q)
             self.shortest_action_list.append(self.policy[tuple(state)])
             
             while state != start_position:
@@ -162,8 +174,11 @@ class AstarAgent:
                 #  print "before_state : ", before_state
                 self.policy[tuple(before_state)] = self.action_list[tuple(state)]
                 self.state_list.append(before_state)
-                self.orientation_list.append(\
-                        self.orientation_candidate[self.env.state2index(before_state)])
+                #  self.orientation_list.append(\
+                        #  self.orientation_candidate[self.env.state2index(before_state)])
+                q = self.euler_to_quaternion(\
+                        0.0, 0.0, self.orientation_candidate[self.env.state2index(before_state)])
+                self.orientation_list.append(q)
                 self.shortest_action_list.append(self.policy[tuple(before_state)])
                 state = before_state
             self.state_list.reverse()
@@ -241,6 +256,7 @@ if __name__ == "__main__":
         print "env.grid : "
         env.show_objectworld_with_state()
         print "env.state_ : ", env.state_
+        env.set_orientation_random(orientation_list=[-180, -135, -90, -45, 0, 45, 90, 135, 180])
         print "env.orientation : ", env.orientation_
         print "env.orientation(deg) : ", math.degrees(env.orientation_)
         print "env.goal : ", env.goal
@@ -248,8 +264,9 @@ if __name__ == "__main__":
         print "=================================================="
 
         a_agent = AstarAgent(env)
-
         start_position = env.state_
+        
+
         start_orientation = env.orientation_
         #  a_agent.a_star(start_position)
         a_agent.get_shortest_path(start_position, start_orientation=start_orientation)

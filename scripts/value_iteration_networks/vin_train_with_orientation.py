@@ -137,6 +137,7 @@ def train_and_test(model, optimizer, gpu, model_path, train_data, test_data, n_e
             
             #  print "batch_input_data : ", batch_input_data[0]
             #  print "batch_state_list : ", batch_state_list[0]
+            #  print "batch_orientation_list : ", batch_orientation_list[0]
             #  print "batch_action_list : ", batch_action_list[0]
 
             model.zerograds()
@@ -211,7 +212,14 @@ def main(dataset, n_epoch, batchsize, gpu, model_path):
     train_data, test_data = \
             train_test_split(image_data, reward_map_data, state_list_data, \
             orientation_list_data, action_list_data, test_size=0.3)
-    
+   
+    #  print "train_data : "
+    #  print train_data['image']
+    #  print train_data['reward']
+    #  print train_data['state']
+    #  print train_data['orientation']
+    #  print train_data['action']
+
 
     #  model = ValueIterationNetwork(l_q=5, n_out=5, k=20)
     model = ValueIterationNetwork(l_q=9, n_out=9, k=20)
@@ -231,7 +239,7 @@ def main(dataset, n_epoch, batchsize, gpu, model_path):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='This script is training vin ...')
 
-    parser.add_argument('-d', '--dataset', default='datasets/map_dataset.pkl', \
+    parser.add_argument('-d', '--dataset', default='datasets/map_dataset_with_orientation.pkl', \
             type=str, help="save dataset directory")
 
     parser.add_argument('-e', '--n_epoch', default=30, type=int, help='number of epoch')
