@@ -62,7 +62,8 @@ def get_trajs(env, n_trajs):
         env.set_start_random(check_goal=True)
         #  print "env.state_ : ", env.state_
 
-        env.set_orientation_random()
+        #  env.set_orientation_random()
+        env.set_orientation_random(orientation_list=[-180, -135, -90, -45, 0, 45, 90, 135, 180])
         #  print "env.orientation__ : ", env.orientation_
 
         #  agent = DijkstraAgent(env)
