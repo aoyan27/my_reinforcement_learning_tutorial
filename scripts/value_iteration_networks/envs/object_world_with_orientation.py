@@ -435,12 +435,13 @@ class Objectworld:
 
         return episode_end
 
-    def reset(self, start_position=[0,0], start_orientation=0.0, random=False):
+    def reset(self, start_position=[0,0], start_orientation=0.0, \
+            orientation_list=None, random=False):
         if not random:
             self.state_ = start_position
             self.orientation_ = start_orientation
         else:
-            self.set_orientation_random()
+            self.set_orientation_random(orientation_list=orientation_list)
             self.set_start_random()
             self.set_goal_random()
             self.state_ = self.start
@@ -465,7 +466,7 @@ class Objectworld:
         self.state_ = next_state_list[index]
         #  print "self.satte_ : ", self.state_
         self.orientation_ = self.get_next_orientation(self.state_, self.orientation_, index)
-        print "self.orientation_ : ", self.orientation_
+        #  print "self.orientation_ : ", self.orientation_
 
         reward = None
         if reward_map is None:
