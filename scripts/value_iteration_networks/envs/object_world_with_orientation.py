@@ -126,9 +126,15 @@ class Objectworld:
     def set_orientation(self, orientation):
         self.orientation_ = orientation
 
-    def set_orientation_random(self):
-        self.orientation_ = np.random.rand() * 2.0*math.pi - math.pi
-        #  print "self.orientation_ : ", self.orientation_
+    def set_orientation_random(self, orientation_list=None):
+        if orientation_list is None:
+            self.orientation_ = np.random.rand() * 2.0*math.pi - math.pi
+            #  print "self.orientation_ : ", self.orientation_
+        else:
+            #  print "orientation_list : ", orientation_list
+            self.orientation_ = math.radians(np.random.choice(orientation_list, 1))
+            #  print "self.orientation___ : ", self.orientation_
+            #  print "self.orientation__ : ", math.radians(self.orientation_)
     
     def set_start(self, start):
         self.start = start
