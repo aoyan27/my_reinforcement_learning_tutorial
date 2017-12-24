@@ -47,6 +47,12 @@ class Objectworld:
         self.dirs = {}
         self.set_action()
 
+        self.orientation_res = None
+        if self.mode == 0:
+            self.orientation_res = 2.0*math.pi / 4.0
+        elif self.mode == 1:
+            self.orientation_res = 2.0*math.pi / 8.0
+
         self._state = {}
         self._orientation = {}
         self.set_orientation(orientation)
@@ -73,13 +79,62 @@ class Objectworld:
         if self.mode == 0:    # mode=0 : 行動4パターン
             self.action_list = [0, 1, 2, 3, 4]
             self.n_action = len(self.action_list)
-            self.dirs = {0: '>', 1: '<', 2: 'v', 3: '^', 4: '-'}
+            self.dirs = {0: '>', 1: 'v', 2: '<', 3: '^', 4: '-'}
         elif self.mode == 1:    # mode=1 : 行動8パターン
             self.action_list = [0, 1, 2, 3, 4, 5, 6, 7, 8]
             self.n_action = len(self.action_list)
             self.dirs = \
-                    {0: '>', 1: '<', 2: 'v', 3: '^', 4: 'ur', 5: 'ul', 6: 'dr', 7: 'dl', 8: '-'}
+                    {0: '>', 1: 'dr', 2: 'v', 3: 'dl', 4: '<', 5: 'ul', 6: '^', 7: 'ur', 8: '-'}
+
     
+    def get_action_list_by_direction(self, state, agent_id):
+        #  print "agent_id : ", agent_id
+        #  print "state : ", state
+        #  print "self.goal[agent_id] : ", self.goal[agent_id]
+        relative_orientation = math.atan2(self.goal[agent_id][0]-state[0], \
+                self.goal[agent_id][1]-state[1])
+        #  print "relative_orientation : ", math.degrees(relative_orientation)
+        if relative_orientation < 0.0:
+            relative_orientation = 2.0*math.pi + relative_orientation
+        #  print "relative_orientation : ", math.degrees(relative_orientation)
+        dir_index = (relative_orientation+0.5*self.orientation_res)/self.orientation_res
+        #  print "dir_index : ", dir_index
+        #  print "len(self.action_list) : ", len(self.action_list)-1
+        action_list_ = range(len(self.action_list)-1)
+        #  print "action_list_ : ", action_list_
+        if dir_index >= len(action_list_):
+            dir_index = 0
+        dir_index = int(dir_index)
+        #  print "dir_index : ", dir_index
+
+        action_list_by_direction = \
+                [action_list_[0] if dir_index+i>=len(action_list_) \
+                else action_list_[dir_index+i] for i in xrange(-1, 2)]
+        #  print action_list_by_direction
+        return action_list_by_direction
+
+    def get_action_list_by_my_orientation(self, orientation):
+        #  print "self.goal : ", self.goal
+        #  print "orientation : ", math.degrees(orientation)
+        if orientation < 0.0:
+            orientation = 2.0*math.pi + orientation
+        dir_index = (orientation+0.5*self.orientation_res)/self.orientation_res
+        #  print "dir_index : ", dir_index
+        #  print "len(self.action_list) : ", len(self.action_list)-1
+        action_list_ = range(len(self.action_list)-1)
+        #  print "action_list_ : ", action_list_
+        if dir_index >= len(action_list_):
+            dir_index = 0
+        dir_index = int(dir_index)
+        #  print "dir_index : ", dir_index
+
+        action_list_by_my_orientation = \
+                [action_list_[0] if dir_index+i>=len(action_list_) \
+                else action_list_[dir_index+i] for i in xrange(-1, 2)]
+        #  print action_list_by_my_orientation
+        return action_list_by_my_orientation
+
+
     def set_agent_grid(self):
         self.agent_grid = {0: copy.deepcopy(self.grid), 1: copy.deepcopy(self.grid)}
         for i in xrange(self.num_agent):
@@ -260,11 +315,11 @@ class Objectworld:
                 #  right
                 next_x = x + reflect*1
             elif action == 1:
-                #  left
-                next_x = x - reflect*1
-            elif action == 2:
                 #  down
                 next_y = y + reflect*1
+            elif action == 2:
+                #  left
+                next_x = x - reflect*1
             elif action == 3:
                 #  up
                 next_y = y - reflect*1
@@ -277,34 +332,35 @@ class Objectworld:
                 #  right
                 next_x = x + reflect*1
             elif action == 1:
-                #  left
-                next_x = x - reflect*1
+                # down right
+                next_x = x + reflect*1
+                next_y = y + reflect*1
             elif action == 2:
                 #  down
                 next_y = y + reflect*1
             elif action == 3:
-                #  up
-                next_y = y - reflect*1
+                # down left
+                next_x = x - reflect*1
+                next_y = y + reflect*1
             elif action == 4:
-                # upper right
-                next_x = x + reflect*1
-                next_y = y - reflect*1
+                #  left
+                next_x = x - reflect*1
             elif action == 5:
                 # upper left
                 next_x = x - reflect*1
                 next_y = y - reflect*1
             elif action == 6:
-                # down right
-                next_x = x + reflect*1
-                next_y = y + reflect*1
+                #  up
+                next_y = y - reflect*1
             elif action == 7:
-                # down left
-                next_x = x - reflect*1
-                next_y = y + reflect*1
+                # upper right
+                next_x = x + reflect*1
+                next_y = y - reflect*1
             else:
                 #  stay
                 next_x = x
                 next_y = y
+                 
         
         out_of_range = False
         if next_y < 0 or (grid_range[0]-1) < next_y:
@@ -327,6 +383,7 @@ class Objectworld:
                 #  next_y = y
 
         return [next_y, next_x], out_of_range, collision
+
 
     def get_next_orientation(self, state, orientation, action):
         if state != self.goal:
