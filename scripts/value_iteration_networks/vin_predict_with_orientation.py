@@ -128,22 +128,26 @@ def main(rows, cols, n_objects, seed, gpu, model_path):
      
     for i_episode in xrange(max_episode):
         prog.update(i_episode)
-        print "=============================="
-        print "episode : ", i_episode
+        #  print "=============================="
+        #  print "episode : ", i_episode
+
+        #  print "success_times : ", success_times
+        #  print "failed_times : ", failed_times
+
         env.reset(orientation_list=[-180, -135, -90, -45, 0, 45, 90, 135, 180], random=True)
         position = env.state_
-        print "position : ", position
-        print "env.orientation_ : ", env.orientation_, math.degrees(env.orientation_)
-        orientation = env.orientation_
-        #  orientation = euler_to_quaternion(0.0, 0.0, env.orientation_)
-        print "orientation : ", orientation
+        #  print "position : ", position
+        #  print "env.orientation_ : ", env.orientation_, math.degrees(env.orientation_)
+        #  orientation = env.orientation_
+        orientation = euler_to_quaternion(0.0, 0.0, env.orientation_)
+        #  print "orientation : ", orientation
         goal = env.goal
-        print "goal : ", env.goal
+        #  print "goal : ", env.goal
 
         state_data = np.expand_dims(np.asarray(position), 0)
-        print "state_data : ", state_data
+        #  print "state_data : ", state_data
         orientation_data = np.expand_dims(np.asarray(orientation), 0)
-        print "orientation_data : ", orientation_data
+        #  print "orientation_data : ", orientation_data
 
         image, reward_map = create_map_data(env, position, goal)
         #  print "image : "
@@ -151,35 +155,35 @@ def main(rows, cols, n_objects, seed, gpu, model_path):
         #  print "reward_map : "
         #  print reward_map
         input_data = create_input_data(image, reward_map)
-        print "input_data : "
-        print input_data
+        #  print "input_data : "
+        #  print input_data
 
         
-        print "env.grid : "
-        env.show_objectworld()
+        #  print "env.grid : "
+        #  env.show_objectworld()
 
         if gpu >= 0:
             input_data = cuda.to_gpu(input_data)
         for i_step in xrange(max_step):
-            print "-----------------------------------"
-            print "step : ", i_step
-            print "state : ", state_data, ", goal : ", goal
-            print "orientation_data : ", orientation_data
-            env.show_objectworld_with_state()
+            #  print "-----------------------------------"
+            #  print "step : ", i_step
+            #  print "state : ", state_data, ", goal : ", goal
+            #  print "orientation_data : ", orientation_data
+            #  env.show_objectworld_with_state()
             p = model(input_data, state_data, orientation_data)
-            print "p : ", p
+            #  print "p : ", p
             action = np.argmax(p.data)
             #  action = env.get_action_sample()
-            print "action : ",action
+            #  print "action : ",action
             next_state, reward, done, _ = env.step(action, reward_map.transpose().reshape(-1))
             #  print "next_state : ", next_state
             #  print "reward : ", reward
             #  print "done : ", done, " (collisions : ", env.collisions_[action], ")"
-            print "env.orientation_ : ", env.orientation_
+            #  print "env.orientation_ : ", env.orientation_
 
             state_data[0] = next_state
-            orientation_data[0] = env.orientation_
-            #  orientation_data[0] = euler_to_quaternion(0.0, 0.0, env.orientation_)
+            #  orientation_data[0] = env.orientation_
+            orientation_data[0] = euler_to_quaternion(0.0, 0.0, env.orientation_)
 
             if done:
                 if reward == R_max:

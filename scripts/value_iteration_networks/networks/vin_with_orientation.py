@@ -88,8 +88,8 @@ class ValueIterationNetwork(Chain):
         
         #  print "q_out : ", q_out
         #  print "orientation_list : ", orientation_list
-        orientation_ = F.expand_dims(orientation_list.astype(np.float32), axis=1)
-        #  orientation_ = orientation_list.astype(np.float32)
+        #  orientation_ = F.expand_dims(orientation_list.astype(np.float32), axis=1)
+        orientation_ = orientation_list.astype(np.float32)
         #  print "orientation_ : ", orientation_
 
         h_in = F.concat((q_out, orientation_), axis=1)
