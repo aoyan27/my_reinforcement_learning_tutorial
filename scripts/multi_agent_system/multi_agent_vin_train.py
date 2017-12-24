@@ -69,6 +69,7 @@ def train_test_split(image_data, reward_map_data, state_list_data, action_list_d
                 np.concatenate([action_list_test, action_list_data[i][index_test]], axis=0)
         #  print "image_test : "
         #  print image_test.shape
+        #  print image_test[0]
 
     image_train = image_data[0][index_train]
     reward_map_train = reward_map_data[0][index_train]
@@ -104,7 +105,6 @@ def train_test_split(image_data, reward_map_data, state_list_data, action_list_d
 def cvt_input_data(image, reward_map):
     input_data = \
             np.concatenate((np.expand_dims(image, 1), np.expand_dims(reward_map, 1)), axis=1)
-    #  print input_data.shape
     return input_data
 
 def train_and_test(model, optimizer, gpu, model_path, train_data, test_data, n_epoch, batchsize):
@@ -195,7 +195,7 @@ def train_and_test(model, optimizer, gpu, model_path, train_data, test_data, n_e
         model_name = 'multi_agent_vin_model_%d.model' % epoch
         print model_name
 
-        save_model(model, model_path+model_name)
+        #  save_model(model, model_path+model_name)
 
         epoch += 1
 
