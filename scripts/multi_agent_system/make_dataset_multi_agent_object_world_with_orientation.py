@@ -279,7 +279,7 @@ def get_trajs(env, n_agents, n_trajs):
 
 def save_dataset(data, filename):
     print "Save %d-%d multi_agent_map_dataset.pkl!!!!!" \
-			% (len(data['image'][0]), len(data['image'][1]))
+			% (len(data['grid_image'][0]), len(data['grid_image'][1]))
     with open(filename, mode='wb') as f:
         pickle.dump(data, f)
 
