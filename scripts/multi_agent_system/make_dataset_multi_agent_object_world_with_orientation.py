@@ -37,24 +37,6 @@ def grid2image(array):
     return image
 
 def create_input_image(env, state_list, action_list, n_agents, n_trajs):
-    #  print "======================================="
-    #  print "env.grid : "
-    #  print env.grid
-
-    #  print "state_list : "
-    #  print state_list
-    #  print "len(state_list) : ", len(state_list[0][0])
-
-    #  print "action_list : "
-    #  print action_list
-
-    #  print "n_agents : "
-    #  print n_agents
-    
-    #  print "n_trajs : "
-    #  print n_trajs
-
-
     domain_grid_list = {}
     domain_agent_grid_list = {}
     domain_another_agent_position_with_grid_list = {}
@@ -171,14 +153,15 @@ def get_reward_map(env, n_agents):
     return reward_map
 
 def get_agent_state_and_action(env, agent_id):
-    print "************************************************"
-    print "agent_id : ", agent_id
+    #  print "************************************************"
+    #  print "agent_id : ", agent_id
     a_agent = AstarAgent(env, agent_id)
     #  print "env.agent_grid[agent_id] : "
     #  print env.agent_grid[agent_id]
     #  print "env._state[agent_id] : ", env._state[agent_id]
     #  a_agent.get_shortest_path(env._state[agent_id], env.grid)
-    a_agent.get_shortest_path(env._state[agent_id], env._orientation[agent_id], env.agent_grid[agent_id])
+    a_agent.get_shortest_path(env._state[agent_id], \
+            env._orientation[agent_id], env.agent_grid[agent_id])
     #  print "a_agent.found : ", a_agent.found
     if a_agent.found:
         #  pass
@@ -198,9 +181,9 @@ def get_agent_state_and_action(env, agent_id):
     state_list = a_agent.state_list
     orientation_list = a_agent.orientation_list
     action_list = a_agent.shortest_action_list
-    print "state_list_ : ", state_list
-    print "orientation_lsit_ : ", orientation_list
-    print "action_list_ : ", action_list
+    #  print "state_list_ : ", state_list
+    #  print "orientation_lsit_ : ", orientation_list
+    #  print "action_list_ : ", action_list
 
     return state_list, orientation_list, action_list, a_agent.found
 
@@ -208,17 +191,22 @@ def map_all(es):
     return all([e == es[0] for e in es[1:]]) if es else False
 
 def get_trajs(env, n_agents, n_trajs):
-    state_list = []
-    orientation_list = []
-    action_list = []
+
+    traj_state_list = {}
+    traj_orientation_list = {}
+    traj_action_list = {}
+    for agent_id in xrange(n_agents):
+        traj_state_list[agent_id] = []
+        traj_orientation_list[agent_id] = []
+        traj_action_list[agent_id] = []
 
     failed = False
 
     j = 0
     challenge_times = 0
-    num_sample = [0 for i in xrange(n_agents)]
     found = [False for i in xrange(n_agents)]
-    found_success = [True for i in xrange(n_agents)]
+    for agent_id in xrange(n_agents):
+        found[agent_id] = False
     while j < n_trajs:
         #  print "-----------------------------------------------"
         #  print "j : ", j
@@ -227,65 +215,84 @@ def get_trajs(env, n_agents, n_trajs):
         if challenge_times > 50:
             failed = True
             break
+
+
         env.set_start_random(check_goal=True)
         #  print "env.start_ : ", env.start
         #  print "env.goal_ : ", env.goal
+        #  print "env.grid : "
+        #  print env.grid
+        #  env.show_objectworld_with_state()
 
+        domain_state_list = {}
+        domain_orientation_list = {}
+        domain_action_list = {}
         step_count_list = []
-        for i in xrange(n_agents):
-            domain_state_list, domain_orientation_list, domain_action_list, found[i] \
-                    = get_agent_state_and_action(env, i)
-            state_list.append(domain_state_list)
-            action_list.append(domain_action_list)
-            #  print "state_list : "
-            #  print state_list
-            #  print "action_list : "
-            #  print action_list
+        for agent_id in xrange(n_agents):
+            #  print "agent_id : ", agent_id
+            #  env.show_objectworld_with_state()
+            domain_state_list[agent_id], domain_orientation_list[agent_id], \
+                    domain_action_list[agent_id], found[agent_id] \
+                    = get_agent_state_and_action(env, agent_id)
+            #  print "found : ", found
+            step_count_list.append(len(domain_state_list[agent_id]))
+        #  print "all(found) : ", all(found)
+        if not all(found):
+            #  print "continue!!!!!!!!"
+            continue
 
-            step_count_list.append(len(state_list[n_agents*j+i]))
-        #  print "step_count_list : ", step_count_list
-        if not map_all(step_count_list):
-            max_index = np.argmax(np.asarray(step_count_list))
-            max_value = np.max(np.asarray(step_count_list))
-            #  print "max_value", max_value
-            clone_count_list = []
-            for i in xrange(n_agents):
-                if i != max_index:
-                    list_length = len(state_list[n_agents*j+i])
-                    #  print "list_length : ", list_length
-                    diff_length = max_value - len(state_list[n_agents*j+i])
-                    #  print "diff_length : ", diff_length
-                    for k in xrange(diff_length):
-                        state_list[n_agents*j+i].append(state_list[n_agents*j+i][list_length-1])
-                        action_list[n_agents*j+i].append(action_list[n_agents*j+i][list_length-1])
-            #  print "clone_count_list : ", clone_count_list
+        #  print "step_count_list : ", step_count_list 
+        max_step_count = max(step_count_list)
+        #  print "max_step_count : ", max_step_count
 
-        #  print "state_list_ : "
-        #  print state_list
-        #  print "action_list_ : "
-        #  print action_list
+        for agent_id in xrange(n_agents):
+            diff_step = max_step_count - step_count_list[agent_id]
+            for i_step in xrange(diff_step):
+                domain_state_list[agent_id].append(\
+                        domain_state_list[agent_id][step_count_list[agent_id]-1])
+                domain_orientation_list[agent_id].append(\
+                        domain_orientation_list[agent_id][step_count_list[agent_id]-1])
+                domain_action_list[agent_id].append(\
+                        domain_action_list[agent_id][step_count_list[agent_id]-1])
 
+        
+        for agent_id in xrange(n_agents):
+            traj_state_list[agent_id].append(domain_state_list[agent_id])
+            traj_orientation_list[agent_id].append(domain_orientation_list[agent_id])
+            traj_action_list[agent_id].append(domain_action_list[agent_id])
+        #  print "traj_state_list : "
+        #  print traj_state_list
+        #  print "traj_orientation_list : "
+        #  print traj_orientation_list
+        #  print "traj_action_list : "
+        #  print traj_action_list
 
-        if found == found_success:
-            j += 1
-            challenge_times = 0
+        j += 1
+        challenge_times = 0
 
     if failed:
         del state_list[:]
+        del orientation_list[:]
         del action_list[:]
-        return state_list, action_list
-    
-    agent_state_list = []
-    agent_action_list = []
-    for i in xrange(n_agents):
-        agent_state_list.append(state_list[i::n_agents])
-        agent_action_list.append(action_list[i::n_agents])
-    #  print "agent_state_list : "
-    #  print agent_state_list
-    #  print "agent_action_list : "
-    #  print agent_action_list
+        return state_list, orientation_list, action_list
+
+    state_list = []
+    orientation_list = []
+    action_list = []
+
+    for agent_id in xrange(n_agents):
+        state_list.append(traj_state_list[agent_id])
+        orientation_list.append(traj_orientation_list[agent_id])
+        action_list.append(traj_action_list[agent_id])
         
-    return agent_state_list, agent_action_list
+    #  print "state_list : "
+    #  print state_list
+    #  print "orientation_list : "
+    #  print orientation_list
+    #  print "action_list : "
+    #  print action_list
+
+    return state_list, orientation_list, action_list
 
 
 def save_dataset(data, filename):
@@ -325,6 +332,7 @@ def main(rows, cols, n_objects, n_agents, n_domains, n_trajs, seed, save_dirs):
     another_agent_position_with_grid_image_data = np.zeros((n_agents, max_samples, rows, cols))
     reward_map_data = np.zeros((n_agents, max_samples, rows, cols))
     state_list_data = np.zeros((n_agents, max_samples, 2))
+    orientation_list_data = np.zeros((n_agents, max_samples, 4))
     action_list_data = np.zeros((n_agents, max_samples))
     #  print "image_data : ", image_data.shape
     #  print "reward_map_data : ", reward_map_data.shape
@@ -346,15 +354,14 @@ def main(rows, cols, n_objects, n_agents, n_domains, n_trajs, seed, save_dirs):
         #  print "env.grid_ : "
         #  print env.grid
 
+        state_list, orientation_list, action_list = get_trajs(env, n_agents, n_trajs)
+
+        if len(state_list) == 0:
+            continue
 
         reward_map_list = get_reward_map(env, n_agents)
         #  print "reward_map_list : "
         #  print reward_map_list
-
-        state_list, action_list = get_trajs(env, n_agents, n_trajs)
-
-        if len(state_list) == 0:
-            continue
 
         grid_image_list, agent_grid_image_list, another_agent_position_with_grid_image_list \
                 = create_input_image(env, state_list, action_list, n_agents, n_trajs)
@@ -382,6 +389,8 @@ def main(rows, cols, n_objects, n_agents, n_domains, n_trajs, seed, save_dirs):
                 #  print "state_list : "
                 #  print state_list[j][i][:]
                 state_list_data[j][num_sample[j]:num_sample[j]+ns] = state_list[j][i][:]
+                orientation_list_data[j][num_sample[j]:num_sample[j]+ns] \
+                        = orientation_list[j][i][:]
                 action_list_data[j][num_sample[j]:num_sample[j]+ns] = action_list[j][i][:]
 
                 num_sample[j] += ns
@@ -407,7 +416,8 @@ def main(rows, cols, n_objects, n_agents, n_domains, n_trajs, seed, save_dirs):
 
     
     data = {'grid_image': [], 'agent_grid_image': [], \
-            'another_agent_position': [], 'reward': [], 'state': [], 'action': []}
+            'another_agent_position': [], 'reward': [], \
+            'state': [], 'orientation': [], 'action': []}
     for i in xrange(n_agents):
         data['grid_image'].append(grid_image_data[i][0:num_sample[i]])
         data['agent_grid_image'].append(agent_grid_image_data[i][0:num_sample[i]])
@@ -415,6 +425,7 @@ def main(rows, cols, n_objects, n_agents, n_domains, n_trajs, seed, save_dirs):
                 another_agent_position_with_grid_image_data[i][0:num_sample[i]])
         data['reward'].append(reward_map_data[i][0:num_sample[i]])
         data['state'].append(state_list_data[i][0:num_sample[i]])
+        data['orientation'].append(orientation_list_data[i][0:num_sample[i]])
         data['action'].append(action_list_data[i][0:num_sample[i]])
 
     #  print len(data['grid_image'][1])
