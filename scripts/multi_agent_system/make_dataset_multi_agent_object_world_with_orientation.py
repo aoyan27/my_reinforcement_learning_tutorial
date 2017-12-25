@@ -15,7 +15,8 @@ import time
 #  from envs.multi_agent_grid_world import Gridworld
 #  from envs.multi_agent_object_world import Objectworld
 from envs.multi_agent_object_world_with_orientation import Objectworld
-from agents.a_star_agent import AstarAgent
+#  from agents.a_star_agent import AstarAgent
+from agents.a_star_agent_with_orientation import AstarAgent
 
 
 def grid2image(array):
@@ -170,17 +171,21 @@ def get_reward_map(env, n_agents):
     return reward_map
 
 def get_agent_state_and_action(env, agent_id):
+    print "************************************************"
+    print "agent_id : ", agent_id
     a_agent = AstarAgent(env, agent_id)
     #  print "env.agent_grid[agent_id] : "
     #  print env.agent_grid[agent_id]
     #  print "env._state[agent_id] : ", env._state[agent_id]
     #  a_agent.get_shortest_path(env._state[agent_id], env.grid)
-    a_agent.get_shortest_path(env._state[agent_id], env.agent_grid[agent_id])
+    a_agent.get_shortest_path(env._state[agent_id], env._orientation[agent_id], env.agent_grid[agent_id])
     #  print "a_agent.found : ", a_agent.found
     if a_agent.found:
         #  pass
         #  print "a_agent.state_list : "
         #  print a_agent.state_list
+        #  print "a_agent.orientation_list : "
+        #  print a_agent.orientation_list
         #  print "a_agent.shrotest_action_list : "
         #  print a_agent.shortest_action_list
         #  env.show_policy(a_agent.policy.transpose().reshape(-1))
@@ -191,15 +196,20 @@ def get_agent_state_and_action(env, agent_id):
     #  print "a_agent.shortest_action_list[0] : "
     #  print a_agent.shortest_action_list[0]
     state_list = a_agent.state_list
+    orientation_list = a_agent.orientation_list
     action_list = a_agent.shortest_action_list
+    print "state_list_ : ", state_list
+    print "orientation_lsit_ : ", orientation_list
+    print "action_list_ : ", action_list
 
-    return state_list, action_list, a_agent.found
+    return state_list, orientation_list, action_list, a_agent.found
 
 def map_all(es):
     return all([e == es[0] for e in es[1:]]) if es else False
 
 def get_trajs(env, n_agents, n_trajs):
     state_list = []
+    orientation_list = []
     action_list = []
 
     failed = False
@@ -223,7 +233,8 @@ def get_trajs(env, n_agents, n_trajs):
 
         step_count_list = []
         for i in xrange(n_agents):
-            domain_state_list, domain_action_list, found[i] = get_agent_state_and_action(env, i)
+            domain_state_list, domain_orientation_list, domain_action_list, found[i] \
+                    = get_agent_state_and_action(env, i)
             state_list.append(domain_state_list)
             action_list.append(domain_action_list)
             #  print "state_list : "

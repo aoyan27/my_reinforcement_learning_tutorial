@@ -179,6 +179,9 @@ class AstarAgent:
             self.shortest_action_list.reverse()
         else:
             self.shortest_action_list.append(stay_action)
+            self.orientation_list.append(start_orientation)
+            #  q = self.euler_to_quaternion(0.0, 0.0, start_orientation)
+            #  self.orientation_list.append(q)
             self.state_list.append(start_position)
 
 
