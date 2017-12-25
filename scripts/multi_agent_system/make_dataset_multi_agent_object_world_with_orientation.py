@@ -270,12 +270,6 @@ def get_trajs(env, n_agents, n_trajs):
         j += 1
         challenge_times = 0
 
-    if failed:
-        del state_list[:]
-        del orientation_list[:]
-        del action_list[:]
-        return state_list, orientation_list, action_list
-
     state_list = []
     orientation_list = []
     action_list = []
@@ -291,6 +285,12 @@ def get_trajs(env, n_agents, n_trajs):
     #  print orientation_list
     #  print "action_list : "
     #  print action_list
+
+    if failed:
+        del state_list[:]
+        del orientation_list[:]
+        del action_list[:]
+        return state_list, orientation_list, action_list
 
     return state_list, orientation_list, action_list
 
