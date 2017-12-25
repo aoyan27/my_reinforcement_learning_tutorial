@@ -5,7 +5,7 @@ import numpy as np
 np.set_printoptions(suppress=True, threshold=np.inf)
 import copy
 
-#  import tf
+import tf
 
 
 class AstarAgent:
@@ -60,6 +60,11 @@ class AstarAgent:
         #  print self.heuristic
 
     def a_star(self, start_position, start_orientation, grid):
+        #  print "start_position : ", start_position
+        #  print "start_orientation : ", start_orientation
+        #  print "self.env.goal : ", self.env.goal[self.agent_id]
+        #  print "grid : "
+        #  print grid
 
         g = 0
         h = self.heuristic[tuple(start_position)]
@@ -103,6 +108,8 @@ class AstarAgent:
                 self.expand_list[tuple(state)] = n
                 n += 1
             
+                #  print "self.env.goal[self.agent_id] : ", self.env.goal[self.agent_id]
+                #  print "state : ", state
                 #  print "self.env.goal[self.agent_id] : ", self.env.goal[self.agent_id]
                 if state == self.env.goal[self.agent_id]:
                     found = True
@@ -154,10 +161,10 @@ class AstarAgent:
             state = self.env.goal[self.agent_id]
             #  print "state : ", state
             self.state_list.append(state)
-            self.orientation_list.append(self.orientation_candidate[self.env.state2index(state)])
-            #  q = self.euler_to_quaternion(\
-                    #  0.0, 0.0, self.orientation_candidate[self.env.state2index(state)])
-            #  self.orientation_list.append(q)
+            #  self.orientation_list.append(self.orientation_candidate[self.env.state2index(state)])
+            q = self.euler_to_quaternion(\
+                    0.0, 0.0, self.orientation_candidate[self.env.state2index(state)])
+            self.orientation_list.append(q)
             self.shortest_action_list.append(self.policy[tuple(state)])
             
             while state != start_position:
@@ -167,11 +174,11 @@ class AstarAgent:
                 #  print "before_state : ", before_state
                 self.policy[tuple(before_state)] = self.action_list[tuple(state)]
                 self.state_list.append(before_state)
-                self.orientation_list.append(\
-                        self.orientation_candidate[self.env.state2index(before_state)])
-                #  q = self.euler_to_quaternion(\
-                        #  0.0, 0.0, self.orientation_candidate[self.env.state2index(before_state)])
-                #  self.orientation_list.append(q)
+                #  self.orientation_list.append(\
+                        #  self.orientation_candidate[self.env.state2index(before_state)])
+                q = self.euler_to_quaternion(\
+                        0.0, 0.0, self.orientation_candidate[self.env.state2index(before_state)])
+                self.orientation_list.append(q)
                 self.shortest_action_list.append(self.policy[tuple(before_state)])
                 state = before_state
             self.state_list.reverse()
@@ -179,9 +186,9 @@ class AstarAgent:
             self.shortest_action_list.reverse()
         else:
             self.shortest_action_list.append(stay_action)
-            self.orientation_list.append(start_orientation)
-            #  q = self.euler_to_quaternion(0.0, 0.0, start_orientation)
-            #  self.orientation_list.append(q)
+            #  self.orientation_list.append(start_orientation)
+            q = self.euler_to_quaternion(0.0, 0.0, start_orientation)
+            self.orientation_list.append(q)
             self.state_list.append(start_position)
 
 
@@ -264,28 +271,30 @@ if __name__ == "__main__":
         env.show_objectworld_with_state()
         #  print "env.start[1] : "
         #  print env.start[1]
-
-        a_agent = AstarAgent(env)
-
-        #  a_agent.a_star(start_position)
-        a_agent.get_shortest_path(env.start[1], env._orientation[1], env.grid)
-        #  print "a_agent.expand_list : "
-        #  print a_agent.expand_list
-        #  print "a_agent.action_list : "
-        #  print a_agent.action_list
         
-        if a_agent.found:
-            print "a_agent.state_list : "
-            print a_agent.state_list
-            print "a_agent.orientation_list : "
-            print a_agent.orientation_list
-            print "a_agent.shrotest_action_list : "
-            print a_agent.shortest_action_list
-            #  env.show_policy(a_agent.policy.transpose().reshape(-1))
-            path_data = a_agent.show_path()
-            print "view_path : "
-            a_agent.view_path(path_data['vis_path'])
-            #  print "state_list : ", list(path_data['state_list'])
-            #  print "action_list : ", path_data['action_list']
-            i += 1
+        for agent_id in xrange(2):
+            print "agent_id : ", agent_id
+            a_agent = AstarAgent(env, agent_id=agent_id)
+
+            #  a_agent.a_star(start_position)
+            a_agent.get_shortest_path(env.start[agent_id], env._orientation[agent_id], env.grid)
+            #  print "a_agent.expand_list : "
+            #  print a_agent.expand_list
+            #  print "a_agent.action_list : "
+            #  print a_agent.action_list
+            
+            if a_agent.found:
+                print "a_agent.state_list : "
+                print a_agent.state_list
+                print "a_agent.orientation_list : "
+                print a_agent.orientation_list
+                print "a_agent.shrotest_action_list : "
+                print a_agent.shortest_action_list
+                #  env.show_policy(a_agent.policy.transpose().reshape(-1))
+                path_data = a_agent.show_path()
+                print "view_path : "
+                a_agent.view_path(path_data['vis_path'])
+                #  print "state_list : ", list(path_data['state_list'])
+                #  print "action_list : ", path_data['action_list']
+        i += 1
     print "env.dirs : ", env.dirs
