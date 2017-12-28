@@ -124,7 +124,8 @@ class AstarAgent:
                     #  print "next_state : ", next_state
                     #  print "out_of_range : ", out_of_range
                     #  print "collision : ", collision
-                    next_orientation = self.env.get_next_orientation(state, orientation, a)
+                    next_orientation = \
+                            self.env.get_next_orientation(state, orientation, a, self.agent_id)
                     #  print "next_orientation : ", next_orientation
                     
                     if not out_of_range:
@@ -229,7 +230,8 @@ if __name__ == "__main__":
     sys.path.append('../')
     from envs.object_world import Objectworld
     #  from envs.multi_agent_grid_world import Gridworld
-    from envs.multi_agent_object_world_with_orientation import Objectworld
+    #  from envs.multi_agent_object_world_with_orientation import Objectworld
+    from envs.multi_agent_object_world_with_orientation_velocity import Objectworld
     rows = cols = 9
     goal = [rows-1, cols-1]
     #  goal = [23, 28]

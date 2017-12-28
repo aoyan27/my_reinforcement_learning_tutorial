@@ -385,8 +385,8 @@ class Objectworld:
         return [next_y, next_x], out_of_range, collision
 
 
-    def get_next_orientation(self, state, orientation, action):
-        if state != self.goal:
+    def get_next_orientation(self, state, orientation, action, agent_id):
+        if state != self.goal[agent_id:
             next_state, out_of_range, collision = self.move(state, action)
             if not out_of_range or not collision:
                 diff_y = next_state[0] - state[0]
