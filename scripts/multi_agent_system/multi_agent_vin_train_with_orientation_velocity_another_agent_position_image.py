@@ -268,8 +268,11 @@ def train_and_test(model, optimizer, gpu, model_path, train_data, test_data, n_e
             #  print "batch_action_list : ", batch_action_list[0]
 
             model.zerograds()
+            # loss, acc = model.forward(batch_input_data, batch_state_list, \
+            #         batch_relative_orientation_list, batch_relative_velocity_vector_list, \
+            #         batch_action_list)
             loss, acc = model.forward(batch_input_data, batch_state_list, \
-                    batch_relative_orientation_list, batch_relative_velocity_vector_list, \
+                    batch_orientation_list, batch_relative_velocity_vector_list, \
                     batch_action_list)
             #  print "loss(train) : ", loss
             loss.backward()
@@ -325,8 +328,11 @@ def train_and_test(model, optimizer, gpu, model_path, train_data, test_data, n_e
 
             real_batchsize = batch_grid_image.shape[0]
 
+            # loss, acc = model.forward(batch_input_data, batch_state_list, \
+            #         batch_relative_orientation_list, batch_relative_velocity_vector_list, \
+            #         batch_action_list)
             loss, acc = model.forward(batch_input_data, batch_state_list, \
-                    batch_relative_orientation_list, batch_relative_velocity_vector_list, \
+                    batch_orientation_list, batch_relative_velocity_vector_list, \
                     batch_action_list)
 
             sum_test_loss += float(cuda.to_cpu(loss.data)) * real_batchsize
