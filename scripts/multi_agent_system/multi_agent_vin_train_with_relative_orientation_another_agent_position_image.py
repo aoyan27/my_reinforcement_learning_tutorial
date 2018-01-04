@@ -43,19 +43,19 @@ def load_dataset(path):
     orientation_list_data = data['orientation']
     action_list_data = data['action']
 
-    relative_orientation_list_data = data['relative_orientation']
-    relative_velocity_vector_list_data = data['relative_velocity_vector']
+    #  relative_orientation_list_data = data['relative_orientation']
+    #  relative_velocity_vector_list_data = data['relative_velocity_vector']
 
     print "Load %d data!!!" % len(grid_image_data[0])
 
     return grid_image_data, agent_grid_image_data, another_agent_position_image_data, \
             reward_map_data, state_list_data, orientation_list_data, action_list_data, \
-            relative_orientation_list_data, relative_velocity_vector_list_data
+            #  relative_orientation_list_data, relative_velocity_vector_list_data
 
 
 def train_test_split(grid_image_data, agent_grid_image_data, another_agent_position_image_data, \
         reward_map_data, state_list_data, orientation_list_data, action_list_data, \
-        relative_orientation_list_data, relative_velocity_vector_list_data, \
+        #  relative_orientation_list_data, relative_velocity_vector_list_data, \
         test_size=0.3, seed=0):
 
     np.random.seed(seed)
@@ -80,8 +80,8 @@ def train_test_split(grid_image_data, agent_grid_image_data, another_agent_posit
     orientation_list_test = orientation_list_data[0][index_test]
     action_list_test = action_list_data[0][index_test]
 
-    relative_orientation_list_test = relative_orientation_list_data[0][index_test]
-    relative_velocity_vector_list_test = relative_velocity_vector_list_data[0][index_test]
+    #  relative_orientation_list_test = relative_orientation_list_data[0][index_test]
+    #  relative_velocity_vector_list_test = relative_velocity_vector_list_data[0][index_test]
     #  print "grid_image_test : ", len(grid_image_test)
     #  print "reward_map_test : ", len(reward_map_test)
 
@@ -104,12 +104,12 @@ def train_test_split(grid_image_data, agent_grid_image_data, another_agent_posit
         action_list_test = \
                 np.concatenate([action_list_test, action_list_data[i][index_test]], axis=0)
         
-        relative_orientation_list_test = \
-                np.concatenate([relative_orientation_list_test, \
-                relative_orientation_list_data[i][index_test]], axis=0)
-        relative_velocity_vector_list_test = \
-                np.concatenate([relative_velocity_vector_list_test, \
-                relative_velocity_vector_list_data[i][index_test]], axis=0)
+        #  relative_orientation_list_test = \
+                #  np.concatenate([relative_orientation_list_test, \
+                #  relative_orientation_list_data[i][index_test]], axis=0)
+        #  relative_velocity_vector_list_test = \
+                #  np.concatenate([relative_velocity_vector_list_test, \
+                #  relative_velocity_vector_list_data[i][index_test]], axis=0)
 
     #  print "grid_image_test : ", len(grid_image_test)
     #  print "reward_map_test : ", len(reward_map_test)
@@ -122,8 +122,8 @@ def train_test_split(grid_image_data, agent_grid_image_data, another_agent_posit
     orientation_list_train = orientation_list_data[0][index_train]
     action_list_train = action_list_data[0][index_train]
 
-    relative_orientation_list_train = relative_orientation_list_data[0][index_train]
-    relative_velocity_vector_list_train = relative_velocity_vector_list_data[0][index_train]
+    #  relative_orientation_list_train = relative_orientation_list_data[0][index_train]
+    #  relative_velocity_vector_list_train = relative_velocity_vector_list_data[0][index_train]
     #  print "grid_image_train : ", len(grid_image_train)
     #  print "reward_map_train : ", len(reward_map_train)
 
@@ -146,12 +146,12 @@ def train_test_split(grid_image_data, agent_grid_image_data, another_agent_posit
         action_list_train = \
                 np.concatenate([action_list_train, action_list_data[i][index_train]], axis=0)
 
-        relative_orientation_list_train = \
-                np.concatenate([relative_orientation_list_train, \
-                relative_orientation_list_data[i][index_train]], axis=0)
-        relative_velocity_vector_list_train = \
-                np.concatenate([relative_velocity_vector_list_train, \
-                relative_velocity_vector_list_data[i][index_train]], axis=0)
+        #  relative_orientation_list_train = \
+                #  np.concatenate([relative_orientation_list_train, \
+                #  relative_orientation_list_data[i][index_train]], axis=0)
+        #  relative_velocity_vector_list_train = \
+                #  np.concatenate([relative_velocity_vector_list_train, \
+                #  relative_velocity_vector_list_data[i][index_train]], axis=0)
     #  print "grid_image_train : ", len(grid_image_train)
     #  print "reward_map_train : ", len(reward_map_train)
 
@@ -166,8 +166,8 @@ def train_test_split(grid_image_data, agent_grid_image_data, another_agent_posit
     test_data['state'] = state_list_test 
     test_data['orientation'] = orientation_list_test 
     test_data['action'] = action_list_test
-    test_data['relative_orientation'] = relative_orientation_list_test
-    test_data['relative_velocity_vector'] = relative_velocity_vector_list_test
+    #  test_data['relative_orientation'] = relative_orientation_list_test
+    #  test_data['relative_velocity_vector'] = relative_velocity_vector_list_test
 
     train_data['grid_image'] = grid_image_train
     train_data['agent_grid_image'] = agent_grid_image_train
@@ -176,8 +176,8 @@ def train_test_split(grid_image_data, agent_grid_image_data, another_agent_posit
     train_data['state'] = state_list_train 
     train_data['orientation'] = orientation_list_train 
     train_data['action'] = action_list_train
-    train_data['relative_orientation'] = relative_orientation_list_train
-    train_data['relative_velocity_vector'] = relative_velocity_vector_list_train
+    #  train_data['relative_orientation'] = relative_orientation_list_train
+    #  train_data['relative_velocity_vector'] = relative_velocity_vector_list_train
 
     return train_data, test_data
 
@@ -246,9 +246,9 @@ def train_and_test(model, optimizer, gpu, model_path, train_data, test_data, n_e
                     if i+batchsize < n_train else n_train]]
             batch_action_list = train_data['action'][perm[i:i+batchsize \
                     if i+batchsize < n_train else n_train]]
-            batch_relative_orientation_list = \
-                    train_data['relative_orientation'][perm[i:i+batchsize \
-                    if i+batchsize < n_train else n_train]]
+            #  batch_relative_orientation_list = \
+                    #  train_data['relative_orientation'][perm[i:i+batchsize \
+                    #  if i+batchsize < n_train else n_train]]
             #  batch_relative_velocity_vector_list = \
                     #  train_data['relative_velocity_vector'][perm[i:i+batchsize \
                     #  if i+batchsize < n_train else n_train]]
@@ -257,7 +257,7 @@ def train_and_test(model, optimizer, gpu, model_path, train_data, test_data, n_e
                 batch_state_list = cuda.to_gpu(batch_state_list)
                 batch_orientation_list = cuda.to_gpu(batch_orientation_list)
                 batch_action_list = cuda.to_gpu(batch_action_list)
-                batch_relative_orientation_list = cuda.to_gpu(batch_relative_orientation_list)
+                #  batch_relative_orientation_list = cuda.to_gpu(batch_relative_orientation_list)
                 #  batch_relative_velocity_vector_list = \
                         #  cuda.to_gpu(batch_relative_velocity_vector_list)
 
@@ -310,15 +310,15 @@ def train_and_test(model, optimizer, gpu, model_path, train_data, test_data, n_e
                     if i+batchsize < n_test else n_test]]
             batch_action_list = test_data['action'][perm[i:i+batchsize \
                     if i+batchsize < n_test else n_test]]
-            batch_relative_orientation_list = \
-                    test_data['relative_orientation'][perm[i:i+batchsize \
-                    if i+batchsize < n_test else n_test]]
+            #  batch_relative_orientation_list = \
+                    #  test_data['relative_orientation'][perm[i:i+batchsize \
+                    #  if i+batchsize < n_test else n_test]]
             if gpu >= 0:
                 batch_input_data = cuda.to_gpu(batch_input_data)
                 batch_state_list = cuda.to_gpu(batch_state_list)
                 batch_orientation_list = cuda.to_gpu(batch_orientation_list)
                 batch_action_list = cuda.to_gpu(batch_action_list)
-                batch_relative_orientation_list = cuda.to_gpu(batch_relative_orientation_list)
+                #  batch_relative_orientation_list = cuda.to_gpu(batch_relative_orientation_list)
 
             real_batchsize = batch_grid_image.shape[0]
 
@@ -348,20 +348,28 @@ def save_model(model, filename):
 
 
 def main(dataset, n_epoch, batchsize, gpu, model_path):
+    #  grid_image_data, agent_grid_image_data, another_agent_position_image_data, \
+            #  reward_map_data, state_list_data, orientation_list_data, action_list_data, \
+            #  relative_orientation_list_data, relative_velocity_vector_list_data \
+            #  = load_dataset(dataset)
     grid_image_data, agent_grid_image_data, another_agent_position_image_data, \
-            reward_map_data, state_list_data, orientation_list_data, action_list_data, \
-            relative_orientation_list_data, relative_velocity_vector_list_data \
+            reward_map_data, state_list_data, orientation_list_data, action_list_data \
             = load_dataset(dataset)
+
     #  print "grid_image_data : ", len(grid_image_data[0])
     #  for i in xrange(len(grid_image_data[0])):
         #  view_image(another_agent_position_image_data[0][i], 'map_image')
     #  print "orientation_list_data : ", len(orientation_list_data[0][0])
     #  print orientation_list_data
 
+    #  train_data, test_data = train_test_split(grid_image_data, agent_grid_image_data, \
+            #  another_agent_position_image_data, reward_map_data, \
+            #  state_list_data, orientation_list_data, action_list_data, \
+            #  relative_orientation_list_data, relative_velocity_vector_list_data, \
+            #  test_size=0.3)
     train_data, test_data = train_test_split(grid_image_data, agent_grid_image_data, \
             another_agent_position_image_data, reward_map_data, \
             state_list_data, orientation_list_data, action_list_data, \
-            relative_orientation_list_data, relative_velocity_vector_list_data, \
             test_size=0.3)
 
     model = ValueIterationNetwork(n_in=3, l_q=9, n_out=9, k=20)
