@@ -90,6 +90,24 @@ def set_start_and_goal(env):
     #  print "goal : ", goal
     return start, goal
 
+def view_traj(env, state_list):
+    vis_traj = np.array(['-']*env.n_state).reshape(env.grid.shape)
+    object_index = np.where(env.grid==-1)
+    vis_traj[object_index] = "#"
+    
+    #  print "state_list : ", state_list
+    for i in xrange(len(state_list)):
+        vis_traj[tuple(state_list[i])] = '*'
+
+    vis_traj[tuple(state_list[0])] = '$'
+    end_index = len(state_list) - 1
+    vis_traj[tuple(state_list[end_index])] = 'G'
+    
+    print "vis_tarj : "
+    print vis_traj
+    
+
+
 
 def main(rows, cols, n_objects, seed, gpu, model_path):
     model = ValueIterationNetwork(l_q=9, n_out=9, k=20)
@@ -130,21 +148,28 @@ def main(rows, cols, n_objects, seed, gpu, model_path):
     max_episode = 100
     max_step = rows + cols
     prog = ProgressBar(0, max_episode)
-
+    
     
     for i_episode in xrange(max_episode):
+        state_list = []
         prog.update(i_episode)
-        #  print "=============================="
-        #  print "episode : ", i_episode
+        print "=============================="
+        print "episode : ", i_episode
         start, goal = set_start_and_goal(env)
         state_data = np.expand_dims(np.asarray(start), 0)
         state_data[0] = start
+        
+        state_list.append(start)
+        #  print "state_list : ", state_list
+
         env.set_goal(goal)
 
         image, reward_map = create_map_data(env, start, goal)
+        #  env.grid = np.zeros((rows, cols), dtype=np.float32)
+        #  image = env.grid
         input_data = create_input_data(image, reward_map)
 
-        env.show_objectworld()
+        #  env.show_objectworld()
 
         if gpu >= 0:
             input_data = cuda.to_gpu(input_data)
@@ -166,12 +191,16 @@ def main(rows, cols, n_objects, seed, gpu, model_path):
 
             state_data[0] = next_state
 
+            state_list.append(next_state)
+            #  print "state_list : ", state_list
+
             if done:
                 if reward == R_max:
                     success_times += 1
                 break
         if reward != R_max:
             failed_times += 1
+        view_traj(env, state_list)
     
     print "success_times : ", success_times
     print "failed_times : ", failed_times
