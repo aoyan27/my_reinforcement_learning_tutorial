@@ -49,8 +49,8 @@ def quaternion2euler(q):
 
 def create_input_image_and_relative_orientation_velocity\
         (env, state_list, orientation_list, action_list, n_agents, n_trajs):
-    print "state_list : ", state_list
-    print "orientation_list : ", orientation_list
+    #  print "state_list : ", state_list
+    #  print "orientation_list : ", orientation_list
     #  print "action_list : ", action_list
     domain_grid_list = {}
     domain_agent_grid_list = {}
@@ -73,8 +73,8 @@ def create_input_image_and_relative_orientation_velocity\
     start_orientation = {}
     action = {}
     for i_traj in xrange(n_trajs):
-        print "++++++++++++++++++++++++++++++++++++++++++++++++++"
-        print "i_traj : ", i_traj
+        #  print "++++++++++++++++++++++++++++++++++++++++++++++++++"
+        #  print "i_traj : ", i_traj
         traj_grid_list = {}
         traj_agent_grid_list = {}
         traj_another_agent_position_with_grid_list = {}
@@ -111,13 +111,13 @@ def create_input_image_and_relative_orientation_velocity\
             #  print "env.another_agent_position_with_grid[", agent_id, "] : "
             #  print env.another_agent_position_with_grid[agent_id]
         for i_step in xrange(max_step):
-            print "-----------------------------"
-            print "step : ", i_step
-            print "env.goal : ", env.goal
-            print "state : ", observation
-            print "env._orientation : ", env._orientation
-            print "env._orientation(quat) : ", euler2quaternion(0,0,env._orientation[0])
-            env.show_objectworld_with_state()
+            #  print "-----------------------------"
+            #  print "step : ", i_step
+            #  print "env.goal : ", env.goal
+            #  print "state : ", observation
+            #  print "env._orientation : ", env._orientation
+            #  print "env._orientation(quat) : ", euler2quaternion(0,0,env._orientation[0])
+            #  env.show_objectworld_with_state()
             #  print "env.grid : "
             #  print env.grid
             #  for agent_id in xrange(n_agents):
@@ -135,7 +135,7 @@ def create_input_image_and_relative_orientation_velocity\
                 traj_relative_orientation_list[agent_id].append(\
                         euler2quaternion(0.0, 0.0, env.relative_orientation[agent_id]))
 
-            print "env.relative_orientation : ", env.relative_orientation
+            #  print "env.relative_orientation : ", env.relative_orientation
 
             for agent_id in xrange(n_agents):
                 action[agent_id] = int(action_list[agent_id][i_traj][i_step])
