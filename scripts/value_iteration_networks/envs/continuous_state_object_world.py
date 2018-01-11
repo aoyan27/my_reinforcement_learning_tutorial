@@ -8,7 +8,7 @@ import copy
 class Objectworld:
 
     def __init__(self, rows, cols, cell_size, goal, R_max, noise, n_objects, seed=None, \
-            object_list=None, random_objects=True, start=[0,0], mode=0):
+            object_list=None, random_objects=True, start=[0,0], orientation=0.0, mode=0):
         np.random.seed(seed)
         
         self.mode = mode # mode=0 : 行動４パターン, mode=1 : 行動８パターン
@@ -16,8 +16,10 @@ class Objectworld:
         self.rows = rows
         self.cols = cols
         self.n_state = self.rows * self.cols
-        
+    
         self.cell_size = cell_size
+        self.goal_radius = 0.1
+        self.goal_distance = 0.0    
         
         self.R_max = R_max
 
@@ -38,6 +40,9 @@ class Objectworld:
         # y
 
         self.state_ = None
+        self.orientation_ = None
+        self.set_orientation(orientation)
+
         
         self.start = None
         self.start_index = None
@@ -55,20 +60,56 @@ class Objectworld:
         self.action_list = None
         self.n_action = 0
         self.dirs = {}
+        self.discreate_movement = {}
         self.set_action()
 
+        self.continuous_action_list = None
+        self.n_continuous_action = 0
+        self.velocity_vector = {}
+        self.set_continuous_action()
 
-        self.collisions_ = []
+        self.dt = 0.05
+
+        self.collision_ = False
+        self.out_of_range_ = False
     
     def set_action(self):
         if self.mode == 0:    # mode=0 : 行動4パターン
             self.action_list = [0, 1, 2, 3, 4]
             self.n_action = len(self.action_list)
-            self.dirs = {0: '>', 1: '<', 2: 'v', 3: '^', 4: '-'}
+            self.dirs = {0: '>', 1: 'v', 2: '<', 3: '^', 4: '-'}
+            self.discreate_movement = {0: [0, 1], 1: [1, 0], 2: [0, -1], 3: [-1, 0], 4: [0, 0]}
         elif self.mode == 1:    # mode=1 : 行動8パターン
             self.action_list = [0, 1, 2, 3, 4, 5, 6, 7, 8]
             self.n_action = len(self.action_list)
-            self.dirs = {0: '>', 1: '<', 2: 'v', 3: '^', 4: 'ur', 5: 'ul', 6: 'dr', 7: 'dl', 8: '-'}
+            self.dirs = \
+                    {0: '>', 1: 'dr', 2: 'v', 3: 'dl', 4: '<', 5: 'ul', 6: '^', 7: 'ur', 8: '-'}
+            self.discreate_movement \
+                    = {0: [0, 1], 1: [1, 1], 2: [1, 0], 3: [1, -1], 4: [0, -1], \
+                       5: [-1, -1], 6: [-1, 0], 7: [-1, 1], 8: [0, 0]}
+
+    def set_continuous_action(self):
+        self.continuous_action_list = [0, 1, 2, 3, 4, 5, 6, 7]
+        self.n_continuous_action = len(self.continuous_action_list)
+        self.velocity_vector \
+                = {0: [0.1, -10.0], 1: [0.3, -5.0], 2: [0.5, -2.5], \
+                   3: [0.6, 0.0], \
+                   4: [0.5, 2.5], 5: [0.3, 5.0], 6: [0.1, 10.0], \
+                   7: [0.0, 0.0]}
+
+
+    def set_orientation(self, orientation):
+        self.orientation_ = orientation
+
+    def set_orientation_random(self, orientation_list=None):
+        if orientation_list is None:
+            self.orientation_ = np.random.rand() * 2.0*math.pi - math.pi
+            #  print "self.orientation_ : ", self.orientation_
+        else:
+            #  print "orientation_list : ", orientation_list
+            self.orientation_ = math.radians(np.random.choice(orientation_list, 1))
+            #  print "self.orientation___ : ", self.orientation_
+            #  print "self.orientation__ : ", math.radians(self.orientation_)
     
     def set_start(self, start):
         self.start = start
@@ -77,44 +118,43 @@ class Objectworld:
     def set_start_random(self, check_goal=False):
         start = None
         if not check_goal:
-            self.start_index = \
-                    np.random.choice(xrange(self.n_state), 1, replace=False)
-            #  print "self.start_index : ", self.start_index
+            x = round(np.random.rand()*self.rows*self.cell_size, 3)
+            y = round(np.random.rand()*self.cols*self.cell_size, 3)
+            start = [y, x]
         else:
             while 1:
-                self.start_index = \
-                        np.random.choice(xrange(self.n_state), 1, replace=False)
-                if tuple(self.start_index) != tuple(self.goal_index) \
-                        and self.grid[tuple(self.index2state(self.start_index))] != -1:
+                x = round(np.random.rand()*self.rows*self.cell_size, 3)
+                y = round(np.random.rand()*self.cols*self.cell_size, 3)
+                start = [y, x]
+                discreate_start = self.continuous2discreate(start[0], start[1])
+                if start != self.goal and self.grid[discreate_start] != -1:
                     break
 
-        start = self.index2state(self.start_index)
         self.set_start(start)
         #  print "self.start", self.start
 
     def set_goal(self, goal):
         self.goal = goal
-        self.grid[tuple(self.goal)] = self.R_max
+        discreate_goal = self.continuous2discreate(self.goal[0], self.goal[1])
+        self.grid[discreate_goal] = self.R_max
 
     def set_goal_random(self, check_start=True):
         goal = None
         if check_start:
             while 1:
-                self.goal_index = \
-                        np.random.choice(xrange(self.n_state), 1, replace=False)
-                #  print "self.goal_index : ", self.goal_index
-                if tuple(self.start_index) != tuple(self.goal_index) \
-                        and self.grid[tuple(self.index2state(self.goal_index))] != -1:
+                x = round(np.random.rand()*self.rows*self.cell_size, 3)
+                y = round(np.random.rand()*self.cols*self.cell_size, 3)
+                goal = [y, x]
+                discreate_goal = self.continuous2discreate(goal[0], goal[1])
+                if goal != self.start and self.grid[discreate_goal] != -1:
                     break
         else:
-            self.goal_index = \
-                    np.random.choice(xrange(self.n_state), 1, replace=False)
-            #  print "self.goal_index : ", self.goal_index
+            x = round(np.random.rand()*self.rows*self.cell_size, 3)
+            y = round(np.random.rand()*self.cols*self.cell_size, 3)
+            goal = [y, x]
 
-        goal = self.index2state(self.goal_index)
         self.set_goal(goal)
         #  print "self.goal", self.goal
-
 
     def set_objects(self, n_objects_random=True):
         self.objects = []
@@ -132,8 +172,10 @@ class Objectworld:
                 #  print " i : ", i
                 y = np.random.randint(0, self.rows)
                 x = np.random.randint(0, self.cols)
-                if (y, x) != tuple(self.start) \
-                        and (y, x) != tuple(self.goal)\
+                discreate_start = self.continuous2discreate(self.start[0], self.start[1])
+                discreate_goal = self.continuous2discreate(self.goal[0], self.goal[1])
+                if (y, x) != discreate_start \
+                        and (y, x) != discreate_goal\
                         and self.grid[y, x] != -1:
                     self.objects.append((y, x))
                     self.grid[y, x] = -1
@@ -152,14 +194,19 @@ class Objectworld:
             print "|"
 
     def show_objectworld_with_state(self):
-        grid = copy.deepcopy(self.grid)
-        grid[tuple(self.goal)] = 9
+        vis_grid = np.asarray(['-']*self.n_state).reshape(self.grid.shape)
+        obstacle_index = np.where(self.grid == -1)
+        vis_grid[obstacle_index] = '#'
+        
+        discreate_goal = self.continuous2discreate(self.goal[0], self.goal[1])
+        vis_grid[discreate_goal] = 'G'
         if self.state_ != None:
-            grid[tuple(self.state_)] = 1
-        for row in grid:
+            discreate_state = self.continuous2discreate(self.state_[0], self.state_[1])
+            vis_grid[discreate_state] = '$'
+        for row in vis_grid:
             print "|",
             for i in row:
-                print "%2d" % i,
+                print "%c" % i,
             print "|"
 
     def state2index(self, state):
@@ -179,58 +226,9 @@ class Objectworld:
             grid_range = [self.rows, self.cols]
         y, x = state
         next_y, next_x = state
-        
-        if self.mode == 0:
-            if action == 0:
-                #  right
-                next_x = x + reflect*1
-            elif action == 1:
-                #  left
-                next_x = x - reflect*1
-            elif action == 2:
-                #  down
-                next_y = y + reflect*1
-            elif action == 3:
-                #  up
-                next_y = y - reflect*1
-            else:
-                #  stay
-                next_x = x
-                next_y = y
-        elif self.mode == 1:
-            if action == 0:
-                #  right
-                next_x = x + reflect*1
-            elif action == 1:
-                #  left
-                next_x = x - reflect*1
-            elif action == 2:
-                #  down
-                next_y = y + reflect*1
-            elif action == 3:
-                #  up
-                next_y = y - reflect*1
-            elif action == 4:
-                # upper right
-                next_x = x + reflect*1
-                next_y = y - reflect*1
-            elif action == 5:
-                # upper left
-                next_x = x - reflect*1
-                next_y = y - reflect*1
-            elif action == 6:
-                # down right
-                next_x = x + reflect*1
-                next_y = y + reflect*1
-            elif action == 7:
-                # down left
-                next_x = x - reflect*1
-                next_y = y + reflect*1
-            else:
-                #  stay
-                next_x = x
-                next_y = y
-                 
+
+        next_y = y + reflect*self.discreate_movement[action][0]
+        next_x = x + reflect*self.discreate_movement[action][1]
         
         out_of_range = False
         if next_y < 0 or (grid_range[0]-1) < next_y:
@@ -254,73 +252,54 @@ class Objectworld:
 
         return [next_y, next_x], out_of_range, collision
 
-    def get_next_state_and_probs(self, state, action):
-        transition_probability = 1 - self.noise
-        probs = np.zeros([self.n_action])
-        probs[int(action)] = transition_probability
-        probs += self.noise / self.n_action
-        #  print "probs : "
-        #  print probs
-        next_state_list = []
-        next_collision_list = []
+    def continuous2discreate(self, continuous_y, continuous_x):
+        discreate_y = int(continuous_y / self.cell_size)
+        discreate_x = int(continuous_x / self.cell_size)
+        return discreate_y, discreate_x
 
-        for a in xrange(self.n_action):
-            if state != self.goal:
-                #  print "state : ", state
-                next_state, out_of_range, collision = self.move(state, a)
-                next_collision_list.append(collision)
-                self.collisions_ = next_collision_list
-                #  print "next_state() : "
-                #  print next_state
-                next_state_list.append(next_state)
 
-                if out_of_range:
-                    probs[self.n_action-1] += probs[a]
-                    probs[a] = 0
-                #  if collision:
-                    #  probs[self.n_action-1] += probs[a]
-                    #  probs[a] = 0
-            else:
-                next_state = state
-                #  print "probs[", a, "] : ", probs[a]
-                if a != self.n_action-1:
-                    probs[self.n_action-1] += probs[a]
-                    probs[a] = 0
-                next_state_list.append(next_state)
-                #  print "next_state_ : "
-                #  print next_state
+    def continuous_move(self, state, orientation, action, grid_range=None):
+        if grid_range is None:
+            grid_range = [self.rows, self.cols]
 
-        #  print "next_state_list : "
-        #  print next_state_list
-            
-        #  print "probs_ : "
-        #  print probs
+        y, x = state
+        next_y, next_x = state
+        yaw = orientation
+        next_yaw = orientation
 
-        return next_state_list, probs
-    
-    def get_transition_matrix(self):
-        P = np.zeros((self.n_state, self.n_state, self.n_action), dtype=np.float32)
-        for state_index in xrange(self.n_state):
-            state = self.index2state(state_index)
-            #  print "state : ", state
-            for action_index in xrange(self.n_action):
-                action = self.action_list[action_index]
-                #  print "action : ", action
+        linear = self.velocity_vector[action][0]
+        angular = self.velocity_vector[action][1]
+        
+        next_yaw = yaw + angular*self.dt
+        print "next_yaw : ", next_yaw
 
-                next_state_list, probs = self.get_next_state_and_probs(state, action)
-                #  print "next_state_list : ", next_state_list
-                #  print "probs : ", probs
-                for i in xrange(len(probs)):
-                    next_state = next_state_list[i]
-                    #  print "next_state : ", next_state
-                    next_state_index = self.state2index(next_state)
-                    probability = probs[i]
-                    #  print "probability : ", probability
-                    P[state_index, next_state_index, action_index] = probability
-        #  print "P : "
-        #  print P
-        #  print P.shape
-        return P
+        next_y = y + linear*math.sin(next_yaw)*self.dt
+        next_x = x + linear*math.cos(next_yaw)*self.dt
+        print "[next_y, next_x] :[ ", next_y, next_x, "]"
+
+        out_of_range = False
+        if next_y < 0*self.cell_size or (grid_range[0]-1)*self.cell_size < next_y:
+            #  print "y, out_of_range!!!!"
+            next_y = y
+            out_of_range = True
+
+        if next_x < 0*self.cell_size or (grid_range[1]-1)*self.cell_size < next_x:
+            #  print "x, out of range!!!!!"
+            next_x = x
+            out_of_range = True
+
+        collision = False
+        next_discreate_y, next_discreate_x = self.continuous2discreate(next_y, next_x)
+        if self.grid[next_discreate_y, next_discreate_x] == -1:
+            #  print "collision!!!!!"
+            collision = True
+            #  if action == 0 or action == 1:
+                #  next_x = x
+            #  elif action == 2 or action == 3:
+                #  next_y = y
+        
+        return [next_y, next_x], orientation, out_of_range, collision
+
 
     def show_policy(self, policy, deterministic=True):
         vis_policy = np.array([])
@@ -344,64 +323,72 @@ class Objectworld:
                     print vis_policy[y, x],
             print "|"
 
-    def terminal(self, state, index):
-        episode_end = False
-        if state == self.goal or self.collisions_[index]:
-        #  if state == self.goal:
-            episode_end = True
-
-        return episode_end
-
     def reset(self, start_position=[0,0]):
         self.state_ = start_position
         return self.state_
 
-    def step(self, action, reward_map=None):
-        next_state_list, probs = self.get_next_state_and_probs(self.state_, action)
-        #  print "next_state_list : ", next_state_list
-        #  print "probs : ", probs
-        random_num = np.random.rand()
-        #  print "random_num : ", random_num
-        index = 0
-        for i in xrange(len(probs)):
-            random_num -= probs[i]
-            #  print "random_num_ : ", random_num
-            if random_num < 0:
-                index = i
-                break
-        #  print "index : ", index
-        #  print "next_state : ", next_state_list[index]
+    def terminal(self, reward):
+        episode_end = False
+        if reward != 0.0 or self.out_of_range_:
+            episode_end = True
 
-        self.state_ = next_state_list[index]
-        #  print "self.satte_ : ", self.state_
+        return episode_end
 
-        reward = None
-        if reward_map is None:
-            if self.state_ == self.goal:
-                reward = self.R_max
-            else:
-                reward = 0
-        else:
-            reward = reward_map[self.state2index(self.state_)]
-            #  print "reward : ", reward
+    def get_reward(self):
+        reward = 0.0
+        tmp = np.asarray(self.goal) - np.asarray(self.state_ )
+        self.goal_distance = np.sum(tmp**2)
+        print "self.goal_distance : ", self.goal_distance
+        if self.goal_distance <= self.goal_radius:
+            reward = self.R_max
 
-        episode_end = self.terminal(self.state_, index)
+        if self.collision_:
+            reward = -1.0
 
-        return self.state_, reward, episode_end, \
-                {'probs':probs, 'random_num':random_num, 'collison': self.collisions_[index]}
+        return reward
+
+    
+    def step(self, continuous_action):
+        next_state, next_orientation, out_of_range, collision \
+                = self.continuous_move(self.state_, self.orientation_, continuous_action)
+        print "next_state : ", next_state
+        print "next_orientation : ", next_orientation
+        print "out_of_range : ", out_of_range
+        print "collision : ", collision
+
+        self.state_ = next_state
+        print "self.satte_ : ", self.state_
+        self.orientation_ = next_orientation
+        print "self.orientation_ : ", next_orientation
+        self.collision_ = collision
+        self.out_of_range_ = out_of_range
+
+        reward = self.get_reward()
+        episode_end = self.terminal()
+
+        return self.state_, self.orientation_, reward, episode_end, \
+                {'goal_distance': self.goal_distance, \
+                 'collison': self.collision_, 'out_of_range': self.out_of_range}
 
 
 if __name__ == "__main__":
-    rows = 5
-    cols = 5
-    goal = [rows-1, cols-1]
+    height = 5    #  単位[m]
+    width = 5    #  単位[m]
+    cell_size = 0.25
+
+    rows = int(height / cell_size)
+    cols = int(width / cell_size)
+    print "rows, cols : ", rows, cols
+
+    goal = [4.0, 4.0]
 
     R_max = 1.0
     noise = 0.0
-    n_objects = 5
+    n_objects = 50
     seed = 1
     
-    env = Objectworld(rows, cols, goal, R_max, noise, n_objects, seed, mode=1)
+
+    env = Objectworld(rows, cols, cell_size, goal, R_max, noise, n_objects, seed, mode=1)
     
     print "env.state_ : ", env.state_
     print "env.start : ", env.start
@@ -411,7 +398,11 @@ if __name__ == "__main__":
     
     for i in xrange(10):
         env.set_start_random()
+        #  env.set_start_random(check_goal=True)
+        print "env.start : ", env.start
         env.set_goal_random()
+        #  env.set_goal_random(check_start=False)
+        print "env.goal : ", env.goal
         env.set_objects()
         print "env.grid : "
         #  env.show_objectworld()
