@@ -4,6 +4,7 @@
 import numpy as np
 
 import copy
+import math
 
 class Objectworld:
 
@@ -271,7 +272,7 @@ class Objectworld:
         angular = self.velocity_vector[action][1]
         
         next_yaw = yaw + angular*self.dt
-        print "next_yaw : ", next_yaw
+        print "next_yaw : ", math.degrees(next_yaw)
 
         next_y = y + linear*math.sin(next_yaw)*self.dt
         next_x = x + linear*math.cos(next_yaw)*self.dt
@@ -323,9 +324,18 @@ class Objectworld:
                     print vis_policy[y, x],
             print "|"
 
-    def reset(self, start_position=[0,0]):
-        self.state_ = start_position
-        return self.state_
+    def reset(self, start_position=[0.0,0.0], start_orientation=0.0, \
+            orientation_list=None, random=False):
+        if not random:
+            self.state_ = start_position
+            self.orientation_ = start_orientation
+        else:
+            self.set_orientation_random(orientation_list=orientation_list)
+            self.set_start_random()
+            self.set_goal_random()
+            self.state_ = self.start
+
+        return self.state_, self.orientation_
 
     def terminal(self, reward):
         episode_end = False
@@ -364,11 +374,11 @@ class Objectworld:
         self.out_of_range_ = out_of_range
 
         reward = self.get_reward()
-        episode_end = self.terminal()
+        episode_end = self.terminal(reward)
 
         return self.state_, self.orientation_, reward, episode_end, \
                 {'goal_distance': self.goal_distance, \
-                 'collison': self.collision_, 'out_of_range': self.out_of_range}
+                 'collison': self.collision_, 'out_of_range': self.out_of_range_}
 
 
 if __name__ == "__main__":
@@ -396,48 +406,55 @@ if __name__ == "__main__":
     print "env.grid : "
     env.show_objectworld_with_state()
     
-    for i in xrange(10):
-        env.set_start_random()
-        #  env.set_start_random(check_goal=True)
-        print "env.start : ", env.start
-        env.set_goal_random()
-        #  env.set_goal_random(check_start=False)
-        print "env.goal : ", env.goal
-        env.set_objects()
-        print "env.grid : "
-        #  env.show_objectworld()
-        env.show_objectworld_with_state()
+    #  for i in xrange(10):
+        #  env.set_start_random()
+        #  #  env.set_start_random(check_goal=True)
+        #  print "env.start : ", env.start
+        #  env.set_goal_random()
+        #  #  env.set_goal_random(check_start=False)
+        #  print "env.goal : ", env.goal
+        #  env.set_objects()
+        #  print "env.grid : "
+        #  #  env.show_objectworld()
+        #  env.show_objectworld_with_state()
 
-    #  print "env.n_state : ", env.n_state
-    #  print "env.n_action : ", env.n_action
+    print "env.n_state : ", env.n_state
+    print "env.n_action : ", env.n_action
+    print "env.n_continuous_action : ", env.n_continuous_action
 
     #  reward_map = env.grid.transpose().reshape(-1)
     #  print "reward_map : "
     #  print reward_map
     
-    #  max_episode = 1
-    #  max_step = 100
+    max_episode = 1
+    max_step = 100
 
-    #  for i in xrange(max_episode):
-        #  print "==========================="
-        #  print "episode : ", i
-        #  observation = env.reset()
-        #  for j in xrange(max_step):
-            #  print "----------------------"
-            #  print "step : ", j
-            #  state = observation
-            #  print "state : ", state
-            #  env.show_objectworld_with_state()
+    for i in xrange(max_episode):
+        print "==========================="
+        print "episode : ", i
+        position, yaw = env.reset()
+        for j in xrange(max_step):
+            print "----------------------"
+            print "step : ", j
+            state = position
+            orientation = yaw
+            print "state : ", state
+            print "orientation : ", orientation
+            env.show_objectworld_with_state()
             #  action = env.get_action_sample()
             #  print "action : ", action, env.dirs[action]
+            action = 5
+            print "action : ", action
 
-            #  observation, reward, done, info = env.step(action, reward_map)
-            #  next_state = observation
-            #  print "observation : ", observation
-            #  print "next_state : ", next_state
-            #  print "reward : ", reward
-            #  print "episode_end : ", done
-            #  print "info : ", info
+            position, yaw, reward, done, info = env.step(action)
+            next_state = position
+            next_orientaiton = yaw
 
-            #  if done:
-                #  break
+            print "next_state : ", next_state
+            print "bext_orientation : ", next_orientaiton
+            print "reward : ", reward
+            print "episode_end : ", done
+            print "info : ", info
+
+            if done:
+                break
