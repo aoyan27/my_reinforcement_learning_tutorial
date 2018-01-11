@@ -163,12 +163,15 @@ if __name__ == "__main__":
     import sys
     sys.path.append('../')
     from envs.object_world import Objectworld
+    #  from envs.continuous_state_object_world import Objectworld
+
     rows = cols = 50
+    cell_size = 0.25
     goal = [rows-1, cols-1]
 
     R_max = 1.0
     noise = 0.0
-    n_objects = 500
+    n_objects = 1000
     seed = 1
     
     object_list = [
@@ -178,6 +181,7 @@ if __name__ == "__main__":
     #  env = Objectworld(rows, cols, goal, R_max, noise, n_objects, seed, object_list=object_list, random_objects=False, mode=0)
     #  env = Objectworld(rows, cols, goal, R_max, noise, n_objects, seed, object_list=object_list, random_objects=False, mode=1)
     env = Objectworld(rows, cols, goal, R_max, noise, n_objects, seed, mode=1)
+    #  env = Objectworld(rows, cols, cell_size, goal, R_max, noise, n_objects, seed, mode=1)
 
     #  print "env.grid : "
     #  env.show_objectworld()
@@ -188,7 +192,7 @@ if __name__ == "__main__":
 
     #  start_position = [0, 0]
     #  a_agent.a_star(start_position)
-    while i < 1:
+    while i < 10:
         print "i : ", i
         env.set_objects()
         print "env.grid : "
