@@ -2,9 +2,12 @@
 #coding:utf-8
 
 import numpy as np
-
+import matplotlib.pyplot as plt
+import matplotlib.patches as patches
 import copy
 import math
+
+import time
 
 class Objectworld:
 
@@ -73,6 +76,77 @@ class Objectworld:
 
         self.collision_ = False
         self.out_of_range_ = False
+
+
+        self.fig = plt.figure()
+        self.ax = self.fig.add_subplot(1, 1, 1)
+        self.continuous_x_list = []
+        self.continuous_y_list = []
+
+
+    def show_continuous_objectworld(self):
+        start_time = time.time()
+
+        self.ax.cla()
+        
+        y = self.state_[0]
+        x = self.state_[1]
+        theta = self.orientation_
+
+        height, width = self.discreate2continuous(self.rows, self.cols)
+
+        self.ax.set_ylim([0, height])
+        self.ax.set_xlim([0, width])
+
+        self.ax.set_xticks(np.arange(0, height, self.cell_size))
+        self.ax.set_yticks(np.arange(0, width, self.cell_size))
+
+        gca = plt.gca()
+        gca.invert_yaxis()
+
+        self.ax.set_xlabel('x')
+        self.ax.set_ylabel('y')
+        
+        self.ax.set_title('Continuous Object World')
+
+        self.ax.grid(True)
+
+        #  障害物エリアを生成
+        tmp_objects = np.asarray(copy.deepcopy(self.objects)).transpose(1, 0)
+        objects_continuous_y, objects_continuous_x \
+                = self.discreate2continuous(tmp_objects[0], tmp_objects[1])
+        #  objects_continuous_y += self.cell_size / 2.0
+        #  objects_continuous_x += self.cell_size / 2.0
+        #  self.ax.scatter(objects_continuous_x, objects_continuous_y, s=100, \
+                #  color="pink", alpha=0.5, linewidths="2", edgecolors="red")
+
+        object_rectangles = [patches.Rectangle(xy=[obs_x, obs_y], \
+                width=self.cell_size, height=self.cell_size, \
+                facecolor='pink', alpha=0.5, linewidth="2", edgecolor="red") \
+                for (obs_x, obs_y) in zip(objects_continuous_x, objects_continuous_y)]
+        for r in object_rectangles:
+            self.ax.add_patch(r)
+
+        #  ゴールエリアを生成
+        c = patches.Circle(xy=(self.goal[1], self.goal[0]), radius=self.goal_radius, \
+                facecolor='indigo', edgecolor='indigo', alpha=0.5)
+        self.ax.add_patch(c)
+
+        #  現在のエージェントの位置と方位を生成
+        self.ax.scatter(x, y, color="red", linewidths="2", edgecolors="red")
+        self.ax.plot([x, x+0.15*math.cos(theta)], [y, y+0.15*math.sin(theta)], \
+                color='green', linewidth="3") 
+        #  エージェントの軌道を生成
+        self.continuous_x_list.append(x)
+        self.continuous_y_list.append(y)
+        self.ax.plot(self.continuous_x_list, self.continuous_y_list, color='blue')
+
+        elapsed_time = time.time() - start_time
+        print ("elapsed_time:{0}".format(elapsed_time) + "[sec]")
+
+        plt.pause(.05)
+
+
     
     def set_action(self):
         if self.mode == 0:    # mode=0 : 行動4パターン
@@ -219,8 +293,16 @@ class Objectworld:
         state[1] = index / self.cols
         return state
 
-    def get_action_sample(self):
-        return np.random.randint(self.n_action)
+    def get_action_sample(self, continuous=True):
+        action = None
+        if not continuous:
+            action = np.random.randint(self.n_action)
+            print "action(discreate) : ", action, self.dirs[action]
+            return action
+        else:
+            action = np.random.randint(self.n_continuous_action)
+            print "action(continuous) : ", action, self.velocity_vector[action]
+            return action
 
     def move(self, state, action, grid_range=None, reflect=1):
         if grid_range is None:
@@ -253,6 +335,11 @@ class Objectworld:
 
         return [next_y, next_x], out_of_range, collision
 
+    def discreate2continuous(self, discreate_y, discreate_x):
+        continuous_y = discreate_y * self.cell_size
+        continuous_x = discreate_x * self.cell_size
+        return continuous_y, continuous_x
+
     def continuous2discreate(self, continuous_y, continuous_x):
         discreate_y = int(continuous_y / self.cell_size)
         discreate_x = int(continuous_x / self.cell_size)
@@ -270,7 +357,7 @@ class Objectworld:
 
         linear = self.velocity_vector[action][0]
         angular = self.velocity_vector[action][1]
-        
+        print "yaw : ", math.degrees(yaw)
         next_yaw = yaw + angular*self.dt
         print "next_yaw : ", math.degrees(next_yaw)
 
@@ -299,7 +386,7 @@ class Objectworld:
             #  elif action == 2 or action == 3:
                 #  next_y = y
         
-        return [next_y, next_x], orientation, out_of_range, collision
+        return [next_y, next_x], next_yaw, out_of_range, collision
 
 
     def show_policy(self, policy, deterministic=True):
@@ -326,6 +413,8 @@ class Objectworld:
 
     def reset(self, start_position=[0.0,0.0], start_orientation=0.0, \
             orientation_list=None, random=False):
+        self.continuous_x_list = []
+        self.continuous_y_list = []
         if not random:
             self.state_ = start_position
             self.orientation_ = start_orientation
@@ -382,15 +471,15 @@ class Objectworld:
 
 
 if __name__ == "__main__":
-    height = 5    #  単位[m]
-    width = 5    #  単位[m]
+    height = 10    #  単位[m]
+    width = 10    #  単位[m]
     cell_size = 0.25
 
     rows = int(height / cell_size)
     cols = int(width / cell_size)
     print "rows, cols : ", rows, cols
 
-    goal = [4.0, 4.0]
+    goal = [2.5, 2.5]
 
     R_max = 1.0
     noise = 0.0
@@ -422,17 +511,13 @@ if __name__ == "__main__":
     print "env.n_action : ", env.n_action
     print "env.n_continuous_action : ", env.n_continuous_action
 
-    #  reward_map = env.grid.transpose().reshape(-1)
-    #  print "reward_map : "
-    #  print reward_map
-    
     max_episode = 1
     max_step = 100
 
     for i in xrange(max_episode):
         print "==========================="
         print "episode : ", i
-        position, yaw = env.reset()
+        position, yaw = env.reset(random=True)
         for j in xrange(max_step):
             print "----------------------"
             print "step : ", j
@@ -441,10 +526,9 @@ if __name__ == "__main__":
             print "state : ", state
             print "orientation : ", orientation
             env.show_objectworld_with_state()
+            env.show_continuous_objectworld()
             #  action = env.get_action_sample()
-            #  print "action : ", action, env.dirs[action]
-            action = 5
-            print "action : ", action
+            action = env.get_action_sample(continuous=True)
 
             position, yaw, reward, done, info = env.step(action)
             next_state = position
