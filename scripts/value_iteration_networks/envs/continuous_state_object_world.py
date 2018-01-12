@@ -58,6 +58,7 @@ class Objectworld:
 
         self.n_objects = n_objects
         self.objects = []
+        self.continuous_objects = []
         self.set_objects(n_objects_random=False)
         
 
@@ -84,7 +85,7 @@ class Objectworld:
         self.continuous_y_list = []
 
 
-    def show_continuous_objectworld(self):
+    def show_continuous_objectworld(self, global_path=None, local_path=None, selected_path=None):
         start_time = time.time()
 
         self.ax.cla()
@@ -112,11 +113,7 @@ class Objectworld:
         self.ax.grid(True)
 
         #  障害物エリアを生成
-        tmp_objects = np.asarray(copy.deepcopy(self.objects)).transpose(1, 0)
-        objects_continuous_y, objects_continuous_x \
-                = self.discreate2continuous(tmp_objects[0], tmp_objects[1])
-        objects_continuous_y += self.cell_size / 2.0
-        objects_continuous_x += self.cell_size / 2.0
+        objects_continuous_x, objects_continuous_y = self.continuous_objects.transpose(1, 0)
         #  self.ax.scatter(objects_continuous_x, objects_continuous_y, s=100, \
                 #  color="pink", alpha=0.5, linewidths="2", edgecolors="red")
 
@@ -138,8 +135,25 @@ class Objectworld:
                 facecolor='indigo', edgecolor='indigo', alpha=0.5)
         self.ax.add_patch(c)
 
+
+        #  global_pathを生成
+        if global_path is not None:
+            tmp_global_path = np.asarray(copy.deepcopy(global_path)).transpose(1, 0)
+            self.ax.plot(tmp_global_path[1], tmp_global_path[0], color='darkorange')
+
+        #  local_pathの候補を生成
+        if local_path is not None:
+            for i in xrange(len(local_path)):
+                tmp_local_path = np.asarray(copy.deepcopy(local_path[i])).transpose(1, 0)
+                self.ax.plot(tmp_local_path[1], tmp_local_path[0], color='aqua')
+
+        #  selected_pathを生成
+        if selected_path is not None:
+            tmp_selected_path = np.asarray(copy.deepcopy(selected_path)).transpose(1, 0)
+            self.ax.plot(tmp_selected_path[1], tmp_selected_path[0], color='red')
+
         #  現在のエージェントの位置と方位を生成
-        self.ax.scatter(x, y, color="red", linewidths="2", edgecolors="red")
+        self.ax.scatter(x, y, s=20, color="darkviolet", linewidths="2", edgecolors="darkviolet")
         self.ax.plot([x, x+0.15*math.cos(theta)], [y, y+0.15*math.sin(theta)], \
                 color='green', linewidth="3") 
         #  エージェントの軌道を生成
@@ -150,7 +164,8 @@ class Objectworld:
         elapsed_time = time.time() - start_time
         print ("elapsed_time:{0}".format(elapsed_time) + "[sec]")
 
-        plt.pause(.05)
+        plt.pause(0.05)
+        #  plt.show()
 
 
     
@@ -170,13 +185,19 @@ class Objectworld:
                        5: [-1, -1], 6: [-1, 0], 7: [-1, 1], 8: [0, 0]}
 
     def set_continuous_action(self):
-        self.continuous_action_list = [0, 1, 2, 3, 4, 5, 6, 7]
+        #  self.continuous_action_list = [0, 1, 2, 3, 4, 5, 6, 7]
+        self.continuous_action_list = [0, 1, 2, 3, 4, 5, 6]
         self.n_continuous_action = len(self.continuous_action_list)
+        #  self.velocity_vector \
+                #  = {0: [0.1, -10.0], 1: [0.3, -5.0], 2: [0.5, -2.5], \
+                   #  3: [0.6, 0.0], \
+                   #  4: [0.5, 2.5], 5: [0.3, 5.0], 6: [0.1, 10.0], \
+                   #  7: [0.0, 0.0]}
+
         self.velocity_vector \
-                = {0: [0.1, -10.0], 1: [0.3, -5.0], 2: [0.5, -2.5], \
-                   3: [0.6, 0.0], \
-                   4: [0.5, 2.5], 5: [0.3, 5.0], 6: [0.1, 10.0], \
-                   7: [0.0, 0.0]}
+                = {0: [0.5, -3.0], 1: [0.75, -2.5], 2: [1.0, -1.0], \
+                   3: [1.2, 0.0], \
+                   4: [1.0, 1.0], 5: [0.75, 2.5], 6: [0.5, 3.0]}
 
 
     def set_orientation(self, orientation):
@@ -265,6 +286,15 @@ class Objectworld:
         else:
             self.objects = self.object_list
         #  print self.objects
+
+        tmp_objects = np.asarray(copy.deepcopy(self.objects)).transpose(1, 0)
+        objects_continuous_y, objects_continuous_x \
+                = self.discreate2continuous(tmp_objects[0], tmp_objects[1])
+        objects_continuous_y += self.cell_size / 2.0
+        objects_continuous_x += self.cell_size / 2.0
+        self.continuous_objects \
+                = np.array([objects_continuous_y, objects_continuous_x]).transpose(1, 0)
+
 
     def show_objectworld(self):
         grid_world = copy.deepcopy(self.grid)
@@ -363,23 +393,25 @@ class Objectworld:
 
         linear = self.velocity_vector[action][0]
         angular = self.velocity_vector[action][1]
-        print "yaw : ", math.degrees(yaw)
+        #  print "yaw : ", math.degrees(yaw)
         next_yaw = yaw + angular*self.dt
-        print "next_yaw : ", math.degrees(next_yaw)
+        #  print "next_yaw : ", math.degrees(next_yaw)
 
         next_y = y + linear*math.sin(next_yaw)*self.dt
         next_x = x + linear*math.cos(next_yaw)*self.dt
-        print "[next_y, next_x] :[ ", next_y, next_x, "]"
+        #  print "[next_y, next_x] :[ ", next_y, next_x, "]"
 
         out_of_range = False
         if next_y < 0*self.cell_size or (grid_range[0]-1)*self.cell_size < next_y:
             #  print "y, out_of_range!!!!"
             next_y = y
+            next_yaw = yaw
             out_of_range = True
 
         if next_x < 0*self.cell_size or (grid_range[1]-1)*self.cell_size < next_x:
             #  print "x, out of range!!!!!"
             next_x = x
+            next_yaw = yaw
             out_of_range = True
 
         collision = False
@@ -389,7 +421,7 @@ class Objectworld:
                     = self.discreate2continuous(next_discreate_y, next_discreate_x)
             continuous_obs_y += self.cell_size / 2.0
             continuous_obs_x += self.cell_size / 2.0
-            print "math.sqrt((next_y-continuous_obs_y)**2 + (next_x-continuous_obs_x)**2) : ", math.sqrt((next_y-continuous_obs_y)**2 + (next_x-continuous_obs_x)**2)
+
             if math.sqrt((next_y-continuous_obs_y)**2 + (next_x-continuous_obs_x)**2) \
                     <= self.cell_size/2.0:
                 #  print "collision!!!!!"
@@ -450,7 +482,7 @@ class Objectworld:
         reward = 0.0
         tmp = np.asarray(self.goal) - np.asarray(self.state_ )
         self.goal_distance = np.sum(tmp**2)
-        print "self.goal_distance : ", self.goal_distance
+        #  print "self.goal_distance : ", self.goal_distance
         if self.goal_distance <= self.goal_radius:
             reward = self.R_max
 
@@ -463,15 +495,15 @@ class Objectworld:
     def step(self, continuous_action):
         next_state, next_orientation, out_of_range, collision \
                 = self.continuous_move(self.state_, self.orientation_, continuous_action)
-        print "next_state : ", next_state
-        print "next_orientation : ", next_orientation
-        print "out_of_range : ", out_of_range
-        print "collision : ", collision
+        #  print "next_state : ", next_state
+        #  print "next_orientation : ", next_orientation
+        #  print "out_of_range : ", out_of_range
+        #  print "collision : ", collision
 
         self.state_ = next_state
-        print "self.satte_ : ", self.state_
+        #  print "self.satte_ : ", self.state_
         self.orientation_ = next_orientation
-        print "self.orientation_ : ", next_orientation
+        #  print "self.orientation_ : ", next_orientation
         self.collision_ = collision
         self.out_of_range_ = out_of_range
 
@@ -496,16 +528,16 @@ if __name__ == "__main__":
 
     R_max = 1.0
     noise = 0.0
-    n_objects = 500
+    n_objects = 50
     seed = 1
     
 
     env = Objectworld(rows, cols, cell_size, goal, R_max, noise, n_objects, seed, mode=1)
     
-    print "env.state_ : ", env.state_
-    print "env.start : ", env.start
-    print "env.goal : ", env.goal
-    print "env.grid : "
+    #  print "env.state_ : ", env.state_
+    #  print "env.start : ", env.start
+    #  print "env.goal : ", env.goal
+    #  print "env.grid : "
     env.show_objectworld_with_state()
     
     #  for i in xrange(10):

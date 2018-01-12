@@ -118,7 +118,7 @@ class AstarAgent:
             self.policy.fill(stay_action)
             discreate_goal \
                     = self.env.continuous2discreate(self.env.goal[0], self.env.goal[1])
-            state = discreate_goal
+            state = list(discreate_goal)
             self.state_list.append(state)
             self.shortest_action_list.append(self.policy[tuple(state)])
             
