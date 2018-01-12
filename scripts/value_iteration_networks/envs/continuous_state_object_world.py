@@ -115,17 +115,23 @@ class Objectworld:
         tmp_objects = np.asarray(copy.deepcopy(self.objects)).transpose(1, 0)
         objects_continuous_y, objects_continuous_x \
                 = self.discreate2continuous(tmp_objects[0], tmp_objects[1])
-        #  objects_continuous_y += self.cell_size / 2.0
-        #  objects_continuous_x += self.cell_size / 2.0
+        objects_continuous_y += self.cell_size / 2.0
+        objects_continuous_x += self.cell_size / 2.0
         #  self.ax.scatter(objects_continuous_x, objects_continuous_y, s=100, \
                 #  color="pink", alpha=0.5, linewidths="2", edgecolors="red")
 
-        object_rectangles = [patches.Rectangle(xy=[obs_x, obs_y], \
-                width=self.cell_size, height=self.cell_size, \
+        #  object_rectangles = [patches.Rectangle(xy=[obs_x, obs_y], \
+                #  width=self.cell_size, height=self.cell_size, \
+                #  facecolor='pink', alpha=0.5, linewidth="2", edgecolor="red") \
+                #  for (obs_x, obs_y) in zip(objects_continuous_x, objects_continuous_y)]
+        #  for r in object_rectangles:
+            #  self.ax.add_patch(r)
+        object_circles = [patches.Circle(xy=[obs_x, obs_y], radius=self.cell_size/2.0, \
                 facecolor='pink', alpha=0.5, linewidth="2", edgecolor="red") \
                 for (obs_x, obs_y) in zip(objects_continuous_x, objects_continuous_y)]
-        for r in object_rectangles:
-            self.ax.add_patch(r)
+        for c in object_circles:
+            self.ax.add_patch(c)
+
 
         #  ゴールエリアを生成
         c = patches.Circle(xy=(self.goal[1], self.goal[0]), radius=self.goal_radius, \
@@ -379,8 +385,15 @@ class Objectworld:
         collision = False
         next_discreate_y, next_discreate_x = self.continuous2discreate(next_y, next_x)
         if self.grid[next_discreate_y, next_discreate_x] == -1:
-            #  print "collision!!!!!"
-            collision = True
+            continuous_obs_y, continuous_obs_x \
+                    = self.discreate2continuous(next_discreate_y, next_discreate_x)
+            continuous_obs_y += self.cell_size / 2.0
+            continuous_obs_x += self.cell_size / 2.0
+            print "math.sqrt((next_y-continuous_obs_y)**2 + (next_x-continuous_obs_x)**2) : ", math.sqrt((next_y-continuous_obs_y)**2 + (next_x-continuous_obs_x)**2)
+            if math.sqrt((next_y-continuous_obs_y)**2 + (next_x-continuous_obs_x)**2) \
+                    <= self.cell_size/2.0:
+                #  print "collision!!!!!"
+                collision = True
             #  if action == 0 or action == 1:
                 #  next_x = x
             #  elif action == 2 or action == 3:
@@ -483,7 +496,7 @@ if __name__ == "__main__":
 
     R_max = 1.0
     noise = 0.0
-    n_objects = 50
+    n_objects = 500
     seed = 1
     
 
