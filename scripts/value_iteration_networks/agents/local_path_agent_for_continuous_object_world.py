@@ -119,7 +119,9 @@ class LocalPlanAgent:
         for obstacle in self.env.continuous_objects:
             tmp_obs_dist_list.append(self.calc_dist(final_position, obstacle))
         #  print "tmp_obs_dist_list : ", tmp_obs_dist_list
-        max_obs_dist = np.max(tmp_obs_dist_list)
+        max_obs_dist = 0
+        if len(tmp_obs_dist_list) != 0:
+            max_obs_dist = np.max(tmp_obs_dist_list)
         #  print "max_obs_dist : ", max_obs_dist
 
         return max_obs_dist

@@ -311,14 +311,16 @@ class Objectworld:
         else:
             self.objects = self.object_list
         #  print self.objects
-
-        tmp_objects = np.asarray(copy.deepcopy(self.objects)).transpose(1, 0)
-        objects_continuous_y, objects_continuous_x \
-                = self.discreate2continuous(tmp_objects[0], tmp_objects[1])
-        objects_continuous_y += self.cell_size / 2.0
-        objects_continuous_x += self.cell_size / 2.0
-        self.continuous_objects \
-                = np.array([objects_continuous_y, objects_continuous_x]).transpose(1, 0)
+        if n_objects_ == 0:
+            self.continuous_objects = self.objects
+        else:
+            tmp_objects = np.asarray(copy.deepcopy(self.objects)).transpose(1, 0)
+            objects_continuous_y, objects_continuous_x \
+                    = self.discreate2continuous(tmp_objects[0], tmp_objects[1])
+            objects_continuous_y += self.cell_size / 2.0
+            objects_continuous_x += self.cell_size / 2.0
+            self.continuous_objects \
+                    = np.array([objects_continuous_y, objects_continuous_x]).transpose(1, 0)
 
 
     def show_objectworld(self):
