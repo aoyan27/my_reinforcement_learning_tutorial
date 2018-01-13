@@ -163,15 +163,26 @@ def get_trajs(env, n_trajs):
            domain_continuous_orientation_list, \
            domain_continuous_action_list
 
+def cvt_resize_image(image, cell_size, size):
+    resize_image = np.zeros(size)
+    index = np.asarray(np.where(image==1))
+    continuous_index = index*cell_size
+    resize_cell_size = float(image.shape[0]/size[0]) * cell_size
+    resize_index = continuous_index / resize_cell_size
+    discreate_resize_index = resize_index.astype(np.int8)
+    resize_image[tuple(discreate_resize_index)] = 1
+
+    return resize_image
 
 
 
 
-
-def main(width, height, cell_size, n_objects, n_domains, n_trajs, seed, dataset_path):
+def main(width, height, cell_size, resize_size, n_objects, n_domains, n_trajs, seed, dataset_path):
     rows = int(height / cell_size)
     cols = int(width / cell_size)
     goal = [height-1, width-1]
+    print "Grid_size : ", (rows, cols)
+    print "Resize_size : ", resize_size
 
     R_max = 1.0
     noise = 0.0
@@ -180,8 +191,8 @@ def main(width, height, cell_size, n_objects, n_domains, n_trajs, seed, dataset_
 
     max_samples = 1000 * n_domains * n_trajs
     print "max_samples : ", max_samples
-    image_data = np.zeros((max_samples, rows, cols))
-    reward_map_data = np.zeros((max_samples, rows, cols))
+    image_data = np.zeros((max_samples, resize_size[0], resize_size[1]))
+    reward_map_data = np.zeros((max_samples, resize_size[0], resize_size[1]))
     position_list_data = np.zeros((max_samples, 2))
     #  orientation_list_data = np.zeros(max_samples)
     orientation_list_data = np.zeros((max_samples, 4))
@@ -206,12 +217,21 @@ def main(width, height, cell_size, n_objects, n_domains, n_trajs, seed, dataset_
 
         image = grid2image(env.grid)
         #  print "image : "
-        #  print image
+        #  print image.shape
         #  view_image(image, 'Gridworld')
+        resize_image = cvt_resize_image(image, cell_size, resize_size)
+        #  print "resize_image : "
+        #  print resize_image.shape
+        #  view_image(resize_image, 'Gridworld(resize)')
         reward_map = get_reward_map(env)
         #  print "reward_map : "
-        #  print reward_map
-        #  view_image(reward_map, 'Gridworld')
+        #  print reward_map.shape
+        #  view_image(reward_map, 'Reward map')
+        resize_reward_map = cvt_resize_image(reward_map, cell_size, resize_size)
+        #  print "resize_reward_map : "
+        #  print resize_reward_map.shape
+        #  view_image(resize_reward_map, 'Reward map(resize)')
+
         position_list, orientation_list, action_list = get_trajs(env, n_trajs)
         if len(position_list) == 0:
             continue
@@ -224,8 +244,8 @@ def main(width, height, cell_size, n_objects, n_domains, n_trajs, seed, dataset_
             ns = len(position_list[i])
             #  print "ns : ", ns
             
-            image_data[num_sample:num_sample+ns] = image
-            reward_map_data[num_sample:num_sample+ns] = reward_map
+            image_data[num_sample:num_sample+ns] = resize_image
+            reward_map_data[num_sample:num_sample+ns] = resize_reward_map
             position_list_data[num_sample:num_sample+ns] = position_list[i][:]
             orientation_list_data[num_sample:num_sample+ns] = orientation_list[i][:]
             action_list_data[num_sample:num_sample+ns] = action_list[i][:]
@@ -258,6 +278,8 @@ if __name__ == "__main__":
             help='width of global gridworld(unit:[m])')
     parser.add_argument('-c', '--cell_size', default=0.10, type=float, \
             help='cell_size of gridworld(unit:[m])')
+    parser.add_argument('-r', '--resize_size', default=(20, 20), type=tuple, \
+            help='resize_size of grid_map')
 
     parser.add_argument('-o', '--n_objects', default=40, type=int, help='number of objects')
     parser.add_argument('-d', '--n_domains', default=5000, type=int, help='number of domains')
@@ -271,5 +293,5 @@ if __name__ == "__main__":
     args = parser.parse_args()
     print args
 
-    main(args.height, args.width, args.cell_size, args.n_objects, \
+    main(args.height, args.width, args.cell_size, args.resize_size, args.n_objects, \
             args.n_domains, args.n_trajs, args.seed, args.dataset_path)
