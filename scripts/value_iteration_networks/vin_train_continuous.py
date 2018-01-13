@@ -199,29 +199,8 @@ def train_and_test(model, optimizer, gpu, model_path, train_data, test_data, n_e
 
         epoch += 1
 
-def cvt_resize_image(image, cell_size, size):
-    resize_image = np.zeros(size)
-    index = np.asarray(np.where(image==1))
-    continuous_index = index*cell_size
-    resize_cell_size = float(image.shape[0]/size[0]) * cell_size
-    resize_index = continuous_index / resize_cell_size
-    discreate_resize_index = resize_index.astype(np.int8)
-    resize_image[tuple(discreate_resize_index)] = 1
 
-    return resize_image
-
-def cvt_resize_image_data(image_data, cell_size, size):
-    resize_image = cvt_resize_image(image_data[0], cell_size, size)
-    resize_image_data = np.array([resize_image])
-    image_data_size = len(image_data)
-    for i in xrange(1, image_data_size):
-        resize_image = cvt_resize_image(image_data[i], cell_size, size)
-        resize_image_data = np.append(resize_image_data, np.array([resize_image]), axis=0)
-        
-    return resize_image_data
-
-
-def main(dataset, cell_size, n_epoch, batchsize, gpu, model_path):
+def main(dataset, n_epoch, batchsize, gpu, model_path):
     image_data, reward_map_data,  position_list_data, orientation_list_data, action_list_data \
             = load_dataset(dataset)
     #  print "image_data[0] : ", image_data[0]
@@ -231,16 +210,12 @@ def main(dataset, cell_size, n_epoch, batchsize, gpu, model_path):
     #  print "action_list_data[0] : ", action_list_data[0]
     #  print "image_data : ", image_data.shape
     #  view_image(image_data[0], 'map_image')
-    resize_image_data = cvt_resize_image_data(image_data, cell_size, (20, 20))
-    #  view_image(resize_image_data[0], 'resize_map_image')
     
     #  print "reward_map_data : ", reward_map_data.shape
     #  view_image(reward_map_data[0], 'reward_map')
-    resize_reward_map_data = cvt_resize_image_data(reward_map_data, cell_size, (20, 20))
-    #  view_image(resize_reward_map_data[0], 'resize_reward_map')
     
     train_data, test_data \
-            = train_test_split(resize_image_data, resize_reward_map_data, \
+            = train_test_split(image_data, reward_map_data, \
                                position_list_data, orientation_list_data, action_list_data, \
                                test_size=0.3)
 
@@ -265,8 +240,6 @@ if __name__ == "__main__":
 
     parser.add_argument('-d', '--dataset', default='datasets/map_dataset_continuous.pkl', \
             type=str, help="save dataset directory")
-    parser.add_argument('-c', '--cell_size', default=0.10, type=float, \
-            help='cell_size of gridworld(unit:[m])')
 
     parser.add_argument('-e', '--n_epoch', default=30, type=int, help='number of epoch')
     parser.add_argument('-b', '--batchsize', default=100, type=int, help='number of batchsize')
@@ -277,5 +250,5 @@ if __name__ == "__main__":
     args = parser.parse_args()
     print args
     
-    main(args.dataset, args.cell_size, args.n_epoch, args.batchsize, args.gpu, args.model_path)
+    main(args.dataset, args.n_epoch, args.batchsize, args.gpu, args.model_path)
 
