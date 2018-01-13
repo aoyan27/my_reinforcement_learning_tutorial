@@ -182,6 +182,7 @@ def main(width, height, cell_size, resize_size, n_objects, n_domains, n_trajs, s
     cols = int(width / cell_size)
     goal = [height-1, width-1]
     print "Grid_size : ", (rows, cols)
+    resize_size = (resize_size, resize_size)
     print "Resize_size : ", resize_size
 
     R_max = 1.0
@@ -278,7 +279,7 @@ if __name__ == "__main__":
             help='width of global gridworld(unit:[m])')
     parser.add_argument('-c', '--cell_size', default=0.10, type=float, \
             help='cell_size of gridworld(unit:[m])')
-    parser.add_argument('-r', '--resize_size', default=(20, 20), type=tuple, \
+    parser.add_argument('-r', '--resize_size', default=20, type=int, \
             help='resize_size of grid_map')
 
     parser.add_argument('-o', '--n_objects', default=40, type=int, help='number of objects')
