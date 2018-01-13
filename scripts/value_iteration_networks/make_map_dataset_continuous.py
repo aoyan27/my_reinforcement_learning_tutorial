@@ -102,7 +102,7 @@ def get_trajs(env, n_trajs):
             #  a_agent.view_path(path_data['vis_path'])
             
             #  global_pathに従ってlocal_pathを計算し、軌道、方位、行動を保存
-            for i_step in xrange(1000):
+            for i_step in xrange(200):
                 #  print "=============================================="
                 #  print "step : ", i_step
 
@@ -190,7 +190,7 @@ def main(width, height, cell_size, resize_size, n_objects, n_domains, n_trajs, s
 
     env = Objectworld(rows, cols, cell_size, goal, R_max, noise, n_objects, seed, mode=1)
 
-    max_samples = 1000 * n_domains * n_trajs
+    max_samples = 200 * n_domains * n_trajs
     print "max_samples : ", max_samples
     image_data = np.zeros((max_samples, resize_size[0], resize_size[1]))
     reward_map_data = np.zeros((max_samples, resize_size[0], resize_size[1]))
