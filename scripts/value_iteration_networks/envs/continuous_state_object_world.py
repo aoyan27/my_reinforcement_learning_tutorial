@@ -84,6 +84,13 @@ class Objectworld:
         self.continuous_x_list = []
         self.continuous_y_list = []
 
+    def calc_continuous_trajectory(self):
+        y = self.state_[0]
+        x = self.state_[1]
+        theta = self.orientation_
+        self.continuous_x_list.append(x)
+        self.continuous_y_list.append(y)
+
 
     def show_continuous_objectworld(self, global_path=None, local_path=None, selected_path=None):
         start_time = time.time()
@@ -113,7 +120,7 @@ class Objectworld:
         self.ax.grid(True)
 
         #  障害物エリアを生成
-        objects_continuous_x, objects_continuous_y = self.continuous_objects.transpose(1, 0)
+        objects_continuous_y, objects_continuous_x = self.continuous_objects.transpose(1, 0)
         #  self.ax.scatter(objects_continuous_x, objects_continuous_y, s=100, \
                 #  color="pink", alpha=0.5, linewidths="2", edgecolors="red")
 
@@ -157,8 +164,8 @@ class Objectworld:
         self.ax.plot([x, x+0.15*math.cos(theta)], [y, y+0.15*math.sin(theta)], \
                 color='green', linewidth="3") 
         #  エージェントの軌道を生成
-        self.continuous_x_list.append(x)
-        self.continuous_y_list.append(y)
+        #  self.continuous_x_list.append(x)
+        #  self.continuous_y_list.append(y)
         self.ax.plot(self.continuous_x_list, self.continuous_y_list, color='blue')
 
         elapsed_time = time.time() - start_time
@@ -167,6 +174,9 @@ class Objectworld:
         plt.pause(0.05)
         #  plt.show()
 
+    def clear_trajectory(self):
+        self.continuous_x_list = []
+        self.continuous_y_list = []
 
     
     def set_action(self):
@@ -186,7 +196,9 @@ class Objectworld:
 
     def set_continuous_action(self):
         #  self.continuous_action_list = [0, 1, 2, 3, 4, 5, 6, 7]
-        self.continuous_action_list = [0, 1, 2, 3, 4, 5, 6]
+        #  self.continuous_action_list = [0, 1, 2, 3, 4, 5, 6]
+
+        self.continuous_action_list = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
         self.n_continuous_action = len(self.continuous_action_list)
         #  self.velocity_vector \
                 #  = {0: [0.1, -10.0], 1: [0.3, -5.0], 2: [0.5, -2.5], \
@@ -194,30 +206,43 @@ class Objectworld:
                    #  4: [0.5, 2.5], 5: [0.3, 5.0], 6: [0.1, 10.0], \
                    #  7: [0.0, 0.0]}
 
+        #  self.velocity_vector \
+                #  = {0: [0.5, -3.0], 1: [0.75, -2.5], 2: [1.0, -1.0], \
+                   #  3: [1.2, 0.0], \
+                   #  4: [1.0, 1.0], 5: [0.75, 2.5], 6: [0.5, 3.0]}
+
         self.velocity_vector \
-                = {0: [0.5, -3.0], 1: [0.75, -2.5], 2: [1.0, -1.0], \
-                   3: [1.2, 0.0], \
-                   4: [1.0, 1.0], 5: [0.75, 2.5], 6: [0.5, 3.0]}
+                = {0: [0.5, -3.0], 1: [0.6, -2.5], 2: [0.7, -2.0], 3: [0.8, -1.5], 4: [1.0, -1.0], \
+                   5: [1.2, 0.0], \
+                   6: [1.0, 1.0], 7: [0.8, 1.5], 8: [0.7, 2.0], 9: [0.6, 2.5], 10: [0.5, 3.0]}
 
 
     def set_orientation(self, orientation):
         self.orientation_ = orientation
 
-    def set_orientation_random(self, orientation_list=None):
-        if orientation_list is None:
-            self.orientation_ = np.random.rand() * 2.0*math.pi - math.pi
-            #  print "self.orientation_ : ", self.orientation_
+    def set_orientation_random(self, orientation_list=None, goal_heading=False):
+        if not goal_heading:
+            if orientation_list is None:
+                self.orientation_ = np.random.rand() * 2.0*math.pi - math.pi
+                #  print "self.orientation_ : ", self.orientation_
+            else:
+                #  print "orientation_list : ", orientation_list
+                self.orientation_ = math.radians(np.random.choice(orientation_list, 1))
+                #  print "self.orientation___ : ", self.orientation_
+                #  print "self.orientation__ : ", math.radians(self.orientation_)
         else:
-            #  print "orientation_list : ", orientation_list
-            self.orientation_ = math.radians(np.random.choice(orientation_list, 1))
-            #  print "self.orientation___ : ", self.orientation_
-            #  print "self.orientation__ : ", math.radians(self.orientation_)
+            goal_orientation = math.atan2(self.goal[0]-self.start[0], self.goal[1]-self.start[1])
+            #  print "goal_orientation  : ", math.degrees(goal_orientation)
+            min_orientation = goal_orientation - math.pi/4.0
+            #  print "min_orientation : ", math.degrees(min_orientation)
+            self.orientation_ = np.random.rand() * math.pi/2.0 + min_orientation
+            #  print "self.orientation_ : ", math.degrees(self.orientation_)
     
     def set_start(self, start):
         self.start = start
         self.state_ = start
 
-    def set_start_random(self, check_goal=False):
+    def set_start_random(self, check_goal=True):
         start = None
         if not check_goal:
             x = round(np.random.rand()*self.rows*self.cell_size, 3)
@@ -402,13 +427,13 @@ class Objectworld:
         #  print "[next_y, next_x] :[ ", next_y, next_x, "]"
 
         out_of_range = False
-        if next_y < 0*self.cell_size or (grid_range[0]-1)*self.cell_size < next_y:
+        if next_y < 0*self.cell_size or (grid_range[0])*self.cell_size < next_y:
             #  print "y, out_of_range!!!!"
             next_y = y
             next_yaw = yaw
             out_of_range = True
 
-        if next_x < 0*self.cell_size or (grid_range[1]-1)*self.cell_size < next_x:
+        if next_x < 0*self.cell_size or (grid_range[1])*self.cell_size < next_x:
             #  print "x, out of range!!!!!"
             next_x = x
             next_yaw = yaw
@@ -457,16 +482,16 @@ class Objectworld:
             print "|"
 
     def reset(self, start_position=[0.0,0.0], start_orientation=0.0, \
-            orientation_list=None, random=False):
-        self.continuous_x_list = []
-        self.continuous_y_list = []
+            orientation_list=None, random=False, goal_heading=False):
+        self.clear_trajectory()
         if not random:
             self.state_ = start_position
             self.orientation_ = start_orientation
         else:
-            self.set_orientation_random(orientation_list=orientation_list)
             self.set_start_random()
             self.set_goal_random()
+            self.set_orientation_random(orientation_list=orientation_list, \
+                    goal_heading=goal_heading)
             self.state_ = self.start
 
         return self.state_, self.orientation_
@@ -509,6 +534,8 @@ class Objectworld:
 
         reward = self.get_reward()
         episode_end = self.terminal(reward)
+
+        self.calc_continuous_trajectory()
 
         return self.state_, self.orientation_, reward, episode_end, \
                 {'goal_distance': self.goal_distance, \
@@ -563,6 +590,7 @@ if __name__ == "__main__":
         print "==========================="
         print "episode : ", i
         position, yaw = env.reset(random=True)
+        env.calc_continuous_trajectory()
         for j in xrange(max_step):
             print "----------------------"
             print "step : ", j
