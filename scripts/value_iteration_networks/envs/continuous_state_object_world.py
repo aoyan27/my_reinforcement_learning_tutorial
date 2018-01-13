@@ -250,8 +250,8 @@ class Objectworld:
             start = [y, x]
         else:
             while 1:
-                x = round(np.random.rand()*self.rows*self.cell_size, 3)
-                y = round(np.random.rand()*self.cols*self.cell_size, 3)
+                x = round(np.random.rand()*(self.rows-1)*self.cell_size, 3)
+                y = round(np.random.rand()*(self.cols-1)*self.cell_size, 3)
                 start = [y, x]
                 discreate_start = self.continuous2discreate(start[0], start[1])
                 if start != self.goal and self.grid[discreate_start] != -1:
@@ -276,8 +276,8 @@ class Objectworld:
                 if goal != self.start and self.grid[discreate_goal] != -1:
                     break
         else:
-            x = round(np.random.rand()*self.rows*self.cell_size, 3)
-            y = round(np.random.rand()*self.cols*self.cell_size, 3)
+            x = round(np.random.rand()*(self.rows-1)*self.cell_size, 3)
+            y = round(np.random.rand()*(self.cols-1)*self.cell_size, 3)
             goal = [y, x]
 
         self.set_goal(goal)
