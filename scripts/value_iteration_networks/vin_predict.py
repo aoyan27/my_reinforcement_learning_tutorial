@@ -181,7 +181,7 @@ def main(rows, cols, n_objects, seed, gpu, model_path):
             #  print "state : ", state_data, ", goal : ", goal
             #  env.show_objectworld_with_state()
             p = model(input_data, state_data)
-            #  print "p : ", p
+            print "p : ", p
             action = np.argmax(p.data)
             #  print "action : ",action
             next_state, reward, done, _ = env.step(action, reward_map.transpose().reshape(-1))
