@@ -167,7 +167,7 @@ def cvt_resize_image(image, cell_size, size):
     resize_image = np.zeros(size)
     index = np.asarray(np.where(image==1))
     continuous_index = index*cell_size
-    resize_cell_size = float(image.shape[0]/size[0]) * cell_size
+    resize_cell_size = float(image.shape[0])/float(size[0]) * cell_size
     resize_index = continuous_index / resize_cell_size
     discreate_resize_index = resize_index.astype(np.int8)
     resize_image[tuple(discreate_resize_index)] = 1
