@@ -85,8 +85,10 @@ class ValueIterationNetwork(Chain):
         #  print "q(after k) : ", q
         #  print "self.v : ", self.v
         
-        q = self.conv3a(self.r) + self.conv3b(self.v)
-        q_out = self.attention(q, position_list)
+        #  q = self.conv3a(self.r) + self.conv3b(self.v)
+        #  q_out = self.attention(q, position_list)
+        q_out = F.reshape(self.v, (self.v.shape[0], -1))
+        #  print "q_out : ", q_out
 
         #  print "q_out : ", q_out
         #  print "position_list : ", position_list
@@ -102,6 +104,7 @@ class ValueIterationNetwork(Chain):
         velocity_vector_ = velocity_vector_list.astype(np.float32)
         input_policy3 = F.concat((input_policy2, velocity_vector_), axis=1)
         #  input_policy2 = F.concat((position_, velocity_vector_), axis=1)
+        #  print "input_policy3 : ", input_policy3
 
         h_in = F.concat((q_out, input_policy3), axis=1)
         #  print "h_in : ", h_in
