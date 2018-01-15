@@ -429,13 +429,13 @@ class Objectworld:
         #  print "[next_y, next_x] :[ ", next_y, next_x, "]"
 
         out_of_range = False
-        if next_y < 0*self.cell_size or (grid_range[0])*self.cell_size < next_y:
+        if next_y < 0*self.cell_size or (grid_range[0]-1)*self.cell_size < next_y:
             #  print "y, out_of_range!!!!"
             next_y = y
             next_yaw = yaw
             out_of_range = True
 
-        if next_x < 0*self.cell_size or (grid_range[1])*self.cell_size < next_x:
+        if next_x < 0*self.cell_size or (grid_range[1]-1)*self.cell_size < next_x:
             #  print "x, out of range!!!!!"
             next_x = x
             next_yaw = yaw
