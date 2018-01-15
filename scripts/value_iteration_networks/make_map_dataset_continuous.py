@@ -194,6 +194,7 @@ def main(width, height, cell_size, resize_size, n_objects, n_domains, n_trajs, s
     print "max_samples : ", max_samples
     image_data = np.zeros((max_samples, resize_size[0], resize_size[1]))
     reward_map_data = np.zeros((max_samples, resize_size[0], resize_size[1]))
+    goal_list_data = np.zeros((max_samples, 2))
     position_list_data = np.zeros((max_samples, 2))
     #  orientation_list_data = np.zeros(max_samples)
     orientation_list_data = np.zeros((max_samples, 4))
@@ -213,6 +214,7 @@ def main(width, height, cell_size, resize_size, n_objects, n_domains, n_trajs, s
         #  print "dom : ", dom
         env.set_goal_random()
         #  print "env.goal : ", env.goal
+        goal_list = env.goal
         #  env.set_objects(n_objects_random=False)
         env.set_objects()
 
@@ -247,6 +249,7 @@ def main(width, height, cell_size, resize_size, n_objects, n_domains, n_trajs, s
             
             image_data[num_sample:num_sample+ns] = resize_image
             reward_map_data[num_sample:num_sample+ns] = resize_reward_map
+            goal_list_data[num_sample:num_sample+ns] = goal_list
             position_list_data[num_sample:num_sample+ns] = position_list[i][:]
             orientation_list_data[num_sample:num_sample+ns] = orientation_list[i][:]
             action_list_data[num_sample:num_sample+ns] = action_list[i][:]
@@ -259,6 +262,7 @@ def main(width, height, cell_size, resize_size, n_objects, n_domains, n_trajs, s
     data = {}
     data['image'] = image_data[0:num_sample]
     data['reward'] = reward_map_data[0:num_sample]
+    data['goal'] = goal_list_data[0:num_sample]
     data['position'] = position_list_data[0:num_sample]
     data['orientation'] = orientation_list_data[0:num_sample]
     data['action'] = action_list_data[0:num_sample]
