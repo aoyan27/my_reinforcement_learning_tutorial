@@ -106,6 +106,9 @@ class ValueIterationNetwork(Chain):
         h_in = F.concat((q_out, input_policy2), axis=1)
         #  print "h_in : ", h_in
 
+        #  h1 = self.l4(h_in)
+        #  h2 = self.l5(h1)
+        #  y = self.l6(h2)
         h1 = self.l4(h_in)
         h2 = self.l5(h1)
         h3 = self.l6(h2)
