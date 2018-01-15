@@ -99,7 +99,8 @@ class ValueIterationNetwork(Chain):
         orientation_ = orientation_list.astype(np.float32)
         input_policy = F.concat((position_, orientation_), axis=1)
         #  print "input_policy : ", input_policy
-        goal_ = goal_list.astype(np.float32)
+        #  goal_ = goal_list.astype(np.float32)
+        goal_ = F.expand_dims(goal_list.astype(np.float32), axis=1)
         input_policy2 = F.concat((input_policy, goal_), axis=1)
 
         velocity_vector_ = velocity_vector_list.astype(np.float32)

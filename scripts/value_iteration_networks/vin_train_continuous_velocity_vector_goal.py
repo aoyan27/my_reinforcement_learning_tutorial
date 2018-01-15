@@ -17,6 +17,7 @@ import chainer.links as L
 
 import copy
 import pickle
+import math
 
 import tf
 
@@ -36,6 +37,8 @@ def view_image(array, title):
     plt.title(title)
     plt.show()
 
+def calc_dist(a, b):
+    return math.sqrt((a[0]-b[0])**2 + (a[1]-b[1])**2)
 
 def load_dataset(path):
     with open(path, mode='rb') as f:
@@ -44,9 +47,11 @@ def load_dataset(path):
 
     image_data = data['image']
     reward_map_data = data['reward']
-    goal_list_data = data['goal']
+    goal_list_data_ = data['goal']
     position_list_data = data['position']
     orientation_list_data = data['orientation']
+    goal_list_data = np.array([calc_dist(a, b) for a,b in zip(goal_list_data_, position_list_data)])
+    print "goal_list_data : ", goal_list_data[0]
     action_list_data = data['action']
     velocity_vector_list_data_ = np.asarray([velocity_vector[i] for i in action_list_data])
     #  print "velocity_vector_list_data_ : ", velocity_vector_list_data_[0]
