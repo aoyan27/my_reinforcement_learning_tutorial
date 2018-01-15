@@ -61,7 +61,8 @@ class ValueIterationNetwork(Chain):
         return q_out
 
 
-    def __call__(self, input_data, position_list, orientation_list, velocity_vector_list):
+    def __call__(self, input_data, position_list, orientation_list, trigonometric_list, \
+                 velocity_vector_list):
         input_data = Variable(input_data.astype(np.float32))
 
         h = F.relu(self.conv1(input_data))
@@ -95,12 +96,14 @@ class ValueIterationNetwork(Chain):
         orientation_ = F.expand_dims(orientation_list.astype(np.float32), axis=1)
         input_policy = F.concat((position_, orientation_), axis=1)
         #  print "input_policy : ", input_policy
+        trigonometric_ = trigonometric_list.astype(np.float32)
+        input_policy2 = F.concat((input_policy, trigonometric_), axis=1)
 
         velocity_vector_ = velocity_vector_list.astype(np.float32)
-        input_policy2 = F.concat((input_policy, velocity_vector_), axis=1)
+        input_policy3 = F.concat((input_policy2, velocity_vector_), axis=1)
         #  input_policy2 = F.concat((position_, velocity_vector_), axis=1)
 
-        h_in = F.concat((q_out, input_policy2), axis=1)
+        h_in = F.concat((q_out, input_policy3), axis=1)
         #  print "h_in : ", h_in
 
         h1 = self.l4(h_in)
@@ -109,9 +112,10 @@ class ValueIterationNetwork(Chain):
 
         return y
 
-    def forward(self, input_data, position_list, orientation_list, \
+    def forward(self, input_data, position_list, orientation_list, trigonometric_list, \
                 action_list, velocity_vector_list):
-        y = self.__call__(input_data, position_list, orientation_list, velocity_vector_list)
+        y = self.__call__(input_data, position_list, orientation_list, trigonometric_list, \
+                          velocity_vector_list)
         #  print "y : ", y
         
         t = Variable(action_list.astype(np.int32))

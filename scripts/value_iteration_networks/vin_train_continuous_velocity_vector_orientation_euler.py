@@ -17,6 +17,7 @@ import chainer.links as L
 
 import copy
 import pickle
+import math
 
 import tf
 
@@ -51,6 +52,8 @@ def load_dataset(path):
     orientation_list_data_ = data['orientation']
     orientation_list_data = np.asarray([quaternion2euler(i) for i in orientation_list_data_])
     print "orientation_list_data : ", orientation_list_data[0]
+    trigonometric_list_data = np.asarray([[math.cos(i), math.sin(i)] for i in orientation_list_data])
+    print "trigonometric_list_data : ", trigonometric_list_data[0]
 
     action_list_data = data['action']
     velocity_vector_list_data_ = np.asarray([velocity_vector[i] for i in action_list_data])
@@ -69,7 +72,8 @@ def load_dataset(path):
 
     print "Load %d data!!!" % len(image_data)
 
-    return image_data, reward_map_data, position_list_data, orientation_list_data, \
+    return image_data, reward_map_data, position_list_data, \
+            orientation_list_data, trigonometric_list_data, \
             action_list_data, velocity_vector_list_data
 
 def save_model(model, filename):
@@ -77,7 +81,7 @@ def save_model(model, filename):
     serializers.save_npz(filename, model)
 
 def train_test_split(image_data, reward_map_data, \
-                     position_list_data, orientation_list_data, \
+                     position_list_data, orientation_list_data, trigonometric_list_data, \
                      action_list_data, velocity_vector_list_data, \
                      test_size, seed=0):
     np.random.seed(seed)
@@ -98,6 +102,7 @@ def train_test_split(image_data, reward_map_data, \
     reward_map_test = reward_map_data[index_test]
     position_list_test = position_list_data[index_test]
     orientation_list_test = orientation_list_data[index_test]
+    trigonometric_list_test = trigonometric_list_data[index_test]
     action_list_test = action_list_data[index_test]
     velocity_vector_list_test = velocity_vector_list_data[index_test]
 
@@ -105,6 +110,7 @@ def train_test_split(image_data, reward_map_data, \
     reward_map_train = reward_map_data[index_train]
     position_list_train = position_list_data[index_train]
     orientation_list_train = orientation_list_data[index_train]
+    trigonometric_list_train = trigonometric_list_data[index_train]
     action_list_train = action_list_data[index_train]
     velocity_vector_list_train = velocity_vector_list_data[index_train]
 
@@ -115,6 +121,7 @@ def train_test_split(image_data, reward_map_data, \
     test_data['reward'] = reward_map_test
     test_data['position'] = position_list_test 
     test_data['orientation'] = orientation_list_test 
+    test_data['trigonometric'] = trigonometric_list_test 
     test_data['action'] = action_list_test
     test_data['velocity_vector'] = velocity_vector_list_test
 
@@ -122,6 +129,7 @@ def train_test_split(image_data, reward_map_data, \
     train_data['reward'] = reward_map_train  
     train_data['position'] = position_list_train 
     train_data['orientation'] = orientation_list_train 
+    train_data['trigonometric'] = trigonometric_list_train
     train_data['action'] = action_list_train
     train_data['velocity_vector'] = velocity_vector_list_train
 
@@ -162,6 +170,8 @@ def train_and_test(model, optimizer, gpu, model_path, train_data, test_data, n_e
                     if i+batchsize < n_train else n_train]]
             batch_orientation_list = train_data['orientation'][perm[i:i+batchsize \
                     if i+batchsize < n_train else n_train]]
+            batch_trigonometric_list = train_data['trigonometric'][perm[i:i+batchsize \
+                    if i+batchsize < n_train else n_train]]
             batch_action_list = train_data['action'][perm[i:i+batchsize \
                     if i+batchsize < n_train else n_train]]
             batch_velocity_vector_list = train_data['velocity_vector'][perm[i:i+batchsize \
@@ -170,6 +180,7 @@ def train_and_test(model, optimizer, gpu, model_path, train_data, test_data, n_e
                 batch_input_data = cuda.to_gpu(batch_input_data)
                 batch_position_list = cuda.to_gpu(batch_position_list)
                 batch_orientation_list = cuda.to_gpu(batch_orientation_list)
+                batch_trigonometric_list = cuda.to_gpu(batch_trigonometric_list)
                 batch_action_list = cuda.to_gpu(batch_action_list)
                 batch_velocity_vector_list = cuda.to_gpu(batch_velocity_vector_list)
             #  print "batch_input_data : ", batch_input_data[0]
@@ -181,7 +192,7 @@ def train_and_test(model, optimizer, gpu, model_path, train_data, test_data, n_e
 
             model.zerograds()
             loss, acc = model.forward(batch_input_data, \
-                                      batch_position_list, batch_orientation_list, \
+                                      batch_position_list, batch_orientation_list, batch_trigonometric_list, \
                                       batch_action_list, batch_velocity_vector_list)
             #  print "loss(train) : ", loss
             loss.backward()
@@ -210,6 +221,8 @@ def train_and_test(model, optimizer, gpu, model_path, train_data, test_data, n_e
                     if i+batchsize < n_test else n_test]]
             batch_orientation_list = train_data['orientation'][perm[i:i+batchsize \
                     if i+batchsize < n_test else n_test]]
+            batch_trigonometric_list = train_data['trigonometric'][perm[i:i+batchsize \
+                    if i+batchsize < n_test else n_test]]
             batch_action_list = test_data['action'][perm[i:i+batchsize \
                     if i+batchsize < n_test else n_test]]
             batch_velocity_vector_list = test_data['velocity_vector'][perm[i:i+batchsize \
@@ -218,13 +231,15 @@ def train_and_test(model, optimizer, gpu, model_path, train_data, test_data, n_e
                 batch_input_data = cuda.to_gpu(batch_input_data)
                 batch_position_list = cuda.to_gpu(batch_position_list)
                 batch_orientation_list = cuda.to_gpu(batch_orientation_list)
+                batch_trigonometric_list = cuda.to_gpu(batch_trigonometric_list)
                 batch_action_list = cuda.to_gpu(batch_action_list)
                 batch_velocity_vector_list = cuda.to_gpu(batch_velocity_vector_list)
 
             real_batchsize = batch_image.shape[0]
 
             loss, acc = model.forward(batch_input_data, \
-                                      batch_position_list, batch_orientation_list, \
+                                      batch_position_list, \
+                                      batch_orientation_list, batch_trigonometric_list, \
                                       batch_action_list, batch_velocity_vector_list)
 
             sum_test_loss += float(cuda.to_cpu(loss.data)) * real_batchsize
@@ -243,7 +258,8 @@ def train_and_test(model, optimizer, gpu, model_path, train_data, test_data, n_e
 
 
 def main(dataset, n_epoch, batchsize, gpu, model_path):
-    image_data, reward_map_data,  position_list_data, orientation_list_data, \
+    image_data, reward_map_data,  position_list_data, \
+            orientation_list_data, trigonometric_list_data,\
             action_list_data, velocity_vector_list = load_dataset(dataset)
     #  print "image_data[0] : ", image_data[0]
     #  print "reward_map_data[0] : ", reward_map_data[0]
@@ -258,7 +274,8 @@ def main(dataset, n_epoch, batchsize, gpu, model_path):
     
     train_data, test_data \
             = train_test_split(image_data, reward_map_data, \
-                               position_list_data, orientation_list_data, \
+                               position_list_data, \
+                               orientation_list_data, trigonometric_list_data, \
                                action_list_data, velocity_vector_list, \
                                test_size=0.3)
 
