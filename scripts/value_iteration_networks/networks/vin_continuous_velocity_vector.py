@@ -19,9 +19,13 @@ class ValueIterationNetwork(Chain):
             conv3a = L.Convolution2D(1, l_q, 3, stride=1, pad=1, nobias=True),
             conv3b = L.Convolution2D(1, l_q, 3, stride=1, pad=1, nobias=True),
 
-            l4 = L.Linear(None, 512, nobias=True),
-            l5 = L.Linear(512, 258, nobias=True),
-            l6 = L.Linear(258, n_out, nobias=True),
+            #  l4 = L.Linear(None, 512, nobias=True),
+            #  l5 = L.Linear(512, 258, nobias=True),
+            #  l6 = L.Linear(258, n_out, nobias=True),
+            l4 = L.Linear(None, 1024, nobias=True),
+            l5 = L.Linear(1024, 512, nobias=True),
+            l6 = L.Linear(512, 256, nobias=True),
+            l7 = L.Linear(256, n_out, nobias=True),
         )
 
         self.k = k
@@ -104,7 +108,8 @@ class ValueIterationNetwork(Chain):
 
         h1 = self.l4(h_in)
         h2 = self.l5(h1)
-        y = self.l6(h2)
+        h3 = self.l6(h2)
+        y = self.l7(h3)
 
         return y
 

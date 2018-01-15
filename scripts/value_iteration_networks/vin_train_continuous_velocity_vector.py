@@ -265,8 +265,8 @@ def main(dataset, n_epoch, batchsize, gpu, model_path):
 
     optimizer = optimizers.Adam()
     optimizer.setup(model)
-    optimizer.add_hook(chainer.optimizer.WeightDecay(1e-4))
-    optimizer.add_hook(chainer.optimizer.GradientClipping(100.0))
+    #  optimizer.add_hook(chainer.optimizer.WeightDecay(1e-4))
+    #  optimizer.add_hook(chainer.optimizer.GradientClipping(100.0))
 
     train_and_test(model, optimizer, gpu, model_path, train_data, test_data, n_epoch, batchsize)
 
