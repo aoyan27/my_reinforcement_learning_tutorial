@@ -21,7 +21,8 @@ import pickle
 import tf
 
 #  from networks.vin_continuous import ValueIterationNetwork
-from networks.vin_continuous_velocity_vector import ValueIterationNetwork
+#  from networks.vin_continuous_velocity_vector import ValueIterationNetwork
+from networks.vin_continuous_velocity_vector_2 import ValueIterationNetwork
 
 
 velocity_vector \

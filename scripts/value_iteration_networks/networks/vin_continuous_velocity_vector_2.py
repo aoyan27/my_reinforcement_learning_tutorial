@@ -89,7 +89,8 @@ class ValueIterationNetwork(Chain):
         #  print "self.v : ", self.v
         
         q = self.conv3a(self.r) + self.conv3b(self.v)
-        q_out = self.attention(q, position_list)
+        #  q_out = self.attention(q, position_list)
+        q_out = self.attention(self.v, position_list)
 
         #  print "q_out : ", q_out
         #  print "position_list : ", position_list
