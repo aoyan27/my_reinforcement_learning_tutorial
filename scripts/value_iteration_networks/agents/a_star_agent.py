@@ -30,7 +30,7 @@ class AstarAgent:
         self.resign = False
     
     def create_heuristic(self):
-        self.heuristic = np.zeros([self.env.rows, self.env.cols])
+        self.heuristic = np.zeros([self.env.rows, self.env.cols], dtype=np.int32)
         #  print "self.heuristic : "
         #  print self.heuristic
         self.heuristic[tuple(self.env.goal)] = 0
