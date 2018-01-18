@@ -28,6 +28,11 @@ velocity_vector \
         = {0: [0.5, -3.0], 1: [0.6, -2.5], 2: [0.7, -2.0], 3: [0.8, -1.5], 4: [1.0, -1.0], \
            5: [1.2, 0.0], \
            6: [1.0, 1.0], 7: [0.8, 1.5], 8: [0.7, 2.0], 9: [0.6, 2.5], 10: [0.5, 3.0]}
+#  velocity_vector \
+#          = {0: [0.5, -3.0], 1: [0.75, -2.5], 2: [1.0, -1.0], \
+#             3: [1.2, 0.0], \
+#             4: [1.0, 1.0], 5: [0.75, 2.5], 6: [0.5, 3.0]}
+
 
 def view_image(array, title):
     image = cv.cvtColor(array.astype(np.uint8), cv.COLOR_GRAY2RGB)
@@ -257,16 +262,18 @@ def main(dataset, n_epoch, batchsize, gpu, model_path):
                                test_size=0.3)
 
     #  model = ValueIterationNetwork(l_q=5, n_out=5, k=20)
+    #  model = ValueIterationNetwork(l_q=9, n_out=7, k=20)
     model = ValueIterationNetwork(l_q=11, n_out=11, k=20)
     #  model = ValueIterationNetwork(l_h=200, l_q=9, n_out=9, k=20)
     if gpu >= 0:
         cuda.get_device(gpu).use()
         model.to_gpu()
 
-    optimizer = optimizers.Adam()
+    #  optimizer = optimizers.Adam()
+    optimizer = optimizers.RMSpropGraves()
     optimizer.setup(model)
-    #  optimizer.add_hook(chainer.optimizer.WeightDecay(1e-4))
-    #  optimizer.add_hook(chainer.optimizer.GradientClipping(100.0))
+    optimizer.add_hook(chainer.optimizer.WeightDecay(1e-4))
+    optimizer.add_hook(chainer.optimizer.GradientClipping(100.0))
 
     train_and_test(model, optimizer, gpu, model_path, train_data, test_data, n_epoch, batchsize)
 

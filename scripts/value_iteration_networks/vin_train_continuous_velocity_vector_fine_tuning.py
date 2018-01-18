@@ -294,7 +294,7 @@ def main(dataset, n_epoch, batchsize, gpu, model_path, load_model_path):
     optimizer.setup(model)
     optimizer.add_hook(chainer.optimizer.WeightDecay(1e-4))
     optimizer.add_hook(chainer.optimizer.GradientClipping(100.0))
-    optimizer.add_hook(DelGradient(["conv1","conv2","conv3a","conv3b"]))
+    #  optimizer.add_hook(DelGradient(["conv1","conv2","conv3a","conv3b"]))
 
     train_and_test(model, optimizer, gpu, model_path, train_data, test_data, n_epoch, batchsize)
 
