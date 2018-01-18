@@ -101,10 +101,15 @@ def view_traj(env, state_list):
 
     vis_traj[tuple(state_list[0])] = '$'
     end_index = len(state_list) - 1
-    vis_traj[tuple(state_list[end_index])] = 'G'
+    vis_traj[tuple(env.goal)] = 'G'
     
-    print "vis_tarj : "
-    print vis_traj
+    for i in vis_traj:
+        print "|",
+        for j in i:
+            print "%c" % j,
+        print "|"
+    #  print "vis_tarj : "
+    #  print vis_traj
     
 
 
@@ -181,7 +186,7 @@ def main(rows, cols, n_objects, seed, gpu, model_path):
             #  print "state : ", state_data, ", goal : ", goal
             #  env.show_objectworld_with_state()
             p = model(input_data, state_data)
-            print "p : ", p
+            #  print "p : ", p
             action = np.argmax(p.data)
             #  print "action : ",action
             next_state, reward, done, _ = env.step(action, reward_map.transpose().reshape(-1))

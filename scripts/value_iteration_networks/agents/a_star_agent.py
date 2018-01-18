@@ -4,6 +4,7 @@
 import numpy as np
 np.set_printoptions(suppress=True, threshold=np.inf)
 import copy
+import math
 
 
 class AstarAgent:
@@ -29,15 +30,15 @@ class AstarAgent:
         self.resign = False
     
     def create_heuristic(self):
-        self.heuristic = np.zeros([self.env.rows, self.env.cols])
+        self.heuristic = np.zeros([self.env.rows, self.env.cols], dtype=np.int32)
         #  print "self.heuristic : "
         #  print self.heuristic
         self.heuristic[tuple(self.env.goal)] = 0
         for i in xrange(self.env.n_state):
             state = self.env.index2state(i)
             #  print "state : ", state
-            diff_y = self.env.goal[0] - state[0]
-            diff_x = self.env.goal[1] - state[1]
+            diff_y = math.fabs(self.env.goal[0] - state[0])
+            diff_x = math.fabs(self.env.goal[1] - state[1])
             #  print "diff_y, diff_x : ", diff_y, diff_x
             self.heuristic[tuple(state)] = diff_y + diff_x
 

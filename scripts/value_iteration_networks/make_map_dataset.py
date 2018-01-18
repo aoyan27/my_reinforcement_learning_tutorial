@@ -35,6 +35,14 @@ def view_image(array, title):
     plt.title(title)
     plt.show()
 
+def view_matrix(array):
+    for row in array:
+        print "|",
+        for i in row:
+            print "%2d" % i, 
+        print "|"
+        
+
 def get_reward_map(env):
     reward_map = np.zeros([env.rows, env.cols])
     reward_map[tuple(env.goal)] = env.R_max
@@ -66,6 +74,10 @@ def get_trajs(env, n_trajs):
         #  agent = DijkstraAgent(env)
         #  agent.get_shortest_path(start_position)
         agent = AstarAgent(env)
+        #  print "agent.hueristic : "
+        #  print agent.heuristic
+        #  view_matrix(agent.heuristic)
+        
         agent.get_shortest_path(start_position)
         
         if agent.found:
@@ -98,16 +110,14 @@ def save_dataset(data, filename):
         pickle.dump(data, f)
 
 
-def main(rows, cols, n_objects, n_domains, n_trajs, seed, save_dirs):
+def main(rows, cols, n_objects, n_domains, n_trajs, action_mode ,seed, save_dirs):
     n_state = rows * cols
     
     goal = [rows-1, cols-1]
     R_max = 1.0
     noise = 0.0
 
-    #  env = Objectworld(rows, cols, goal, R_max, noise, n_objects, seed, mode=0)
-    #  env = Objectworld(rows, cols, goal, R_max, noise, n_objects, seed, mode=1)
-    env = Objectworld(rows, cols, goal, R_max, noise, n_objects, seed, mode=2)
+    env = Objectworld(rows, cols, goal, R_max, noise, n_objects, seed, mode=action_mode)
     
     max_samples = (rows + cols) * n_domains * n_trajs
     print "max_samples : ", max_samples
@@ -190,10 +200,12 @@ if __name__ == "__main__":
     
     parser.add_argument('-r', '--rows', default=16, type=int, help='row of global gridworld')
     parser.add_argument('-c', '--cols', default=16, type=int, help='column of global gridworld')
-
+    
     parser.add_argument('-o', '--n_objects', default=40, type=int, help='number of objects')
     parser.add_argument('-d', '--n_domains', default=5000, type=int, help='number of domains')
     parser.add_argument('-t', '--n_trajs', default=10, type=int, help='number of trajs')
+
+    parser.add_argument('-am', '--action_mode', default=1, type=int, help='number of action_mode')
 
     parser.add_argument('-s', '--seed', default=0, type=int, help='number of seed')
 
@@ -203,4 +215,5 @@ if __name__ == "__main__":
     args = parser.parse_args()
     print args
     
-    main(args.rows, args.cols, args.n_objects, args.n_domains, args.n_trajs, args.seed, args.dataset_dirs)
+    main(args.rows, args.cols, args.n_objects, args.n_domains, args.n_trajs, \
+            args.action_mode, args.seed, args.dataset_dirs)
