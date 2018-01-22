@@ -37,7 +37,6 @@ class ValueIterationNetworkAttention(Chain):
         patch_size = (3, 3)
         #  print "patch_size : ", patch_size
         w = np.zeros((v.data.shape[0], v.data.shape[1], patch_size[0], patch_size[1]))
-        w_out = np.zeros(((v.data.shape[0], v.data.shape[1], patch_size[0]*patch_size[1])))
         #  print "w.shape : ", w.shape
 
         if isinstance(v.data, cuda.ndarray):
@@ -91,18 +90,14 @@ class ValueIterationNetworkAttention(Chain):
                     = v.data[i, :, min_y:max_y, min_x:max_x]
             #  print "w[i] : "
             #  print w[i]
-            #  print F.flatten(w[i])
-            #  print "w_out : ", w_out[i, :]
-            #  w_out[i, :] = F.flatten(w[i]).data
-        #  print "w_out : "
-        #  print w_out
-            
+        #  print "w : "
+        #  print w
         #  print w.shape
         
         w_out = Variable(w.astype(np.float32))
         #  print "state_list : "
         #  print state_list[0]
-        v =  w_out
+        v_out = w_out
 
         return v
 
