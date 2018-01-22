@@ -93,13 +93,13 @@ class ValueIterationNetworkAttention(Chain):
             #  print w[i]
             #  print F.flatten(w[i])
             #  print "w_out : ", w_out[i, :]
-            w_out[i, :] = F.flatten(w[i]).data
+            #  w_out[i, :] = F.flatten(w[i]).data
         #  print "w_out : "
         #  print w_out
             
         #  print w.shape
         
-        w_out = Variable(w_out.astype(np.float32))
+        w_out = Variable(w.astype(np.float32))
         #  print "state_list : "
         #  print state_list[0]
         v =  w_out
