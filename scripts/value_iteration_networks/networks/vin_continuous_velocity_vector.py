@@ -113,9 +113,20 @@ class ValueIterationNetwork(Chain):
         #  h1 = self.l4(h_in)
         #  h2 = self.l5(h1)
         #  y = self.l6(h2)
-        h1 = self.l4(h_in)
-        h2 = self.l5(h1)
-        h3 = self.l6(h2)
+
+        #  h1 = self.l4(h_in)
+        #  h2 = self.l5(h1)
+        #  h3 = self.l6(h2)
+        #  y = self.l7(h3)
+
+        #  h1 = F.relu(self.l4(h_in))
+        #  h2 = F.relu(self.l5(h1))
+        #  h3 = F.relu(self.l6(h2))
+        #  y = self.l7(h3)
+
+        h1 = F.leaky_relu(self.l4(h_in))
+        h2 = F.leaky_relu(self.l5(h1))
+        h3 = F.leaky_relu(self.l6(h2))
         y = self.l7(h3)
 
         return y
