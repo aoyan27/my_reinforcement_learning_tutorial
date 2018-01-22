@@ -166,13 +166,13 @@ if __name__ == "__main__":
     from envs.object_world import Objectworld
     #  from envs.continuous_state_object_world import Objectworld
 
-    rows = cols = 50
+    rows = cols = 32
     cell_size = 0.25
     goal = [rows-1, cols-1]
 
     R_max = 1.0
     noise = 0.0
-    n_objects = 1000
+    n_objects = 100
     seed = 1
     
     object_list = [
@@ -212,12 +212,27 @@ if __name__ == "__main__":
         if a_agent.found:
             #  print "a_agent.state_list : "
             #  print a_agent.state_list
+            #  print "a_agent.action_list : "
+            #  print a_agent.action_list
+
+            #  for row in a_agent.action_list:
+                #  print "|",
+                #  for l in row:
+                    #  print "%2d" % l,
+                #  print "|"
+            #  print "a_agent.policy : "
+            #  print a_agent.policy
+            #  for row in a_agent.policy:
+                #  print "|",
+                #  for l in row:
+                    #  print "%2d" % l,
+                #  print "|"
             #  print "a_agent.shrotest_action_list : "
             #  print a_agent.shortest_action_list
             #  env.show_policy(a_agent.policy.transpose().reshape(-1))
             path_data = a_agent.show_path()
             print "view_path : "
             a_agent.view_path(path_data['vis_path'])
-            #  print "state_list : ", list(path_data['state_list'])
-            #  print "action_list : ", path_data['action_list']
+            print "state_list : ", list(path_data['state_list'])
+            print "action_list : ", path_data['action_list']
             i += 1
