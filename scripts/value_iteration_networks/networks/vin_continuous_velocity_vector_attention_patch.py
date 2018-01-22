@@ -10,18 +10,19 @@ from chainer import Chain
 import chainer.functions as F
 import chainer.links as L
 
-class ValueIterationNetwork(Chain):
-    def __init__(self, n_in=2, l_h=150, l_q=9, n_out=9, k=10):
-        super(ValueIterationNetwork, self).__init__(
-            conv1 = L.Convolution2D(n_in, l_h, 3, stride=1, pad=1), 
-            conv2 = L.Convolution2D(l_h, 1, 1, stride=1, pad=0, nobias=True),
+class ValueIterationNetworkAttention(Chain):
+    def __init__(self, n_in=2, l_h=150, l_q=9, n_out=9, k=10, net=None):
+        super(ValueIterationNetworkAttention, self).__init__(
+            conv1 = L.Convolution2D(n_in, l_h, 3, stride=1, pad=1, \
+					initialW=net.conv1.W.data, initial_bias=net.conv1.b.data), 
+            conv2 = L.Convolution2D(l_h, 1, 1, stride=1, pad=0, \
+					initialW=net.conv2.W.data, nobias=True),
 
-            conv3a = L.Convolution2D(1, l_q, 3, stride=1, pad=1, nobias=True),
-            conv3b = L.Convolution2D(1, l_q, 3, stride=1, pad=1, nobias=True),
+            conv3a = L.Convolution2D(1, l_q, 3, stride=1, pad=1, \
+					initialW=net.conv3a.W.data, nobias=True), 
+            conv3b = L.Convolution2D(1, l_q, 3, stride=1, pad=1, \
+					initialW=net.conv3b.W.data, nobias=True), 
 
-            #  l4 = L.Linear(None, 512, nobias=True),
-            #  l5 = L.Linear(512, 258, nobias=True),
-            #  l6 = L.Linear(258, n_out, nobias=True),
             l4 = L.Linear(None, 1024, nobias=True),
             l5 = L.Linear(1024, 512, nobias=True),
             l6 = L.Linear(512, 256, nobias=True),
@@ -29,40 +30,91 @@ class ValueIterationNetwork(Chain):
         )
 
         self.k = k
+	
+    def continuous2discreate(self, continuous_state, cell_size=0.5):
+            discreate_y = int(continuous_state[0] / cell_size)
+            discreate_x = int(continuous_state[1] / cell_size)
+            return (discreate_y, discreate_x)
     
-    def attention(self, q, position_list):
-        #  print "q.data : ",
-        #  print q.data[0]
-        w = np.zeros(q.data.shape)
-        #  print "w : ", w.shape
-        cell_size = 0.5
-        for i in xrange(len(position_list)):
-            #  print "position_list : ", position_list[i]
-            w[i, :, int(position_list[i][0]/cell_size), int(position_list[i][1]/cell_size)] = 1.0
-            #  print "w : "
-            #  print w[i]
 
-        if isinstance(q.data, cuda.ndarray):
+    def attention(self, v, position_list):
+        #  print "v.data : ",
+        #  print v.data[0]
+        #  print "v.data.shape : ", v.data.shape
+        patch_size = (3, 3)
+        #  print "patch_size : ", patch_size
+        w = np.zeros((v.data.shape[0], v.data.shape[1], patch_size[0], patch_size[1]))
+        #  print "w.shape : ", w.shape
+        w_out = np.zeros((v.data.shape[0], patch_size[0]*patch_size[1]))
+        #  print "w_out.shape : ", w_out.shape
+
+
+        if isinstance(v.data, cuda.ndarray):
             w = cuda.to_gpu(w)
+            w_out = cuda.to_gpu(w_out)
 
-        #  print q.data.shape
-        #  print w.shape
+        center_y = int(patch_size[0] / 2)
+        center_x = int(patch_size[1] / 2)
+        #  print "(center_y, center_x) : ", center_y, center_x
+
+        for i in xrange(v.data.shape[0]):
+            #  print "========================================="
+            #  print "i : ", i
+            discreate_state = self.continuous2discreate(position_list[i])
+            y, x = discreate_state
+            #  print "(y, x) : ", y, x
+            min_y = int(y - center_y)
+            max_y = int(y + center_y) + 1
+            min_x = int(x - center_x)
+            max_x = int(x + center_x) + 1
+            #  print "min_y, max_y : ", min_y, max_y
+            #  print "min_x, max_x : ", min_x, max_x
+            if min_y < 0:
+                min_y = 0
+            if v.shape[2] < max_y:
+                max_y =  v.shape[2]
+            if min_x < 0:
+                min_x = 0
+            if v.shape[3] < max_x:
+                max_x = v.shape[3]
+            #  print "min_y, max_y : ", min_y, max_y
+            #  print "min_x, max_x : ", min_x, max_x
+
+            diff_min_y = min_y - y
+            diff_max_y = max_y - y
+            diff_min_x = min_x - x
+            diff_max_x = max_x - x
+            #  print "diff_min_y, diff_max_y : ", diff_min_y, diff_max_y
+            #  print "diff_min_x, diff_max_x : ", diff_min_x, diff_max_x
+
+            attention_min_y = int(center_y + diff_min_y)
+            attention_max_y = int(center_y + diff_max_y)
+            attention_min_x = int(center_x + diff_min_x)
+            attention_max_x = int(center_x + diff_max_x)
+            #  print "attention_min_y, attention_max_y : ", attention_min_y, attention_max_y
+            #  print "attention_min_x, attention_max_x : ", attention_min_x, attention_max_x
+
+            #  print "v.data[i] : "
+            #  print v.data[i]
+            #  print v.data[i, :, min_y:max_y, min_x:max_x]
+            w[i, :, attention_min_y:attention_max_y, attention_min_x:attention_max_x] \
+                    = v.data[i, :, min_y:max_y, min_x:max_x]
+            #  print "w[i] : "
+            #  print w[i]
+            #  print "w[i].shape : "
+            #  print w[i].shape
+            w_out[i] = w[i].reshape((w[i].shape[0], w[i].shape[1]*w[i].shape[2]))[0]
+            #  print "w_out[i] : ", w_out[i]
+        #  print "w_out : "
+        #  print w_out
         
-        w = Variable(w.astype(np.float32))
+        w_out = Variable(w_out.astype(np.float32))
         #  print "position_list : "
         #  print position_list[0]
-        a = q * w
-        #  print "a : "
-        #  print a.shape
-        a = F.reshape(a, (a.data.shape[0], a.data.shape[1], -1))
-        #  print "a() : "
-        #  print a.shape
+        
+        v_out = w_out
 
-        q_out = F.sum(a, axis=2)
-        #  print "q_out : "
-        #  print q_out
-        #  print q_out.shape
-        return q_out
+        return v_out
 
 
     def __call__(self, input_data, position_list, orientation_list, velocity_vector_list):
@@ -88,11 +140,9 @@ class ValueIterationNetwork(Chain):
         #  print "q(after k) : ", q
         #  print "self.v : ", self.v
         
-        q = self.conv3a(self.r) + self.conv3b(self.v)
-        #  q_out = self.attention(q, position_list)
-        q_out = self.attention(self.v, position_list)
+        v_out = self.attention(self.v, position_list)
+        #  print "v_out : ", v_out
 
-        #  print "q_out : ", q_out
         #  print "position_list : ", position_list
         #  print "orientation_list : ", orientation_list
         position_ = position_list.astype(np.float32)
@@ -104,7 +154,7 @@ class ValueIterationNetwork(Chain):
         input_policy2 = F.concat((input_policy, velocity_vector_), axis=1)
         #  input_policy2 = F.concat((position_, velocity_vector_), axis=1)
 
-        h_in = F.concat((q_out, input_policy2), axis=1)
+        h_in = F.concat((v_out, input_policy2), axis=1)
         #  print "h_in : ", h_in
 
         h1 = self.l4(h_in)
