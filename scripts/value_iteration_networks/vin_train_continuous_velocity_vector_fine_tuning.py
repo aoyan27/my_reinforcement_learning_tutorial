@@ -42,7 +42,7 @@ class DelGradient(object):
                 if d in name:
                     grad = param.grad
                     with cuda.get_device(grad):
-                        grad = 0
+                        grad *= 0
 
 def view_image(array, title):
     image = cv.cvtColor(array.astype(np.uint8), cv.COLOR_GRAY2RGB)

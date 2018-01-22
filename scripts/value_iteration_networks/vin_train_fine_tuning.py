@@ -203,7 +203,7 @@ def train_and_test(model, optimizer, gpu, model_path, train_data, test_data, n_e
         model_name = 'vin_model_%d.model' % epoch
         print model_name
 
-        #  save_model(model, model_path+model_name)
+        save_model(model, model_path+model_name)
 
         epoch += 1
 
@@ -230,7 +230,7 @@ def main(dataset, n_epoch, batchsize, gpu, model_path, load_model_path):
     load_model(load_model_, load_model_path)
 
     #  model = ValueIterationNetwork(l_q=9, n_out=9, k=20)
-    model = ValueIterationNetworkFineTuning(l_q=9, n_out=9, k=20, net=load_model_)
+    model = ValueIterationNetworkFineTuning(l_q=9, n_out=9, k=42, net=load_model_)
     if gpu >= 0:
         cuda.get_device(gpu).use()
         model.to_gpu()
@@ -239,7 +239,7 @@ def main(dataset, n_epoch, batchsize, gpu, model_path, load_model_path):
     optimizer.setup(model)
     optimizer.add_hook(chainer.optimizer.WeightDecay(1e-4))
     optimizer.add_hook(chainer.optimizer.GradientClipping(100.0))
-    optimizer.add_hook(DelGradient(["conv1","conv2","conv3a","conv3b"]))
+    optimizer.add_hook(DelGradient(["conv3a","conv3b"]))
     
     train_and_test(model, optimizer, gpu, model_path, train_data, test_data, n_epoch, batchsize, load_model=load_model_)
 

@@ -12,20 +12,18 @@ import chainer.links as L
 
 class ValueIterationNetworkFineTuning(Chain):
     def __init__(self, n_in=2, l_h=150, l_q=5, n_out=5, k=10, net=None):
-		super(ValueIterationNetworkFineTuning, self).__init__(
-			conv1 = L.Convolution2D(n_in, l_h, 3, stride=1, pad=1, \
-					initialW=net.conv1.W.data, initial_bias=net.conv1.b.data), 
-			conv2 = L.Convolution2D(l_h, 1, 1, stride=1, pad=0, \
-					initialW=net.conv2.W.data, nobias=True),
+        super(ValueIterationNetworkFineTuning, self).__init__(
+                conv1 = L.Convolution2D(n_in, l_h, 3, stride=1, pad=1), 
+                conv2 = L.Convolution2D(l_h, 1, 1, stride=1, pad=0, nobias=True),
 
-			conv3a = L.Convolution2D(1, l_q, 3, stride=1, pad=1, \
-					initialW=net.conv3a.W.data, nobias=True),
-			conv3b = L.Convolution2D(1, l_q, 3, stride=1, pad=1, \
-					initialW=net.conv3b.W.data, nobias=True),
+                conv3a = L.Convolution2D(1, l_q, 3, stride=1, pad=1, \
+                                initialW=net.conv3a.W.data, nobias=True),
+                conv3b = L.Convolution2D(1, l_q, 3, stride=1, pad=1, \
+                                initialW=net.conv3b.W.data, nobias=True),
 
-			l4 = L.Linear(l_q, n_out, nobias=True),
-		)
-		self.k = k
+                l4 = L.Linear(l_q, n_out, nobias=True),
+        )
+        self.k = k
         #  super(ValueIterationNetworkFineTuning, self).__init__(
             #  conv1 = L.Convolution2D(n_in, l_h, 3, stride=1, pad=1), 
             #  conv2 = L.Convolution2D(l_h, 1, 1, stride=1, pad=0, nobias=True),
