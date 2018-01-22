@@ -117,13 +117,7 @@ def main(rows, cols, n_objects, n_domains, n_trajs, action_mode ,seed, save_dirs
     R_max = 1.0
     noise = 0.0
 
-<<<<<<< HEAD
-    #  env = Objectworld(rows, cols, goal, R_max, noise, n_objects, seed, mode=0)
-    env = Objectworld(rows, cols, goal, R_max, noise, n_objects, seed, mode=1)
-    #  env = Objectworld(rows, cols, goal, R_max, noise, n_objects, seed, mode=2)
-=======
     env = Objectworld(rows, cols, goal, R_max, noise, n_objects, seed, mode=action_mode)
->>>>>>> a381f8438ba6276afb263cdfe8da9b4e4c29f098
     
     max_samples = (rows + cols) * n_domains * n_trajs
     print "max_samples : ", max_samples
