@@ -30,9 +30,14 @@ class DelGradient(object):
         for name,param in opt.target.namedparams():
             for d in self.delTgt:
                 if d in name:
+                    #  print "name : ", name
+                    #  print "param : ", param
                     grad = param.grad
+                    #  print "parame.grad : ", param.grad
                     with cuda.get_device(grad):
                         grad *= 0
+                        #  print "grad : ", grad
+
 
 
 def view_image(array, title):
@@ -160,6 +165,11 @@ def train_and_test(model, optimizer, gpu, model_path, train_data, test_data, n_e
             #  print "loss(train) : ", loss
             loss.backward()
             optimizer.update()
+            print "loss.grad ; ", loss.grad
+            print "model.l4.W.grad : "
+            print model.l4.W.grad
+            print "model.conv3a.W.grad : "
+            print model.conv3a.W.grad
 
             sum_train_loss += float(cuda.to_cpu(loss.data)) * real_batchsize
             sum_train_accuracy += float(cuda.to_cpu(acc.data)) * real_batchsize
@@ -203,7 +213,7 @@ def train_and_test(model, optimizer, gpu, model_path, train_data, test_data, n_e
         model_name = 'vin_model_%d.model' % epoch
         print model_name
 
-        save_model(model, model_path+model_name)
+        #  save_model(model, model_path+model_name)
 
         epoch += 1
 
