@@ -19,7 +19,7 @@ import copy
 import pickle
 
 #  from networks.vin import ValueIterationNetwork
-from networks.multi_agent_vin import ValueIterationNetwork
+from networks.multi_agent_vin_another_agent_position_grid import ValueIterationNetwork
 
 
 def view_image(array, title):
@@ -119,10 +119,14 @@ def train_test_split(image_data, agent_image_data, another_position_data, \
 
     return train_data, test_data
 
-
-def cvt_input_data(image, reward_map):
+def cvt_input_data(grid_image, another_agent_position_image, reward_map):
     input_data = \
-            np.concatenate((np.expand_dims(image, 1), np.expand_dims(reward_map, 1)), axis=1)
+            np.concatenate((np.expand_dims(grid_image, 1), \
+            np.expand_dims(another_agent_position_image, 1)), axis=1)
+
+    input_data = \
+            np.concatenate((input_data, np.expand_dims(reward_map, 1)), axis=1)
+
     return input_data
 
 def train_and_test(model, optimizer, gpu, model_path, train_data, test_data, n_epoch, batchsize):
@@ -153,8 +157,9 @@ def train_and_test(model, optimizer, gpu, model_path, train_data, test_data, n_e
 
             batch_reward_map = train_data['reward'][perm[i:i+batchsize \
                     if i+batchsize < n_train else n_train]]
-            #  batch_input_data = cvt_input_data(batch_image, batch_reward_map)
-            batch_input_data = cvt_input_data(batch_agent_image, batch_reward_map)
+            batch_input_data = cvt_input_data(batch_agent_image, \
+                                              batch_another_position, \
+                                              batch_reward_map)
 
             batch_state_list = train_data['state'][perm[i:i+batchsize \
                     if i+batchsize < n_train else n_train]]
@@ -195,8 +200,9 @@ def train_and_test(model, optimizer, gpu, model_path, train_data, test_data, n_e
 
             batch_reward_map = test_data['reward'][perm[i:i+batchsize \
                     if i+batchsize < n_test else n_test]]
-            #  batch_input_data = cvt_input_data(batch_image, batch_reward_map)
-            batch_input_data = cvt_input_data(batch_agent_image, batch_reward_map)
+            batch_input_data = cvt_input_data(batch_agent_image, \
+                                              batch_another_position, \
+                                              batch_reward_map)
 
             batch_state_list = test_data['state'][perm[i:i+batchsize \
                     if i+batchsize < n_test else n_test]]
