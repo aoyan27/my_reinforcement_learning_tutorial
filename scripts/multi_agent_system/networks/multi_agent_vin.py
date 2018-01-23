@@ -19,7 +19,9 @@ class ValueIterationNetwork(Chain):
             conv3a = L.Convolution2D(1, l_q, 3, stride=1, pad=1, nobias=True),
             conv3b = L.Convolution2D(1, l_q, 3, stride=1, pad=1, nobias=True),
 
-            l4 = L.Linear(l_q, n_out, nobias=True),
+            l4 = L.Linear(None, 128, nobias=True),
+            l5 = L.Linear(128, 128, nobias=True),
+            l6 = L.Linear(128, n_out, nobias=True),
         )
 
         self.k = k
@@ -58,7 +60,7 @@ class ValueIterationNetwork(Chain):
         return q_out
 
 
-    def __call__(self, input_data, state_list):
+    def __call__(self, input_data, state_list, position_list):
         input_data = Variable(input_data.astype(np.float32))
 
         h = F.relu(self.conv1(input_data))
@@ -84,12 +86,18 @@ class ValueIterationNetwork(Chain):
         q = self.conv3a(self.r) + self.conv3b(self.v)
         q_out = self.attention(q, state_list)
 
-        y = self.l4(q_out)
+        position_ = position_list.astype(np.float32)
+
+        concat_1 = F.concat((q_out, position_), axis=1)
+
+        h1 = self.l4(concat_1)
+        h2 = self.l5(h1)
+        y = self.l6(h2)
 
         return y
 
-    def forward(self, input_data, state_list, action_list):
-        y = self.__call__(input_data, state_list)
+    def forward(self, input_data, state_list, position_list, action_list):
+        y = self.__call__(input_data, state_list, position_list)
         #  print "y : ", y
         
         t = Variable(action_list.astype(np.int32))
