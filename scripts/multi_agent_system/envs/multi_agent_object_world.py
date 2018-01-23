@@ -99,7 +99,7 @@ class Objectworld:
                     np.random.choice(xrange(self.n_state), self.num_agent, replace=False)
             #  print "self.start_index : ", self.start_index
             #  print "self.goal_index : ", self.goal_index
-            diff_start_and_goal_flag = (self.start_index != self.goal_index)
+            diff_start_and_goal_flag = np.asarray(self.start_index != self.goal_index)
             #  print "diff_start_and_goal_flag : ", diff_start_and_goal_flag
             not_obs_flag_list = []
             for i in xrange(self.num_agent):
@@ -125,7 +125,7 @@ class Objectworld:
             self.goal_index = \
                     np.random.choice(xrange(self.n_state), self.num_agent, replace=False)
             #  print "self.goal_index : ", self.goal_index
-            diff_start_and_goal_flag = (self.start_index != self.goal_index)
+            diff_start_and_goal_flag = np.asarray(self.start_index != self.goal_index)
             #  print "diff_start_and_goal_flag : ", diff_start_and_goal_flag
             not_obs_flag_list = []
             for i in xrange(self.num_agent):
