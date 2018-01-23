@@ -26,7 +26,9 @@ class ValueIterationNetworkAttention(Chain):
             l4 = L.Linear(None, 1024, nobias=True),
             l5 = L.Linear(1024, 512, nobias=True),
             l6 = L.Linear(512, 256, nobias=True),
-            l7 = L.Linear(256, n_out, nobias=True),
+            l7 = L.Linear(256, 128, nobias=True),
+            l8 = L.Linear(128, 64, nobias=True),
+            l9 = L.Linear(64, n_out, nobias=True),
         )
 
         self.k = k
@@ -157,10 +159,17 @@ class ValueIterationNetworkAttention(Chain):
         h_in = F.concat((v_out, input_policy2), axis=1)
         #  print "h_in : ", h_in
 
-        h1 = self.l4(h_in)
-        h2 = self.l5(h1)
-        h3 = self.l6(h2)
-        y = self.l7(h3)
+        #  h1 = self.l4(h_in)
+        #  h2 = self.l5(h1)
+        #  h3 = self.l6(h2)
+        #  y = self.l7(h3)
+
+        h1 = F.leaky_relu(self.l4(h_in))
+        h2 = F.leaky_relu(self.l5(h1))
+        h3 = F.leaky_relu(self.l6(h2))
+        h4 = F.leaky_relu(self.l7(h3))
+        h5 = F.leaky_relu(self.l8(h4))
+        y = self.l9(h5)
 
         return y
 
