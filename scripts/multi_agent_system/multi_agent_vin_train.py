@@ -18,7 +18,8 @@ import chainer.links as L
 import copy
 import pickle
 
-from networks.vin import ValueIterationNetwork
+#  from networks.vin import ValueIterationNetwork
+from networks.multi_agent_vin import ValueIterationNetwork
 
 
 def view_image(array, title):
@@ -33,16 +34,20 @@ def load_dataset(path):
     data = None
     with open(path, mode='rb') as f:
         data = pickle.load(f)
-    image_data = data['image']
+    image_data = data['grid_image']
+    agent_image_data = data['agent_grid_image']
+    another_position_data = data['another_agent_position']
     reward_map_data = data['reward']
     state_list_data = data['state']
     action_list_data = data['action']
     print "Load %d data!!!" % len(image_data[0])
 
-    return image_data, reward_map_data, state_list_data, action_list_data
+    return image_data, agent_image_data, another_position_data, \
+            reward_map_data, state_list_data, action_list_data
 
-def train_test_split(image_data, reward_map_data, state_list_data, action_list_data, \
-        test_size, seed=0):
+def train_test_split(image_data, agent_image_data, another_position_data, \
+                     reward_map_data, state_list_data, action_list_data, \
+                     test_size, seed=0):
     np.random.seed(seed)
     n_dataset = image_data[0].shape[0]
     print "n_dataset : ", n_dataset
@@ -58,11 +63,15 @@ def train_test_split(image_data, reward_map_data, state_list_data, action_list_d
     #  print "index_train : ", index_train
     
     image_test = image_data[0][index_test]
+    agent_image_test = agent_image_data[0][index_test]
+    another_position_test = agent_image_data[0][index_test]
     reward_map_test = reward_map_data[0][index_test]
     state_list_test = state_list_data[0][index_test]
     action_list_test = action_list_data[0][index_test]
     for i in xrange(1, len(image_data)):
         image_test = np.concatenate([image_test, image_data[i][index_test]], axis=0)
+        agent_image_test = np.concatenate([agent_image_test, agent_image_data[i][index_test]], axis=0)
+        another_position_test = np.concatenate([another_position_test, another_position_data[i][index_test]], axis=0)
         reward_map_test = np.concatenate([reward_map_test, reward_map_data[i][index_test]], axis=0)
         state_list_test = np.concatenate([state_list_test, state_list_data[i][index_test]], axis=0)
         action_list_test = \
@@ -72,29 +81,38 @@ def train_test_split(image_data, reward_map_data, state_list_data, action_list_d
         #  print image_test[0]
 
     image_train = image_data[0][index_train]
+    agent_image_train = agent_image_data[0][index_train]
+    another_position_train = another_position_data[0][index_train]
     reward_map_train = reward_map_data[0][index_train]
     state_list_train = state_list_data[0][index_train]
     action_list_train = action_list_data[0][index_train]
     for i in xrange(1, len(image_data)):
         image_train = np.concatenate([image_train, image_data[i][index_train]], axis=0)
-        reward_map_train = \
-                np.concatenate([reward_map_train, reward_map_data[i][index_train]], axis=0)
-        state_list_train = \
-                np.concatenate([state_list_train, state_list_data[i][index_train]], axis=0)
-        action_list_train = \
-                np.concatenate([action_list_train, action_list_data[i][index_train]], axis=0)
+        agent_image_train = np.concatenate([agent_image_train, agent_image_data[i][index_train]], axis=0)
+        another_position_train \
+                = np.concatenate([another_position_train, another_position_data[i][index_train]], axis=0)
+        reward_map_train \
+                = np.concatenate([reward_map_train, reward_map_data[i][index_train]], axis=0)
+        state_list_train \
+                = np.concatenate([state_list_train, state_list_data[i][index_train]], axis=0)
+        action_list_train \
+                = np.concatenate([action_list_train, action_list_data[i][index_train]], axis=0)
         #  print "image_train : "
         #  print image_train.shape
 
     test_data = {}
     train_data = {}
 
-    test_data['image'] = image_test
+    test_data['grid_image'] = image_test
+    test_data['agent_image'] = agent_image_test
+    test_data['another_position'] = another_position_test
     test_data['reward'] = reward_map_test
     test_data['state'] = state_list_test 
     test_data['action'] = action_list_test
 
-    train_data['image'] = image_train
+    train_data['grid_image'] = image_train
+    train_data['agent_image'] = agent_image_train
+    train_data['another_position'] = another_position_train
     train_data['reward'] = reward_map_train  
     train_data['state'] = state_list_train 
     train_data['action'] = action_list_train
@@ -111,8 +129,8 @@ def train_and_test(model, optimizer, gpu, model_path, train_data, test_data, n_e
     epoch = 1
     accuracy = 0.0
     
-    n_train = train_data['image'].shape[0]
-    n_test = test_data['image'].shape[0]
+    n_train = train_data['grid_image'].shape[0]
+    n_test = test_data['grid_image'].shape[0]
     
     prog_train = ProgressBar(0, n_train)
     prog_test = ProgressBar(0, n_test)
@@ -126,11 +144,17 @@ def train_and_test(model, optimizer, gpu, model_path, train_data, test_data, n_e
         perm = np.random.permutation(n_train)
         for i in xrange(0, n_train, batchsize):
             #  print " i : ", i
-            batch_image = train_data['image'][perm[i:i+batchsize \
+            batch_image = train_data['grid_image'][perm[i:i+batchsize \
                     if i+batchsize < n_train else n_train]]
+            batch_agent_image = train_data['agent_image'][perm[i:i+batchsize \
+                    if i+batchsize < n_train else n_train]]
+            batch_another_position = train_data['another_position'][perm[i:i+batchsize \
+                    if i+batchsize < n_train else n_train]]
+
             batch_reward_map = train_data['reward'][perm[i:i+batchsize \
                     if i+batchsize < n_train else n_train]]
-            batch_input_data = cvt_input_data(batch_image, batch_reward_map)
+            #  batch_input_data = cvt_input_data(batch_image, batch_reward_map)
+            batch_input_data = cvt_input_data(batch_agent_image, batch_reward_map)
 
             batch_state_list = train_data['state'][perm[i:i+batchsize \
                     if i+batchsize < n_train else n_train]]
@@ -142,10 +166,6 @@ def train_and_test(model, optimizer, gpu, model_path, train_data, test_data, n_e
                 batch_action_list = cuda.to_gpu(batch_action_list)
 
             real_batchsize = batch_image.shape[0]
-            
-            #  print "batch_input_data : ", batch_input_data[0]
-            #  print "batch_state_list : ", batch_state_list[0]
-            #  print "batch_action_list : ", batch_action_list[0]
 
             model.zerograds()
             loss, acc = model.forward(batch_input_data, batch_state_list, batch_action_list)
@@ -166,11 +186,17 @@ def train_and_test(model, optimizer, gpu, model_path, train_data, test_data, n_e
 
         perm = np.random.permutation(n_test)
         for i in xrange(0, n_test, batchsize):
-            batch_image = test_data['image'][perm[i:i+batchsize \
+            batch_image = test_data['grid_image'][perm[i:i+batchsize \
                     if i+batchsize < n_test else n_test]]
+            batch_agent_image = test_data['agent_image'][perm[i:i+batchsize \
+                    if i+batchsize < n_test else n_test]]
+            batch_another_position = test_data['another_position'][perm[i:i+batchsize \
+                    if i+batchsize < n_test else n_test]]
+
             batch_reward_map = test_data['reward'][perm[i:i+batchsize \
                     if i+batchsize < n_test else n_test]]
-            batch_input_data = cvt_input_data(batch_image, batch_reward_map)
+            #  batch_input_data = cvt_input_data(batch_image, batch_reward_map)
+            batch_input_data = cvt_input_data(batch_agent_image, batch_reward_map)
 
             batch_state_list = test_data['state'][perm[i:i+batchsize \
                     if i+batchsize < n_test else n_test]]
@@ -206,13 +232,15 @@ def save_model(model, filename):
 
 
 def main(dataset, n_epoch, batchsize, gpu, model_path):
-    image_data, reward_map_data, state_list_data, action_list_data = load_dataset(dataset)
+    image_data, agent_image_data, another_position_data, \
+            reward_map_data, state_list_data, action_list_data = load_dataset(dataset)
     print "image_data : ", len(image_data)
     #  view_image(image_data[0], 'map_image')
     
     train_data, test_data = \
-            train_test_split(image_data, reward_map_data, state_list_data, action_list_data, \
-            test_size=0.3)
+            train_test_split(image_data, agent_image_data, another_position_data, \
+                             reward_map_data, state_list_data, action_list_data, \
+                             test_size=0.3)
 
     #  model = ValueIterationNetwork(l_q=5, n_out=5, k=20)
     model = ValueIterationNetwork(l_q=9, n_out=9, k=20)

@@ -4,6 +4,7 @@
 import numpy as np
 np.set_printoptions(suppress=True, threshold=np.inf)
 import copy
+import math
 
 
 class AstarAgent:
@@ -41,10 +42,10 @@ class AstarAgent:
         for i in xrange(self.env.n_state):
             state = self.env.index2state(i)
             #  print "state : ", state
-            diff_y = self.env.goal[self.agent_id][0] - state[0]
-            diff_x = self.env.goal[self.agent_id][1] - state[1]
+            diff_y = math.fabs(self.env.goal[self.agent_id][0] - state[0])
+            diff_x = math.fabs(self.env.goal[self.agent_id][1] - state[1])
             #  print "diff_y, diff_x : ", diff_y, diff_x
-            self.heuristic[tuple(state)] = diff_y**2 + diff_x**2
+            self.heuristic[tuple(state)] = diff_y + diff_x
 
         #  print "self.heuristic : "
         #  print self.heuristic
@@ -182,7 +183,7 @@ class AstarAgent:
 if __name__ == "__main__":
     import sys
     sys.path.append('../')
-    from envs.object_world import Objectworld
+    from envs.multi_agent_object_world import Objectworld
     from envs.multi_agent_grid_world import Gridworld
     rows = cols = 50
     goal = [rows-1, cols-1]
@@ -203,7 +204,8 @@ if __name__ == "__main__":
     #  env = Objectworld(rows, cols, goal, R_max, noise, n_objects, seed, object_list=object_list, random_objects=False, mode=1)
     #  env = Objectworld(rows, cols, goal, R_max, noise, n_objects, seed, mode=1)
     #  env = Objectworld(rows, cols, goal, R_max, noise, n_objects, seed, mode=1)
-    env = Gridworld(rows, cols, num_agent, noise, seed=seed, mode=mode)
+    #  env = Gridworld(rows, cols, num_agent, noise, seed=seed, mode=mode)
+    env = Objectworld(rows, cols, n_objects, num_agent, noise, seed=seed, mode=mode)
 
     #  print "env.grid : "
     #  env.show_objectworld()

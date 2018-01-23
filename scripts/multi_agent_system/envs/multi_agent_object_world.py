@@ -42,6 +42,7 @@ class Objectworld:
         self.action_list = None
         self.n_action = 0
         self.dirs = {}
+        self.movement = {}
         self.set_action()
 
         self._state = {}
@@ -56,7 +57,7 @@ class Objectworld:
 
 
         self.objects = []
-        self.set_objects()
+        self.set_objects(n_objects_random=False)
         
         self.collisions_ = []
 
@@ -69,11 +70,15 @@ class Objectworld:
             self.action_list = [0, 1, 2, 3, 4]
             self.n_action = len(self.action_list)
             self.dirs = {0: '>', 1: '<', 2: 'v', 3: '^', 4: '-'}
+            self.movement = {0: [0, 1], 1: [0, -1], 2: [1, 0], 3: [-1, 0], 4: [0, 0]}
         elif self.mode == 1:    # mode=1 : 行動8パターン
             self.action_list = [0, 1, 2, 3, 4, 5, 6, 7, 8]
             self.n_action = len(self.action_list)
-            self.dirs = \
-                    {0: '>', 1: '<', 2: 'v', 3: '^', 4: 'ur', 5: 'ul', 6: 'dr', 7: 'dl', 8: '-'}
+            self.dirs \
+                = {0: '>', 1: '<', 2: 'v', 3: '^', 4: 'ur', 5: 'ul', 6: 'dr', 7: 'dl', 8: '-'}
+            self.movement \
+                = {0: [0, 1], 1: [0, -1], 2: [1, 0], 3: [-1, 0], \
+                   4: [-1, 1], 5: [-1, -1], 6: [1, 1], 7: [1, -1], 8: [0, 0]}
     
     def set_agent_grid(self):
         self.agent_grid = {0: copy.deepcopy(self.grid), 1: copy.deepcopy(self.grid)}
@@ -88,58 +93,63 @@ class Objectworld:
         self.set_agent_grid()
 
     def set_start_random(self, check_goal=False):
-        if not check_goal:
+        start_ = {}
+        while 1:
             self.start_index = \
                     np.random.choice(xrange(self.n_state), self.num_agent, replace=False)
             #  print "self.start_index : ", self.start_index
+            #  print "self.goal_index : ", self.goal_index
+            diff_start_and_goal_flag = (self.start_index != self.goal_index)
+            #  print "diff_start_and_goal_flag : ", diff_start_and_goal_flag
+            not_obs_flag_list = []
             for i in xrange(self.num_agent):
-                self.start[i] = self.index2state(self.start_index[i])
-            self._state = self.start
-            #  print "self.start", self.start
-            self.set_agent_grid()
-        else:
-            while 1:
-                self.start_index = \
-                        np.random.choice(xrange(self.n_state), self.num_agent, replace=False)
-                for i in xrange(self.num_agent):
-                    for j in xrange(self.num_agent):
-                        if self.start_index[i] == self.goal_index[j] \
-                                or self.grid[tuple(self.index2state(self.start_index[j]))] == -1:
-                            continue
+                not_obs_flag_list.append(\
+                        self.grid[tuple(self.index2state(self.start_index[i]))]!=-1)
+            #  print "not_obs_flag_list : ", not_obs_flag_list
+            if diff_start_and_goal_flag.all() \
+                    and np.asarray(not_obs_flag_list).all():
                 break
-            for i in xrange(self.num_agent):
-                self.start[i] = self.index2state(self.start_index[i])
-            self._state = self.start
-            #  print "self.start", self.start
-            self.set_agent_grid()
+
+        for i in xrange(self.num_agent):
+            start_[i] = self.index2state(self.start_index[i])
+
+        #  print "start_ : ", start_
+        self.set_start(start_)
 
     def set_goal(self, goal):
         self.goal = goal
 
     def set_goal_random(self, check_start=True):
-        if check_start:
-            while 1:
-                self.goal_index = \
-                        np.random.choice(xrange(self.n_state), self.num_agent, replace=False)
-                #  print "self.goal_index : ", self.goal_index
-                if tuple(self.start_index) != tuple(self.goal_index):
-                    break
-            for i in xrange(self.num_agent):
-                self.goal[i] = self.index2state(self.goal_index[i])
-            #  print "self.goal", self.goal
-        else:
+        goal_ = {}
+        while 1:
             self.goal_index = \
                     np.random.choice(xrange(self.n_state), self.num_agent, replace=False)
             #  print "self.goal_index : ", self.goal_index
+            diff_start_and_goal_flag = (self.start_index != self.goal_index)
+            #  print "diff_start_and_goal_flag : ", diff_start_and_goal_flag
+            not_obs_flag_list = []
             for i in xrange(self.num_agent):
-                self.goal[i] = self.index2state(self.goal_index[i])
-            #  print "self.goal", self.goal
+                not_obs_flag_list.append(\
+                        self.grid[tuple(self.index2state(self.goal_index[i]))]!=-1)
+            #  print "not_obs_flag_list : ", not_obs_flag_list
+            if diff_start_and_goal_flag.all() \
+                    and np.asarray(not_obs_flag_list).all():
+                break
 
-    def set_objects(self):
+        for i in xrange(self.num_agent):
+            goal_[i] = self.index2state(self.goal_index[i])
+        #  print "self.goal", self.goal
+        self.set_goal(goal_)
+
+    def set_objects(self, n_objects_random=True):
         self.objects = []
         self.grid = np.zeros([self.rows, self.cols])
         #  self.set_goal(self.goal)
-        n_objects_ = np.random.randint(0, self.n_objects)
+        n_objects_ = None
+        if n_objects_random:
+            n_objects_ = np.random.randint(0, self.n_objects)
+        else:
+            n_objects_ = self.n_objects
         #  print "n_objects_ : ", n_objects_
         if self.random_objects:
             i = 0
@@ -184,28 +194,13 @@ class Objectworld:
         return state
 
     def get_sample_action_single_agent(self):
-        action = None
-        if self.mode == 0:
-            action = np.random.randint(0, 4)
-        elif self.mode == 1:
-            action = np.random.randint(0, 8)
-        else:
-            sys.stderr.write('Error occurred! Please set mode 0 or 1 !!')
-            sys.exit()
-
+        action = np.random.randint(0, self.n_action)
         return action
 
     def get_sample_action(self):
         action = {}
-        if self.mode == 0:
-            for i in xrange(self.num_agent):
-                action[i] = np.random.randint(0, 4)
-        elif self.mode == 1:
-            for i in xrange(self.num_agent):
-                action[i] = np.random.randint(0, 8)
-        else:
-            sys.stderr.write('Error occurred! Please set mode 0 or 1 !!')
-            sys.exit()
+        for i in xrange(self.num_agent):
+            action[i] = np.random.randint(0, self.n_action)
 
         return action
 
@@ -217,57 +212,9 @@ class Objectworld:
 
         y, x = state
         next_y, next_x = state
-        
-        if self.mode == 0:
-            if action == 0:
-                #  right
-                next_x = x + reflect*1
-            elif action == 1:
-                #  left
-                next_x = x - reflect*1
-            elif action == 2:
-                #  down
-                next_y = y + reflect*1
-            elif action == 3:
-                #  up
-                next_y = y - reflect*1
-            else:
-                #  stay
-                next_x = x
-                next_y = y
-        elif self.mode == 1:
-            if action == 0:
-                #  right
-                next_x = x + reflect*1
-            elif action == 1:
-                #  left
-                next_x = x - reflect*1
-            elif action == 2:
-                #  down
-                next_y = y + reflect*1
-            elif action == 3:
-                #  up
-                next_y = y - reflect*1
-            elif action == 4:
-                # upper right
-                next_x = x + reflect*1
-                next_y = y - reflect*1
-            elif action == 5:
-                # upper left
-                next_x = x - reflect*1
-                next_y = y - reflect*1
-            elif action == 6:
-                # down right
-                next_x = x + reflect*1
-                next_y = y + reflect*1
-            elif action == 7:
-                # down left
-                next_x = x - reflect*1
-                next_y = y + reflect*1
-            else:
-                #  stay
-                next_x = x
-                next_y = y
+
+        next_y = y + reflect*self.movement[action][0]
+        next_x = x + reflect*self.movement[action][1]
         
         out_of_range = False
         if next_y < 0 or (grid_range[0]-1) < next_y:
@@ -318,7 +265,7 @@ class Objectworld:
                     probs[a] = 0
                 next_state_list.append(next_state)
 
-        return next_state_list, probs
+        return next_state_list, probs, self.collisions_
 
     def get_transition_matrix(self):
         P = np.zeros((self.n_state, self.n_state, self.n_action), dtype=np.float32)
@@ -353,7 +300,7 @@ class Objectworld:
         else:
             self.set_start_random()
             self.set_goal_random()
-        self.set_objects()
+        #  self.set_objects()
         self.agent_collision = False
 
         return self._state
@@ -361,13 +308,15 @@ class Objectworld:
     def step(self, action):
         if len(action) != self.num_agent:
             sys.stderr.write('Error occurred!')
+            sys,exit(1)
 
         next_state_list = {}
         probs = {}
+        collisions = {}
         reward = {}
         episode_end = {}
         for i in xrange(self.num_agent):
-            next_state_list[i], probs[i] = \
+            next_state_list[i], probs[i], collisions[i] = \
                     self.get_next_state_and_probs(self._state[i], action[i], self.goal[i])
 
             #  print next_state_list
@@ -386,13 +335,13 @@ class Objectworld:
             self._state[i] = next_state_list[i][action_index]
         self.set_agent_grid()
         
-        reward = self.reward_function(self._state, self.goal)
+        reward = self.reward_function(self._state, self.goal, collisions, action)
 
-        episode_end = self.check_episode_end(self._state, self.goal)
+        episode_end = self.check_episode_end(self._state, self.goal, collisions, action)
 
         return self._state, reward, episode_end, {}
 
-    def check_episode_end(self, state, goal):
+    def check_episode_end(self, state, goal, collisions, action):
         episode_end = {}
         for i in xrange(self.num_agent):
             episode_end[i] = 0
@@ -400,6 +349,9 @@ class Objectworld:
         for i in xrange(self.num_agent):
             if state[i] == goal[i]:
                 episode_end[i] = 1
+            elif collisions[i][action[i]]:
+                episode_end[i] = 3
+
          
         for i in xrange(len(state)):
             for j in xrange(i+1, len(state)):
@@ -411,7 +363,7 @@ class Objectworld:
         #  print "episode_end : ", episode_end
         return episode_end
 
-    def reward_function(self, state, goal):
+    def reward_function(self, state, goal, collisions, action):
         reward = {}
         for i in xrange(self.num_agent):
             reward[i] = 0.0
@@ -419,6 +371,8 @@ class Objectworld:
         for i in xrange(self.num_agent):
             if state[i] == goal[i]:
                 reward[i] = 1.0
+            elif collisions[i][action[i]]:
+                reward[i] = -1.0
          
         for i in xrange(len(state)):
             for j in xrange(i+1, len(state)):
@@ -430,7 +384,7 @@ class Objectworld:
     def show_objectworld_with_state(self):
         grid = copy.deepcopy(self.grid)
         for i in xrange(self.num_agent):
-            grid[tuple(self.goal[i])] = i+7
+            grid[tuple(self.goal[i])] = i+6
             if self._state[i] != None:
                 grid[tuple(self._state[i])] = i+2
         for row in grid:
@@ -459,24 +413,32 @@ if __name__=="__main__":
 
     print "ow._state : ", ow._state
     
+    #  ow.set_goal_random(check_start=False)
+    #  print "ow.goal : ", ow.goal
     #  ow.set_start_random()
+    #  ow.set_start_random(check_goal=True)
+    #  print "ow.start : ", ow.start
     #  ow.set_goal_random()
+    #  print "ow.goal : ", ow.goal
+    #  print "ow._state : ", ow._state
+    #  for i in xrange(ow.num_agent):
+        #  print "ow.agent_grid : "
+        #  print ow.agent_grid[i]
+
 
     #  count = 0
     #  state_list = {}
     #  for i in xrange(ow.rows):
         #  for j in xrange(ow.cols):
             #  state_list[count] = [i, j]
-            
             #  print "%2d " % count, 
             #  count += 1
         #  print ""
-
     #  print state_list
-
     #  for i in xrange(ow.n_state):
         #  print ow.index2state(i)
         #  print ow.state2index(state_list[i])
+
 
     for i in xrange(10):
         print "================================="
@@ -493,3 +455,9 @@ if __name__=="__main__":
             print "next_state : ", observation
             print "reward : ", reward
             print "episode_end : ", episode_end
+            episode_end_flag_list = []
+            for i in xrange(ow.num_agent):
+                episode_end_flag_list.append(episode_end[i]!=0)
+            print "episode_end_flag_list : ", episode_end_flag_list
+            if np.asarray(episode_end_flag_list).any():
+                break
