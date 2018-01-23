@@ -73,7 +73,7 @@ def get_input_image(env, state_list, action_list, n_agents, n_trajs):
             for agent_id in xrange(n_agents):
                 traj_grid_list[agent_id].append(grid2image(env.grid))
                 traj_agent_grid_list[agent_id].append(grid2image(env.agent_grid[agent_id]))
-                another_agent_position_with_grid = np.zeros((env.rows, env.cols), dtype=np.uint8)
+                another_agent_position_with_grid = np.zeros((env.rows, env.cols))
                 for another_agent_id in xrange(n_agents):
                     #  print "agent_id : ", agent_id
                     if another_agent_id != agent_id:
@@ -83,6 +83,8 @@ def get_input_image(env, state_list, action_list, n_agents, n_trajs):
                         another_agent_position_with_grid[tuple(another_agent_position)] = -1
                 traj_another_agent_position_with_grid_list[agent_id].append(\
                         grid2image(another_agent_position_with_grid))
+                #  print "traj_another_agent_position_with_grid_list : "
+                #  print traj_another_agent_position_with_grid_list
 
                 action[agent_id] = int(action_list[agent_id][i_traj][i_step])
             #  print "action : ", action
