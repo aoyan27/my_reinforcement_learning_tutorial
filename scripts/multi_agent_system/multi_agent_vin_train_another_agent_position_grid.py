@@ -64,7 +64,7 @@ def train_test_split(image_data, agent_image_data, another_position_data, \
     
     image_test = image_data[0][index_test]
     agent_image_test = agent_image_data[0][index_test]
-    another_position_test = agent_image_data[0][index_test]
+    another_position_test = another_position_data[0][index_test]
     reward_map_test = reward_map_data[0][index_test]
     state_list_test = state_list_data[0][index_test]
     action_list_test = action_list_data[0][index_test]
