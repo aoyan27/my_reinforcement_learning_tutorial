@@ -83,6 +83,10 @@ def get_reward_map(env, agent_id=0):
 def get_my_agent_action(env, model, grid_map, reward_map, \
                         state, another_agent_position, goal, \
                         gpu, agent_id=1):
+    print "grid_image : "
+    print grid_map
+    print "reward_imag : "
+    print reward_map
     input_data = cvt_input_data(grid2image(grid_map), reward_map)
     #  print "input_data : "
     #  print input_data
