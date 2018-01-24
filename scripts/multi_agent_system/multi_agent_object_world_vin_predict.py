@@ -20,7 +20,7 @@ import sys
 import pickle
 import time
 
-from networks.vin import ValueIterationNetwork
+from networks.multi_agent_vin import ValueIterationNetwork
 from envs.multi_agent_object_world import Objectworld
 from agents.a_star_agent import AstarAgent
 
@@ -80,17 +80,21 @@ def get_reward_map(env, agent_id=0):
     #  print reward_map
     return reward_map
 
-def get_my_agent_action(env, model, grid_map, reward_map, state, goal, gpu, agent_id=1):
+def get_my_agent_action(env, model, grid_map, reward_map, \
+                        state, another_agent_position, goal, \
+                        gpu, agent_id=1):
     input_data = cvt_input_data(grid2image(grid_map), reward_map)
     #  print "input_data : "
     #  print input_data
     state_data = np.expand_dims(np.asarray(state), 0)
+    another_agent_position_data = np.expand_dims(np.asarray(another_agent_position), 0)
 
     if gpu >= 0:
         input_data = cuda.to_gpu(input_data)
-        state_data = cuda.to_gpu(state_data)
+
     state_list, action_list, resign = \
-            get_path(env, model, input_data, state_data, grid_map, goal)
+            get_path(env, model, input_data, state_data, \
+                    another_agent_position_data, grid_map, goal)
     #  print "state_list : ", state_list
     #  print "resign : ", resign
     path_data = show_path(env, state_list, action_list, grid_map, goal)
@@ -104,7 +108,7 @@ def get_my_agent_action(env, model, grid_map, reward_map, state, goal, gpu, agen
     #  print "action : ", action
     return action
 
-def get_path(env, model, input_data, state_data, grid, goal):
+def get_path(env, model, input_data, state_data, another_agent_position_data, grid, goal):
     state_list = []
     action_list = []
 
@@ -125,7 +129,7 @@ def get_path(env, model, input_data, state_data, grid, goal):
             break
 
         #  print "state_data_ : ", state_data_
-        p = model(input_data, state_data_)
+        p = model(input_data, state_data_, another_agent_position_data)
         #  print "p : ", p
         action = np.argmax(p.data)
         #  print "action : ", action, " (", env.ow.dirs[action], ")"
@@ -210,8 +214,8 @@ def main(rows, cols, n_objects, n_agents, seed, gpu, model_path):
     """
     passing scenario
     """
-    start = {0: [0, 0], 1: [8, 8]}
-    goal = {0: [8, 8], 1:[0, 0]}
+    start = {0: [1, 1], 1: [15, 15]}
+    goal = {0: [13, 13], 1:[0, 0]}
     
     """
     overtaking scenario
@@ -239,7 +243,7 @@ def main(rows, cols, n_objects, n_agents, seed, gpu, model_path):
             print "start : ", env.start
             print "goal : ", env.goal
             print "state : ", observation
-            env.show_objectworld_with_state()
+            #  env.show_objectworld_with_state()
             #  print "env.agent_grid[0] : "
             #  print env.agent_grid[0]
 
@@ -247,7 +251,7 @@ def main(rows, cols, n_objects, n_agents, seed, gpu, model_path):
             #  print env.agent_grid[1]
 
             actions[0] = get_my_agent_action(env, model, env.agent_grid[0], reward_map, \
-                    observation[0], env.goal[0], gpu)
+                    observation[0], observation[1], env.goal[0], gpu)
             #  actions[0] = my_action = get_my_agent_action(env)
             #  actions[0] = env.get_sample_action_single_agent()
             actions[1] = get_enemy_agent_action(env)
@@ -276,10 +280,10 @@ def main(rows, cols, n_objects, n_agents, seed, gpu, model_path):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='This script is predict vin ...')
     
-    parser.add_argument('-r', '--rows', default=9, type=int, help='row of global gridworld')
-    parser.add_argument('-c', '--cols', default=9, type=int, help='column of global gridworld')
+    parser.add_argument('-r', '--rows', default=16, type=int, help='row of global gridworld')
+    parser.add_argument('-c', '--cols', default=16, type=int, help='column of global gridworld')
 
-    parser.add_argument('-o', '--n_objects', default=15, type=int, help='number of agents')
+    parser.add_argument('-o', '--n_objects', default=40, type=int, help='number of agents')
     parser.add_argument('-a', '--n_agents', default=2, type=int, help='number of agents')
     parser.add_argument('-s', '--seed', default=0, type=int, help='number of random seed')
     parser.add_argument('-g', '--gpu', default=-1, type=int, help='number of gpu device')
