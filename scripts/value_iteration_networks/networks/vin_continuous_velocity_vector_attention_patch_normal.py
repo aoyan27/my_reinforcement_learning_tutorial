@@ -3,6 +3,7 @@
 
 import numpy as np
 np.set_printoptions(precision=3, suppress=True, threshold=np.inf)
+import cupy as cp
 
 import chainer 
 from chainer import cuda, Variable, optimizers, serializers
@@ -167,27 +168,35 @@ class ValueIterationNetworkAttention(Chain):
         v_out.data = self.min_max(v_out.data, axis=1)
         #  print "v_out : ", v_out
 
-
+    
         #  print "position_list : ", position_list
         #  print "orientation_list : ", orientation_list
         #  position_ = position_list.astype(np.float32)
         position_ = self.min_max(position_list.astype(np.float32), axis=1, min=0.0, max=10.0)
         #  print "position_ : ", position_
         shape_ = orientation_list.shape[0]
-        orientation_ = np.expand_dims(orientation_list.astype(np.float32), 0).reshape(shape_, 1)
+        #  print "shape_  : ", shape_
+        orientation_ = np.asarray(orientation_list).astype(np.float32)
+        orientation_ = np.expand_dims(orientation_, 0).reshape(shape_, 1)
         #  print "orientation_ ", orientation_
         orientation_ = self.min_max(orientation_, axis=1, min=-np.pi, max=np.pi)
         #  print "orientation_ : ", orientation_
         #  orientation_ = orientation_list.astype(np.float32)
-        input_policy = F.concat((position_, orientation_), axis=1)
-        #  print "input_policy : ", input_policy
-
         velocity_vector_ = velocity_vector_list.astype(np.float32)
+
+        if isinstance(input_data.data, cuda.ndarray):
+            position_ = cuda.to_gpu(position_)
+            orientation_ = cuda.to_gpu(orientation_)
+            velocity_vector_ = cuda.to_gpu(velocity_vector_)
+        #  print "position_ : ", type(position_)
+        #  print "orientation_ : ", type(orientation_)
+        #  print" velocity_vector_ : ", type(velocity_vector_)
+        input_policy = F.concat((position_, orientation_), axis=1)
+        #  print "input_policy : ", type(input_policy_)
         input_policy2 = F.concat((input_policy, velocity_vector_), axis=1)
         #  input_policy2 = F.concat((position_, velocity_vector_), axis=1)
-
         h_in = F.concat((v_out, input_policy2), axis=1)
-        #  print "h_in : ", h_in
+        #  print "h_in : ", type(h_in)
 
         #  h1 = self.l4(h_in)
         #  h2 = self.l5(h1)
@@ -209,8 +218,11 @@ class ValueIterationNetworkAttention(Chain):
                 action_list, velocity_vector_list):
         y = self.__call__(input_data, position_list, orientation_list, velocity_vector_list)
         #  print "y : ", y
+
+        if isinstance(input_data, cuda.ndarray):
+            action_list = cuda.to_gpu(action_list.astype(np.int32))
         
-        t = Variable(action_list.astype(np.int32))
+        t = Variable(action_list)
 
         return F.softmax_cross_entropy(y, t), F.accuracy(y, t)
 

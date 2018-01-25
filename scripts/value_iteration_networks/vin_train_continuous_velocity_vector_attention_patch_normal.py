@@ -71,7 +71,8 @@ def load_dataset(path):
     reward_map_data = data['reward']
     position_list_data = data['position']
     orientation_list_data_ = data['orientation']
-    orientation_list_data = np.asarray([quaternion2euler(q) for q in orientation_list_data_])
+    orientation_list_data_euler\
+            = np.asarray([quaternion2euler(q) for q in orientation_list_data_])
 
     action_list_data = data['action']
     velocity_vector_list_data_ = np.asarray([velocity_vector[i] for i in action_list_data])
@@ -186,10 +187,10 @@ def train_and_test(model, optimizer, gpu, model_path, train_data, test_data, n_e
                     if i+batchsize < n_train else n_train]]
             if gpu >= 0:
                 batch_input_data = cuda.to_gpu(batch_input_data)
-                batch_position_list = cuda.to_gpu(batch_position_list)
-                batch_orientation_list = cuda.to_gpu(batch_orientation_list)
-                batch_action_list = cuda.to_gpu(batch_action_list)
-                batch_velocity_vector_list = cuda.to_gpu(batch_velocity_vector_list)
+                #  batch_position_list = cuda.to_gpu(batch_position_list)
+                #  batch_orientation_list = cuda.to_gpu(batch_orientation_list)
+                #  batch_action_list = cuda.to_gpu(batch_action_list)
+                #  batch_velocity_vector_list = cuda.to_gpu(batch_velocity_vector_list)
             #  print "batch_input_data : ", batch_input_data[0]
             #  print "batch_position_list : ", batch_position_list[0]
             #  print "batch_orientation_list : ", batch_orientation_list[0]
@@ -234,10 +235,10 @@ def train_and_test(model, optimizer, gpu, model_path, train_data, test_data, n_e
                     if i+batchsize < n_test else n_test]]
             if gpu >= 0:
                 batch_input_data = cuda.to_gpu(batch_input_data)
-                batch_position_list = cuda.to_gpu(batch_position_list)
-                batch_orientation_list = cuda.to_gpu(batch_orientation_list)
-                batch_action_list = cuda.to_gpu(batch_action_list)
-                batch_velocity_vector_list = cuda.to_gpu(batch_velocity_vector_list)
+                #  batch_position_list = cuda.to_gpu(batch_position_list)
+                #  batch_orientation_list = cuda.to_gpu(batch_orientation_list)
+                #  batch_action_list = cuda.to_gpu(batch_action_list)
+                #  batch_velocity_vector_list = cuda.to_gpu(batch_velocity_vector_list)
 
             real_batchsize = batch_image.shape[0]
 
@@ -255,7 +256,7 @@ def train_and_test(model, optimizer, gpu, model_path, train_data, test_data, n_e
         model_name = 'vin_model_%d.model' % epoch
         print model_name
 
-        #  save_model(model, model_path+model_name)
+        save_model(model, model_path+model_name)
 
         epoch += 1
 
