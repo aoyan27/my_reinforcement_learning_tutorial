@@ -270,8 +270,8 @@ def main(dataset, n_epoch, batchsize, gpu, model_path):
         cuda.get_device(gpu).use()
         model.to_gpu()
 
-    #  optimizer = optimizers.Adam()
-    optimizer = optimizers.RMSpropGraves()
+    optimizer = optimizers.Adam()
+    #  optimizer = optimizers.RMSpropGraves()
     optimizer.setup(model)
     optimizer.add_hook(chainer.optimizer.WeightDecay(1e-4))
     optimizer.add_hook(chainer.optimizer.GradientClipping(100.0))
