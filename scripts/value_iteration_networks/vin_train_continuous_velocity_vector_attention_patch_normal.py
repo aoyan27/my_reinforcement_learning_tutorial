@@ -62,6 +62,13 @@ def quaternion2euler(q):
     e = tf.transformations.euler_from_quaternion(q)
     return e[2]
 
+def cvt_velocity_vector_la2xy(velocity_vector):
+    #  print "v : ", velocity_vector
+    x = velocity_vector[0]*math.cos(velocity_vector[1])
+    #  print "x : ", x
+    y = velocity_vector[0]*math.sin(velocity_vector[1])
+    #  print "y : ", y
+    return [y, x]
 
 def load_dataset(path):
     with open(path, mode='rb') as f:
@@ -88,10 +95,10 @@ def load_dataset(path):
 
     velocity_vector_list_data = tmp_velocity_vector_list_data[::-1]
     velocity_vector_list_data_size = len(velocity_vector_list_data_)
-    velocity_vector_list_data \
+    velocity_vector_list_data_la \
             = np.delete(velocity_vector_list_data, velocity_vector_list_data_size-1, axis=0)
-    #  print "velocity_vector_list_data : ", velocity_vector_list_data[0]
-
+    velocity_vector_list_data \
+            = np.asarray([cvt_velocity_vector_la2xy(v) for v in velocity_vector_list_data_la])
 
     print "Load %d data!!!" % len(image_data)
 
