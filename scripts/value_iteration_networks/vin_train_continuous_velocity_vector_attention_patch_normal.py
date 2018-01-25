@@ -71,8 +71,7 @@ def load_dataset(path):
     reward_map_data = data['reward']
     position_list_data = data['position']
     orientation_list_data_ = data['orientation']
-    orientation_list_data_euler\
-            = np.asarray([quaternion2euler(q) for q in orientation_list_data_])
+    orientation_list_data = np.asarray([quaternion2euler(q) for q in orientation_list_data_])
 
     action_list_data = data['action']
     velocity_vector_list_data_ = np.asarray([velocity_vector[i] for i in action_list_data])
