@@ -20,8 +20,6 @@ import pickle
 
 import tf
 
-#  from networks.vin import ValueIterationNetwork
-from networks.vin_with_orientation import ValueIterationNetwork
 
 
 def euler2quaternion(roll, pitch, yaw):
@@ -37,7 +35,30 @@ def view_image(array, title):
     #  print image
     plt.imshow(255 - 255*image, interpolation="nearest")
     plt.title(title)
-    plt.show()
+    #  plt.show()
+    plt.pause(0.05)
+
+def view_two_image(fig, array1, array2, state1, state2, action1, action2, title):
+    plt.clf()
+    ax1 = fig.add_subplot(121)
+    ax2 = fig.add_subplot(122)
+
+    image2 = cv.cvtColor(array1.astype(np.uint8), cv.COLOR_GRAY2RGB)
+    image1 = cv.cvtColor(array2.astype(np.uint8), cv.COLOR_GRAY2RGB)
+
+    ax1.imshow(255 - 255*image1, interpolation="nearest")
+    ax2.imshow(255 - 255*image2, interpolation="nearest")
+    state_text1 = 'state : [%d, %d]' % (state1[0], state1[1])
+    state_text2 = 'state : [%d, %d]' % (state2[0], state2[1])
+    ax1.text(image1.shape[0]/4.0, image1.shape[1]+3, state_text1)
+    ax2.text(image2.shape[0]/4.0, image2.shape[1]+3, state_text2)
+    action_text1 = 'action : %d' % (action1)
+    action_text2 = 'action : %d' % (action2)
+    ax1.text(image1.shape[0]/4.0, image1.shape[1]+5, action_text1)
+    ax2.text(image2.shape[0]/4.0, image2.shape[1]+5, action_text2)
+    ax1.set_title(title+'1')
+    ax2.set_title(title+'2')
+    plt.pause(3.0)
 
 
 def load_dataset(path):
@@ -49,137 +70,48 @@ def load_dataset(path):
     another_agent_position_image_data = data['another_agent_position']
     reward_map_data = data['reward']
     state_list_data = data['state']
-    orientation_list_data = data['orientation']
+    #  orientation_list_data = data['orientation']
     action_list_data = data['action']
 
-    relative_orientation_list = data['relative_orientation']
-    relative_velocity_vector_list = data['relative_velocity_vector']
+    #  relative_orientation_list = data['relative_orientation']
+    #  relative_velocity_vector_list = data['relative_velocity_vector']
     print "Load %d data!!!" % len(grid_image_data[0])
 
     return grid_image_data, agent_grid_image_data, another_agent_position_image_data, \
-            reward_map_data, state_list_data, orientation_list_data, action_list_data, \
-            relative_orientation_list, relative_velocity_vector_list
+            reward_map_data, state_list_data, action_list_data
 
-def train_test_split(grid_image_data, agent_grid_image_data, another_agent_position_image_data, \
-        reward_map_data, state_list_data, orientation_list_data, action_list_data, \
-        test_size=0.3, seed=0):
-
-    np.random.seed(seed)
-    n_dataset = grid_image_data[0].shape[0]
-    #  print "n_dataset : ", n_dataset
-    index = np.random.permutation(n_dataset)
-    #  print "index : ", index
-
-    n_test = int(test_size * n_dataset)
-    #  print "n_test : ", n_test
-    #  print "n_train : ", n_dataset - n_test
-    index_test = index[0:n_test]
-    index_train = index[n_test:]
-    #  print "index_test : ", index_test
-    #  print "index_train : ", index_train
-    
-    grid_image_test = grid_image_data[0][index_test]
-    agent_grid_image_test = agent_grid_image_data[0][index_test]
-    another_agent_position_image_test = another_agent_position_image_data[0][index_test]
-    reward_map_test = reward_map_data[0][index_test]
-    state_list_test = state_list_data[0][index_test]
-    orientation_list_test = orientation_list_data[0][index_test]
-    action_list_test = action_list_data[0][index_test]
-    #  print "grid_image_test : ", len(grid_image_test)
-    #  print "reward_map_test : ", len(reward_map_test)
-
-    for i in xrange(1, len(grid_image_data)):
-        grid_image_test = \
-                np.concatenate([grid_image_test, grid_image_data[i][index_test]], axis=0)
-        agent_grid_image_test = \
-                np.concatenate([agent_grid_image_test, \
-                agent_grid_image_data[i][index_test]], axis=0)
-        another_agent_position_image_test = \
-                np.concatenate([another_agent_position_image_test, \
-                another_agent_position_image_data[i][index_test]], axis=0)
-        reward_map_test = \
-                np.concatenate([reward_map_test, reward_map_data[i][index_test]], axis=0)
-        state_list_test = \
-                np.concatenate([state_list_test, state_list_data[i][index_test]], axis=0)
-        orientation_list_test = \
-                np.concatenate([orientation_list_test, \
-                orientation_list_data[i][index_test]], axis=0)
-        action_list_test = \
-                np.concatenate([action_list_test, action_list_data[i][index_test]], axis=0)
-    #  print "grid_image_test : ", len(grid_image_test)
-    #  print "reward_map_test : ", len(reward_map_test)
-
-    grid_image_train = grid_image_data[0][index_train]
-    agent_grid_image_train = agent_grid_image_data[0][index_train]
-    another_agent_position_image_train = another_agent_position_image_data[0][index_train]
-    reward_map_train = reward_map_data[0][index_train]
-    state_list_train = state_list_data[0][index_train]
-    orientation_list_train = orientation_list_data[0][index_train]
-    action_list_train = action_list_data[0][index_train]
-    #  print "grid_image_train : ", len(grid_image_train)
-    #  print "reward_map_train : ", len(reward_map_train)
-
-    for i in xrange(1, len(grid_image_data)):
-        grid_image_train = \
-                np.concatenate([grid_image_train, grid_image_data[i][index_train]], axis=0)
-        agent_grid_image_train = \
-                np.concatenate([agent_grid_image_train, \
-                agent_grid_image_data[i][index_train]], axis=0)
-        another_agent_position_image_train = \
-                np.concatenate([another_agent_position_image_train, \
-                another_agent_position_image_data[i][index_train]], axis=0)
-        reward_map_train = \
-                np.concatenate([reward_map_train, reward_map_data[i][index_train]], axis=0)
-        state_list_train = \
-                np.concatenate([state_list_train, state_list_data[i][index_train]], axis=0)
-        orientation_list_train = \
-                np.concatenate([orientation_list_train, \
-                orientation_list_data[i][index_train]], axis=0)
-        action_list_train = \
-                np.concatenate([action_list_train, action_list_data[i][index_train]], axis=0)
-    #  print "grid_image_train : ", len(grid_image_train)
-    #  print "reward_map_train : ", len(reward_map_train)
-
-
-    test_data = {}
-    train_data = {}
-
-    test_data['grid_image'] = grid_image_test
-    test_data['agent_grid_image'] = agent_grid_image_test
-    test_data['another_agent_position_image'] = another_agent_position_image_test
-    test_data['reward'] = reward_map_test
-    test_data['state'] = state_list_test 
-    test_data['orientation'] = orientation_list_test 
-    test_data['action'] = action_list_test
-
-    train_data['grid_image'] = grid_image_train
-    train_data['agent_grid_image'] = agent_grid_image_train
-    train_data['another_agent_position_image'] = another_agent_position_image_train
-    train_data['reward'] = reward_map_train
-    train_data['state'] = state_list_train 
-    train_data['orientation'] = orientation_list_train 
-    train_data['action'] = action_list_train
-
-    return train_data, test_data
+    #  return grid_image_data, agent_grid_image_data, another_agent_position_image_data, \
+            #  reward_map_data, state_list_data, orientation_list_data, action_list_data, \
+            #  relative_orientation_list, relative_velocity_vector_list
 
 
 def main(dataset, n_epoch, batchsize, gpu, model_path):
+    #  grid_image_data, agent_grid_image_data, another_agent_position_image_data, \
+            #  reward_map_data, state_list_data, orientation_list_data, action_list_data, \
+            #  relative_orientation_list_data, relative_velocity_vector_list_data \
+            #  = load_dataset(dataset)
     grid_image_data, agent_grid_image_data, another_agent_position_image_data, \
-            reward_map_data, state_list_data, orientation_list_data, action_list_data, \
-            relative_orientation_list_data, relative_velocity_vector_list_data \
+            reward_map_data, state_list_data, action_list_data \
             = load_dataset(dataset)
     #  print "grid_image_data : ", len(grid_image_data[0])
+    fig = plt.figure()
+
     for i in xrange(len(grid_image_data[0])):
         print "============================================"
         print "state_list[1] : ", state_list_data[1][i]
         print "action_list[1] : ", action_list_data[1][i]
-        print "orientation_list[1] : ", quaternion2euler(orientation_list_data[1][i])
-        print "relative_orientatoin_list[1] : ", quaternion2euler(relative_orientation_list_data[1][i])
+        #  print "orientation_list[1] : ", quaternion2euler(orientation_list_data[1][i])
+        #  print "relative_orientatoin_list[1] : ", quaternion2euler(relative_orientation_list_data[1][i])
         print "state_list[0] : ", state_list_data[0][i]
-        print "orientation_list[0] : ", quaternion2euler(orientation_list_data[0][i])
-        print "relative_velocity_vector_list[0] : ", relative_velocity_vector_list_data[0][i]
+        #  print "orientation_list[0] : ", quaternion2euler(orientation_list_data[0][i])
+        #  print "relative_velocity_vector_list[0] : ", relative_velocity_vector_list_data[0][i]
         #  view_image(another_agent_position_image_data[0][i], 'map_image')
-        view_image(agent_grid_image_data[0][i], 'map_image')
+        #  view_image(agent_grid_image_data[0][i], 'map_image')
+        #  view_image(agent_grid_image_data[1][i], 'map_image')
+        view_two_image(fig, \
+                       agent_grid_image_data[0][i], agent_grid_image_data[1][i],\
+                       state_list_data[0][i], state_list_data[1][i], \
+                       action_list_data[0][i], action_list_data[1][i], 'map_image')
     #  print "orientation_list_data : ", len(orientation_list_data[0][0])
     #  print orientation_list_data
     print ""
