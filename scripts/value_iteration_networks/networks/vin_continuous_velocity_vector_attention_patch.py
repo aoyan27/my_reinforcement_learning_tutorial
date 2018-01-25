@@ -14,14 +14,15 @@ class ValueIterationNetworkAttention(Chain):
     def __init__(self, n_in=2, l_h=150, l_q=9, n_out=9, k=10, net=None):
         super(ValueIterationNetworkAttention, self).__init__(
             conv1 = L.Convolution2D(n_in, l_h, 3, stride=1, pad=1, \
-					initialW=net.conv1.W.data, initial_bias=net.conv1.b.data), 
+					initialW=net.conv1.W.data if net else None, \
+					initial_bias=net.conv1.b.data if net else None), 
             conv2 = L.Convolution2D(l_h, 1, 1, stride=1, pad=0, \
-					initialW=net.conv2.W.data, nobias=True),
+					initialW=net.conv2.W.data if net else None, nobias=True),
 
             conv3a = L.Convolution2D(1, l_q, 3, stride=1, pad=1, \
-					initialW=net.conv3a.W.data, nobias=True), 
+					initialW=net.conv3a.W.data if net else None, nobias=True), 
             conv3b = L.Convolution2D(1, l_q, 3, stride=1, pad=1, \
-					initialW=net.conv3b.W.data, nobias=True), 
+					initialW=net.conv3b.W.data if net else None, nobias=True), 
 
             l4 = L.Linear(None, 1024, nobias=True),
             l5 = L.Linear(1024, 512, nobias=True),
@@ -97,7 +98,7 @@ class ValueIterationNetworkAttention(Chain):
             attention_max_x = int(center_x + diff_max_x)
             #  print "attention_min_y, attention_max_y : ", attention_min_y, attention_max_y
             #  print "attention_min_x, attention_max_x : ", attention_min_x, attention_max_x
-
+            #
             #  print "v.data[i] : "
             #  print v.data[i]
             #  print v.data[i, :, min_y:max_y, min_x:max_x]
@@ -145,7 +146,8 @@ class ValueIterationNetworkAttention(Chain):
         #  print "self.v : ", self.v
         
         v_out = self.attention(self.v, position_list)
-        #  print "v_out : ", v_out
+        print "v_out : ", v_out
+
 
         #  print "position_list : ", position_list
         #  print "orientation_list : ", orientation_list
