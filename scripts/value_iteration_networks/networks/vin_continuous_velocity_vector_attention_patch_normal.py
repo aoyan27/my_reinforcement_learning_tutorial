@@ -177,9 +177,10 @@ class ValueIterationNetworkAttention(Chain):
         shape_ = orientation_list.shape[0]
         #  print "shape_  : ", shape_
         orientation_ = np.asarray(orientation_list).astype(np.float32)
-        orientation_ = np.expand_dims(orientation_, 0).reshape(shape_, 1)
+        #  orientation_ = np.expand_dims(orientation_, 0).reshape(shape_, 1)
         #  print "orientation_ ", orientation_
-        orientation_ = self.min_max(orientation_, axis=1, min=-np.pi, max=np.pi)
+        #  orientation_ = self.min_max(orientation_, axis=1, min=-np.pi, max=np.pi)
+        orientation_ = self.min_max(orientation_, axis=1, min=-1.0, max=1.0)
         #  print "orientation_ : ", orientation_
         #  orientation_ = orientation_list.astype(np.float32)
         velocity_vector_ = velocity_vector_list.astype(np.float32)
@@ -218,9 +219,9 @@ class ValueIterationNetworkAttention(Chain):
                 action_list, velocity_vector_list):
         y = self.__call__(input_data, position_list, orientation_list, velocity_vector_list)
         #  print "y : ", y
-
+        action_list = action_list.astype(np.int32)
         if isinstance(input_data, cuda.ndarray):
-            action_list = cuda.to_gpu(action_list.astype(np.int32))
+            action_list = cuda.to_gpu(action_list)
         
         t = Variable(action_list)
 
