@@ -146,7 +146,7 @@ class ValueIterationNetworkAttention(Chain):
         #  print "self.v : ", self.v
         
         v_out = self.attention(self.v, position_list)
-        print "v_out : ", v_out
+        #  print "v_out : ", v_out
 
 
         #  print "position_list : ", position_list
