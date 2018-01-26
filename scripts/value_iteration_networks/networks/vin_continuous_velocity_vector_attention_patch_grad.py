@@ -43,14 +43,22 @@ class ValueIterationNetworkAttention(Chain):
     
 
     def attention(self, v, position_list):
+        self.min_x_list = []
+        self.max_x_list = []
+        self.min_y_list = []
+        self.max_y_list = []
+        self.attention_min_x_list = []
+        self.attention_max_x_list = []
+        self.attention_min_y_list = []
+        self.attention_max_y_list = []
         #  print "v.data : ",
         #  print v.data[0]
         #  print "v.data.shape : ", v.data.shape
-        patch_size = (3, 3)
-        #  print "patch_size : ", patch_size
-        w = np.zeros((v.data.shape[0], v.data.shape[1], patch_size[0], patch_size[1]))
+        self.patch_size = (3, 3)
+        #  print "self.patch_size : ", self.patch_size
+        w = np.zeros((v.data.shape[0], v.data.shape[1], self.patch_size[0], self.patch_size[1]))
         #  print "w.shape : ", w.shape
-        w_out = np.zeros((v.data.shape[0], patch_size[0]*patch_size[1]))
+        w_out = np.zeros((v.data.shape[0], self.patch_size[0]*self.patch_size[1]))
         #  print "w_out.shape : ", w_out.shape
 
 
@@ -58,8 +66,8 @@ class ValueIterationNetworkAttention(Chain):
             w = cuda.to_gpu(w)
             w_out = cuda.to_gpu(w_out)
 
-        center_y = int(patch_size[0] / 2)
-        center_x = int(patch_size[1] / 2)
+        center_y = int(self.patch_size[0] / 2)
+        center_x = int(self.patch_size[1] / 2)
         #  print "(center_y, center_x) : ", center_y, center_x
 
         for i in xrange(v.data.shape[0]):
@@ -84,6 +92,10 @@ class ValueIterationNetworkAttention(Chain):
                 max_x = v.shape[3]
             #  print "min_y, max_y : ", min_y, max_y
             #  print "min_x, max_x : ", min_x, max_x
+            self.min_y_list.append(min_y)
+            self.max_y_list.append(max_y)
+            self.min_x_list.append(min_x)
+            self.max_x_list.append(max_x)
 
             diff_min_y = min_y - y
             diff_max_y = max_y - y
@@ -96,6 +108,10 @@ class ValueIterationNetworkAttention(Chain):
             attention_max_y = int(center_y + diff_max_y)
             attention_min_x = int(center_x + diff_min_x)
             attention_max_x = int(center_x + diff_max_x)
+            self.attention_min_y_list.append(attention_min_y)
+            self.attention_max_y_list.append(attention_max_y)
+            self.attention_min_x_list.append(attention_min_x)
+            self.attention_max_x_list.append(attention_max_x)
             #  print "attention_min_y, attention_max_y : ", attention_min_y, attention_max_y
             #  print "attention_min_x, attention_max_x : ", attention_min_x, attention_max_x
             #
@@ -145,7 +161,7 @@ class ValueIterationNetworkAttention(Chain):
         #  print "q(after k) : ", q
         #  print "self.v : ", self.v
         
-        v_out = self.attention(self.v, position_list)
+        self.v_out = self.attention(self.v, position_list)
         #  print "v_out : ", v_out
 
 
@@ -160,7 +176,7 @@ class ValueIterationNetworkAttention(Chain):
         input_policy2 = F.concat((input_policy, velocity_vector_), axis=1)
         #  input_policy2 = F.concat((position_, velocity_vector_), axis=1)
 
-        h_in = F.concat((v_out, input_policy2), axis=1)
+        h_in = F.concat((self.v_out, input_policy2), axis=1)
         #  print "h_in : ", h_in
 
         #  h1 = self.l4(h_in)

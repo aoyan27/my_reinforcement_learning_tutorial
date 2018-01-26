@@ -24,7 +24,8 @@ from networks.vin import ValueIterationNetwork
 
 #  from networks.vin_continuous import ValueIterationNetwork
 #  from networks.vin_continuous_velocity_vector import ValueIterationNetwork
-from networks.vin_continuous_velocity_vector_attention_patch import ValueIterationNetworkAttention
+from networks.vin_continuous_velocity_vector_attention_patch_grad \
+        import ValueIterationNetworkAttention
 
 
 velocity_vector \
@@ -144,6 +145,24 @@ def cvt_input_data(image, reward_map):
     #  print input_data.shape
     return input_data
 
+def set_grad(model):
+    grad = copy.deepcopy(model.v_out.grad)
+
+    grad =  grad.reshape(model.v.data.shape[0], model.v.data.shape[1], \
+                         model.patch_size[0], model.patch_size[1])
+    init_grad = np.zeros(model.v.data.shape, dtype=np.float32)
+    if isinstance(grad, cuda.ndarray):
+        init_grad = cuda.to_gpu(init_grad)
+    #  print "init_grad : ", init_grad.shape
+    for i in xrange(init_grad.shape[0]):
+        init_grad[i, :, model.min_y_list[i]:model.max_y_list[i], \
+                        model.min_x_list[i]:model.max_x_list[i]] \
+                = grad[i, :, model.attention_min_y_list[i]:model.attention_max_y_list[i], \
+                             model.attention_min_x_list[i]:model.attention_max_x_list[i]]
+    #  print grad[0]
+    #  print init_grad[0]
+    model.v.grad = init_grad
+
 def train_and_test(model, optimizer, gpu, model_path, train_data, test_data, n_epoch, batchsize):
     epoch = 1
     accuracy = 0.0
@@ -190,12 +209,15 @@ def train_and_test(model, optimizer, gpu, model_path, train_data, test_data, n_e
 
             real_batchsize = batch_image.shape[0]
 
-            model.zerograds()
+            model.cleargrads()
             loss, acc = model.forward(batch_input_data, \
                                       batch_position_list, batch_orientation_list, \
                                       batch_action_list, batch_velocity_vector_list)
             #  print "loss(train) : ", loss
             loss.backward()
+            set_grad(model)
+            model.v.backward()
+
             optimizer.update()
 
             sum_train_loss += float(cuda.to_cpu(loss.data)) * real_batchsize
@@ -294,7 +316,7 @@ def main(dataset, n_epoch, batchsize, gpu, model_path, load_model_path):
     optimizer.setup(model)
     optimizer.add_hook(chainer.optimizer.WeightDecay(1e-4))
     optimizer.add_hook(chainer.optimizer.GradientClipping(100.0))
-    optimizer.add_hook(DelGradient(["conv1", "conv2","conv3a","conv3b"]))
+    #  optimizer.add_hook(DelGradient(["conv1", "conv2","conv3a","conv3b"]))
 
     train_and_test(model, optimizer, gpu, model_path, train_data, test_data, n_epoch, batchsize)
 

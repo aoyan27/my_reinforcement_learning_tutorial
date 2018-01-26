@@ -23,6 +23,7 @@ import math
 
 import tf
 
+#  from networks.vin_continuous_velocity_vector_attention_patch import ValueIterationNetworkAttention
 from networks.vin_continuous_velocity_vector import ValueIterationNetwork
 #  from networks.vin_continuous_velocity_vector_goal import ValueIterationNetwork
 #  from networks.vin_continuous_velocity_vector_2 import ValueIterationNetwork
@@ -108,8 +109,10 @@ def main(width, height, cell_size, resize_size, n_objects, seed, gpu, model_path
 
     env = Objectworld(rows, cols, cell_size, goal, R_max, noise, n_objects, seed, mode=1)
 
-    #  model = ValueIterationNetwork(l_q=11, n_out=11, k=20)
-    model = ValueIterationNetwork(l_q=9, n_out=11, k=20)
+    #  model = ValueIterationNetworkAttention(l_q=9, n_out=11, k=25)
+
+    model = ValueIterationNetwork(l_q=11, n_out=11, k=25)
+    #  model = ValueIterationNetwork(l_q=9, n_out=11, k=20)
     load_model(model, model_path)
     if gpu >= 0:
         cuda.get_device(gpu).use()

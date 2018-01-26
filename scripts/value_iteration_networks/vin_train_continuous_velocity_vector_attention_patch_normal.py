@@ -17,6 +17,7 @@ import chainer.links as L
 
 import copy
 import pickle
+import math
 
 import tf
 
@@ -24,7 +25,8 @@ from networks.vin import ValueIterationNetwork
 
 #  from networks.vin_continuous import ValueIterationNetwork
 #  from networks.vin_continuous_velocity_vector import ValueIterationNetwork
-from networks.vin_continuous_velocity_vector_attention_patch import ValueIterationNetworkAttention
+from networks.vin_continuous_velocity_vector_attention_patch_normal\
+        import ValueIterationNetworkAttention
 
 
 velocity_vector \
@@ -56,6 +58,17 @@ def view_image(array, title):
     plt.title(title)
     plt.show()
 
+def quaternion2euler(q):
+    e = tf.transformations.euler_from_quaternion(q)
+    return e[2]
+
+def cvt_velocity_vector_la2xy(velocity_vector):
+    #  print "v : ", velocity_vector
+    x = velocity_vector[0]*math.cos(velocity_vector[1])
+    #  print "x : ", x
+    y = velocity_vector[0]*math.sin(velocity_vector[1])
+    #  print "y : ", y
+    return [y, x]
 
 def load_dataset(path):
     with open(path, mode='rb') as f:
@@ -65,7 +78,13 @@ def load_dataset(path):
     image_data = data['image']
     reward_map_data = data['reward']
     position_list_data = data['position']
-    orientation_list_data = data['orientation']
+    orientation_list_data_ = data['orientation']
+    orientation_list_data_euler \
+            = np.asarray([quaternion2euler(q) for q in orientation_list_data_])
+    orientation_list_data \
+            = np.asarray([[math.sin(e), math.cos(e)] for e in orientation_list_data_euler])
+
+
     action_list_data = data['action']
     velocity_vector_list_data_ = np.asarray([velocity_vector[i] for i in action_list_data])
     #  print "velocity_vector_list_data_ : ", velocity_vector_list_data_[0]
@@ -76,10 +95,10 @@ def load_dataset(path):
 
     velocity_vector_list_data = tmp_velocity_vector_list_data[::-1]
     velocity_vector_list_data_size = len(velocity_vector_list_data_)
-    velocity_vector_list_data \
+    velocity_vector_list_data_la \
             = np.delete(velocity_vector_list_data, velocity_vector_list_data_size-1, axis=0)
-    #  print "velocity_vector_list_data : ", velocity_vector_list_data[0]
-
+    velocity_vector_list_data \
+            = np.asarray([cvt_velocity_vector_la2xy(v) for v in velocity_vector_list_data_la])
 
     print "Load %d data!!!" % len(image_data)
 
@@ -179,10 +198,10 @@ def train_and_test(model, optimizer, gpu, model_path, train_data, test_data, n_e
                     if i+batchsize < n_train else n_train]]
             if gpu >= 0:
                 batch_input_data = cuda.to_gpu(batch_input_data)
-                batch_position_list = cuda.to_gpu(batch_position_list)
-                batch_orientation_list = cuda.to_gpu(batch_orientation_list)
-                batch_action_list = cuda.to_gpu(batch_action_list)
-                batch_velocity_vector_list = cuda.to_gpu(batch_velocity_vector_list)
+                #  batch_position_list = cuda.to_gpu(batch_position_list)
+                #  batch_orientation_list = cuda.to_gpu(batch_orientation_list)
+                #  batch_action_list = cuda.to_gpu(batch_action_list)
+                #  batch_velocity_vector_list = cuda.to_gpu(batch_velocity_vector_list)
             #  print "batch_input_data : ", batch_input_data[0]
             #  print "batch_position_list : ", batch_position_list[0]
             #  print "batch_orientation_list : ", batch_orientation_list[0]
@@ -227,10 +246,10 @@ def train_and_test(model, optimizer, gpu, model_path, train_data, test_data, n_e
                     if i+batchsize < n_test else n_test]]
             if gpu >= 0:
                 batch_input_data = cuda.to_gpu(batch_input_data)
-                batch_position_list = cuda.to_gpu(batch_position_list)
-                batch_orientation_list = cuda.to_gpu(batch_orientation_list)
-                batch_action_list = cuda.to_gpu(batch_action_list)
-                batch_velocity_vector_list = cuda.to_gpu(batch_velocity_vector_list)
+                #  batch_position_list = cuda.to_gpu(batch_position_list)
+                #  batch_orientation_list = cuda.to_gpu(batch_orientation_list)
+                #  batch_action_list = cuda.to_gpu(batch_action_list)
+                #  batch_velocity_vector_list = cuda.to_gpu(batch_velocity_vector_list)
 
             real_batchsize = batch_image.shape[0]
 

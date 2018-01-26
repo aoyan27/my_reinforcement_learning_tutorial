@@ -41,6 +41,22 @@ class ValueIterationNetwork(Chain):
         self.k = k
 
 
+    def normalize(self, v, axis=-1, order=2):
+		l2 = np.linalg.norm(v, ord = order, axis=axis, keepdims=True)
+		l2[l2==0] = 1
+		return v/l2
+
+    def min_max(self, x, axis=None, min=None, max=None):
+        if min is  None and max is  None:
+            min_ = x.min(axis=axis, keepdims=True)
+            max_ = x.max(axis=axis, keepdims=True)
+        else:
+            min_ = min
+            max_ = max
+
+        result = (x-min_)/(max_-min_)
+        return result
+
     
     def attention(self, q, position_list):
         #  print "q.data : ",
@@ -103,15 +119,31 @@ class ValueIterationNetwork(Chain):
         q = self.conv3a(self.r) + self.conv3b(self.v)
         q_out = self.attention(q, position_list)
 
+        q_out.data = self.min_max(q_out.data, axis=1)
+
         #  print "q_out : ", q_out
         #  print "position_list : ", position_list
         #  print "orientation_list : ", orientation_list
-        position_ = position_list.astype(np.float32)
-        orientation_ = orientation_list.astype(np.float32)
-        input_policy = F.concat((position_, orientation_), axis=1)
-        #  print "input_policy : ", input_policy
+
+        #  position_ = position_list.astype(np.float32)
+        position_ = self.min_max(position_list.astype(np.float32), axis=1, min=0.0, max=10.0)
+
+        shape_ = orientation_list.shape[0]
+        #  print "shape_  : ", shape_
+        orientation_ = np.asarray(orientation_list).astype(np.float32)
+        orientation_ = self.min_max(orientation_, axis=1, min=-1.0, max=1.0)
+        #  orientation_ = orientation_list.astype(np.float32)
 
         velocity_vector_ = velocity_vector_list.astype(np.float32)
+
+        if isinstance(input_data.data, cuda.ndarray):
+            position_ = cuda.to_gpu(position_)
+            orientation_ = cuda.to_gpu(orientation_)
+            velocity_vector_ = cuda.to_gpu(velocity_vector_)
+
+
+        input_policy = F.concat((position_, orientation_), axis=1)
+        #  print "input_policy : ", input_policy
         input_policy2 = F.concat((input_policy, velocity_vector_), axis=1)
         #  input_policy2 = F.concat((position_, velocity_vector_), axis=1)
 
@@ -156,7 +188,10 @@ class ValueIterationNetwork(Chain):
         y = self.__call__(input_data, position_list, orientation_list, velocity_vector_list)
         #  print "y : ", y
         
-        t = Variable(action_list.astype(np.int32))
+        action_list = action_list.astype(np.int32)
+        if isinstance(input_data, cuda.ndarray):
+            action_list = cuda.to_gpu(action_list)
+        t = Variable(action_list)
 
         return F.softmax_cross_entropy(y, t), F.accuracy(y, t)
 

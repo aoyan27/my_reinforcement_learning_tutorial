@@ -17,37 +17,23 @@ import chainer.links as L
 
 import copy
 import pickle
+import math
 
 import tf
 
-from networks.vin import ValueIterationNetwork
-
 #  from networks.vin_continuous import ValueIterationNetwork
-#  from networks.vin_continuous_velocity_vector import ValueIterationNetwork
-from networks.vin_continuous_velocity_vector_attention_patch import ValueIterationNetworkAttention
+from networks.vin_continuous_velocity_vector_normal import ValueIterationNetwork
 
 
 velocity_vector \
         = {0: [0.5, -3.0], 1: [0.6, -2.5], 2: [0.7, -2.0], 3: [0.8, -1.5], 4: [1.0, -1.0], \
            5: [1.2, 0.0], \
            6: [1.0, 1.0], 7: [0.8, 1.5], 8: [0.7, 2.0], 9: [0.6, 2.5], 10: [0.5, 3.0]}
+#  velocity_vector \
+#          = {0: [0.5, -3.0], 1: [0.75, -2.5], 2: [1.0, -1.0], \
+#             3: [1.2, 0.0], \
+#             4: [1.0, 1.0], 5: [0.75, 2.5], 6: [0.5, 3.0]}
 
-class DelGradient(object):
-    name = 'DelGradient'
-    def __init__(self, delTgt):
-        self.delTgt = delTgt
-
-    def __call__(self, opt):
-        for name,param in opt.target.namedparams():
-            for d in self.delTgt:
-                if d in name:
-                    #  print "name : ", name
-                    #  print "param : ", param
-                    grad = param.grad
-                    #  print "parame.grad : ", param.grad
-                    with cuda.get_device(grad):
-                        grad *= 0
-                        #  print "grad : ", grad
 
 def view_image(array, title):
     image = cv.cvtColor(array.astype(np.uint8), cv.COLOR_GRAY2RGB)
@@ -57,6 +43,10 @@ def view_image(array, title):
     plt.show()
 
 
+def quaternion2euler(q):
+    e = tf.transformations.euler_from_quaternion(q)
+    return e[2]
+
 def load_dataset(path):
     with open(path, mode='rb') as f:
         data = None
@@ -65,7 +55,12 @@ def load_dataset(path):
     image_data = data['image']
     reward_map_data = data['reward']
     position_list_data = data['position']
-    orientation_list_data = data['orientation']
+    orientation_list_data_ = data['orientation']
+    orientation_list_data_euler \
+            = np.asarray([quaternion2euler(q) for q in orientation_list_data_])
+    orientation_list_data \
+            = np.asarray([[math.sin(e), math.cos(e)] for e in orientation_list_data_euler])
+
     action_list_data = data['action']
     velocity_vector_list_data_ = np.asarray([velocity_vector[i] for i in action_list_data])
     #  print "velocity_vector_list_data_ : ", velocity_vector_list_data_[0]
@@ -86,6 +81,9 @@ def load_dataset(path):
     return image_data, reward_map_data, position_list_data, orientation_list_data, \
             action_list_data, velocity_vector_list_data
 
+def save_model(model, filename):
+    print "Save {}!!".format(filename)
+    serializers.save_npz(filename, model)
 
 def train_test_split(image_data, reward_map_data, \
                      position_list_data, orientation_list_data, \
@@ -179,10 +177,10 @@ def train_and_test(model, optimizer, gpu, model_path, train_data, test_data, n_e
                     if i+batchsize < n_train else n_train]]
             if gpu >= 0:
                 batch_input_data = cuda.to_gpu(batch_input_data)
-                batch_position_list = cuda.to_gpu(batch_position_list)
-                batch_orientation_list = cuda.to_gpu(batch_orientation_list)
-                batch_action_list = cuda.to_gpu(batch_action_list)
-                batch_velocity_vector_list = cuda.to_gpu(batch_velocity_vector_list)
+                #  batch_position_list = cuda.to_gpu(batch_position_list)
+                #  batch_orientation_list = cuda.to_gpu(batch_orientation_list)
+                #  batch_action_list = cuda.to_gpu(batch_action_list)
+                #  batch_velocity_vector_list = cuda.to_gpu(batch_velocity_vector_list)
             #  print "batch_input_data : ", batch_input_data[0]
             #  print "batch_position_list : ", batch_position_list[0]
             #  print "batch_orientation_list : ", batch_orientation_list[0]
@@ -227,10 +225,10 @@ def train_and_test(model, optimizer, gpu, model_path, train_data, test_data, n_e
                     if i+batchsize < n_test else n_test]]
             if gpu >= 0:
                 batch_input_data = cuda.to_gpu(batch_input_data)
-                batch_position_list = cuda.to_gpu(batch_position_list)
-                batch_orientation_list = cuda.to_gpu(batch_orientation_list)
-                batch_action_list = cuda.to_gpu(batch_action_list)
-                batch_velocity_vector_list = cuda.to_gpu(batch_velocity_vector_list)
+                #  batch_position_list = cuda.to_gpu(batch_position_list)
+                #  batch_orientation_list = cuda.to_gpu(batch_orientation_list)
+                #  batch_action_list = cuda.to_gpu(batch_action_list)
+                #  batch_velocity_vector_list = cuda.to_gpu(batch_velocity_vector_list)
 
             real_batchsize = batch_image.shape[0]
 
@@ -252,15 +250,8 @@ def train_and_test(model, optimizer, gpu, model_path, train_data, test_data, n_e
 
         epoch += 1
 
-def load_model(model, filename):
-    print "Load {}!!".format(filename)
-    serializers.load_npz(filename, model)
 
-def save_model(model, filename):
-    print "Save {}!!".format(filename)
-    serializers.save_npz(filename, model)
-
-def main(dataset, n_epoch, batchsize, gpu, model_path, load_model_path):
+def main(dataset, n_epoch, batchsize, gpu, model_path):
     image_data, reward_map_data,  position_list_data, orientation_list_data, \
             action_list_data, velocity_vector_list = load_dataset(dataset)
     #  print "image_data[0] : ", image_data[0]
@@ -280,11 +271,11 @@ def main(dataset, n_epoch, batchsize, gpu, model_path, load_model_path):
                                action_list_data, velocity_vector_list, \
                                test_size=0.3)
 
-    load_model_ = ValueIterationNetwork(l_q=9, n_out=9, k=20)
-    load_model(load_model_, load_model_path)
-
-    model = ValueIterationNetworkAttention(l_q=9, n_out=11, k=25, net=load_model_)
-
+    #  model = ValueIterationNetwork(l_q=5, n_out=5, k=20)
+    #  model = ValueIterationNetwork(l_q=9, n_out=7, k=20)
+    #  model = ValueIterationNetwork(l_q=11, n_out=11, k=20)
+    model = ValueIterationNetwork(l_q=11, n_out=11, k=25)
+    #  model = ValueIterationNetwork(l_h=200, l_q=9, n_out=9, k=20)
     if gpu >= 0:
         cuda.get_device(gpu).use()
         model.to_gpu()
@@ -294,7 +285,6 @@ def main(dataset, n_epoch, batchsize, gpu, model_path, load_model_path):
     optimizer.setup(model)
     optimizer.add_hook(chainer.optimizer.WeightDecay(1e-4))
     optimizer.add_hook(chainer.optimizer.GradientClipping(100.0))
-    optimizer.add_hook(DelGradient(["conv1", "conv2","conv3a","conv3b"]))
 
     train_and_test(model, optimizer, gpu, model_path, train_data, test_data, n_epoch, batchsize)
 
@@ -312,11 +302,8 @@ if __name__ == "__main__":
     parser.add_argument('-m', '--model_path', \
                         default='models/', type=str, help='model name')
 
-    parser.add_argument('-lm', '--load_model', \
-            default='models/vin_model_1.model', type=str, help="load model path")
-
     args = parser.parse_args()
     print args
     
-    main(args.dataset, args.n_epoch, args.batchsize, args.gpu, args.model_path, args.load_model)
+    main(args.dataset, args.n_epoch, args.batchsize, args.gpu, args.model_path)
 
