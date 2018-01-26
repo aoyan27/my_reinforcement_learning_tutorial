@@ -63,6 +63,7 @@ class ValueIterationNetwork(Chain):
         #  print q.data[0]
         w = np.zeros(q.data.shape)
         #  print "w : ", w.shape
+        #  cell_size = 0.25
         cell_size = 0.5
         for i in xrange(len(position_list)):
             #  print "position_list : ", position_list[i]

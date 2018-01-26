@@ -288,7 +288,7 @@ def train_and_test(model, optimizer, gpu, model_path, train_data, test_data, n_e
         model_name = 'vin_model_%d.model' % epoch
         print model_name
 
-        #  save_model(model, model_path+model_name)
+        save_model(model, model_path+model_name)
 
         epoch += 1
 
@@ -329,8 +329,8 @@ def main(dataset, n_epoch, batchsize, gpu, model_path, load_model_path):
         cuda.get_device(gpu).use()
         model.to_gpu()
 
-    optimizer = optimizers.Adam()
-    #  optimizer = optimizers.RMSpropGraves()
+    #  optimizer = optimizers.Adam()
+    optimizer = optimizers.RMSpropGraves()
     optimizer.setup(model)
     optimizer.add_hook(chainer.optimizer.WeightDecay(1e-4))
     optimizer.add_hook(chainer.optimizer.GradientClipping(100.0))

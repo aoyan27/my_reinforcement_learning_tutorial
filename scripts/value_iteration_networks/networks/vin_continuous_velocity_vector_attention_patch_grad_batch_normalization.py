@@ -24,18 +24,27 @@ class ValueIterationNetworkAttention(Chain):
             conv3b = L.Convolution2D(1, l_q, 3, stride=1, pad=1, \
 					initialW=net.conv3b.W.data if net else None, nobias=True), 
 
-            l4 = L.Linear(None, 256, nobias=True),
-            l5 = L.Linear(256, 256, nobias=True),
-            l6 = L.Linear(256, n_out, nobias=True),
+            #  l4 = L.Linear(None, 256, nobias=True),
+            #  l5 = L.Linear(256, 256, nobias=True),
+            #  l6 = L.Linear(256, n_out, nobias=True),
+            #  bnorm1 = L.BatchNormalization(256),
+            #  bnorm2 = L.BatchNormalization(256),
 
-            #  l4 = L.Linear(None, 1024, nobias=True),
-            #  l5 = L.Linear(1024, 512, nobias=True),
-            #  l6 = L.Linear(512, 256, nobias=True),
-            #  l7 = L.Linear(256, 128, nobias=True),
-            #  l8 = L.Linear(128, 64, nobias=True),
-            #  l9 = L.Linear(64, 32, nobias=True),
-            #  l10 = L.Linear(32, 16, nobias=True),
-            #  l11 = L.Linear(16, n_out, nobias=True),
+            l4 = L.Linear(None, 1024, nobias=True),
+            l5 = L.Linear(1024, 512, nobias=True),
+            l6 = L.Linear(512, 256, nobias=True),
+            l7 = L.Linear(256, 128, nobias=True),
+            l8 = L.Linear(128, 64, nobias=True),
+            l9 = L.Linear(64, 32, nobias=True),
+            l10 = L.Linear(32, 16, nobias=True),
+            l11 = L.Linear(16, n_out, nobias=True),
+            bnorm1 = L.BatchNormalization(1024),
+            bnorm2 = L.BatchNormalization(512),
+            bnorm3 = L.BatchNormalization(256),
+            bnorm4 = L.BatchNormalization(128),
+            bnorm5 = L.BatchNormalization(64),
+            bnorm6 = L.BatchNormalization(32),
+            bnorm7 = L.BatchNormalization(16),
         )
 
         self.k = k
@@ -181,14 +190,14 @@ class ValueIterationNetworkAttention(Chain):
         #  input_policy2 = F.concat((position_, velocity_vector_), axis=1)
 
         h_in = F.concat((self.v_out, input_policy2), axis=1)
-        #  print "h_in : ", h_in
+        #  print "h_in : ", h_in.data.shape
 
         #  h1 = self.l4(h_in)
         #  h2 = self.l5(h1)
         #  y = self.l6(h2)
-        h1 = F.leaky_relu(self.l4(h_in))
-        h2 = F.leaky_relu(self.l5(h1))
-        y = self.l6(h2)
+        #  h1 = F.leaky_relu(self.bnorm1(self.l4(h_in)))
+        #  h2 = F.leaky_relu(self.bnorm2(self.l5(h1)))
+        #  y = self.l6(h2)
 
         #  h1 = self.l4(h_in)
         #  h2 = self.l5(h1)
@@ -203,6 +212,14 @@ class ValueIterationNetworkAttention(Chain):
         #  h6 = F.leaky_relu(self.l9(h5))
         #  h7 = F.leaky_relu(self.l10(h6))
         #  y = self.l11(h7)
+        h1 = F.leaky_relu(self.bnorm1(self.l4(h_in)))
+        h2 = F.leaky_relu(self.bnorm2(self.l5(h1)))
+        h3 = F.leaky_relu(self.bnorm3(self.l6(h2)))
+        h4 = F.leaky_relu(self.bnorm4(self.l7(h3)))
+        h5 = F.leaky_relu(self.bnorm5(self.l8(h4)))
+        h6 = F.leaky_relu(self.bnorm6(self.l9(h5)))
+        h7 = F.leaky_relu(self.bnorm7(self.l10(h6)))
+        y = self.l11(h7)
 
         return y
 
