@@ -270,9 +270,14 @@ def get_velocity_and_orientation(env, action_list):
         traj_velocity = []
         for j in xrange(n_traj):
             velocity_ = [env.movement[a] for a in action_list[i][j]]
+            end_velocity = velocity_.pop()
+            velocity_.reverse()
+            velocity_.append(end_velocity)
+            velocity_.reverse()
             velocity[i].append(velocity_)
             orientation_ \
-                = [math.atan2(env.movement[a][0], env.movement[a][1]) for a in action_list[i][j]]
+                = [math.atan2(v[0], v[1]) for v in velocity[i][j]]
+            orientation_[0] = orientation_[1]
             orientation_size = len(orientation_)
             no_stay_index = np.where(np.asarray(action_list[i][j]) != 8)
             #  print "no_stay_index : ", no_stay_index[0][-1]
@@ -282,8 +287,8 @@ def get_velocity_and_orientation(env, action_list):
                 orientation_[k] = last_orientation
             orientation[i].append(orientation_)
             #  print "orientation_ : ", orientation_
-    #  print "velocity : ", velocity
-    #  print "orientation : ", orientation
+    print "velocity : ", velocity
+    print "orientation : ", orientation
 
     return velocity, orientation
 
