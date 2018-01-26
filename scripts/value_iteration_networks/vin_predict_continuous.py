@@ -24,7 +24,9 @@ import math
 import tf
 
 #  from networks.vin_continuous_velocity_vector_attention_patch import ValueIterationNetworkAttention
-from networks.vin_continuous_velocity_vector import ValueIterationNetwork
+from networks.vin_continuous_velocity_vector_attention_patch_grad \
+        import ValueIterationNetworkAttention
+#  from networks.vin_continuous_velocity_vector import ValueIterationNetwork
 #  from networks.vin_continuous_velocity_vector_goal import ValueIterationNetwork
 #  from networks.vin_continuous_velocity_vector_2 import ValueIterationNetwork
 from envs.continuous_state_object_world import Objectworld
@@ -109,9 +111,9 @@ def main(width, height, cell_size, resize_size, n_objects, seed, gpu, model_path
 
     env = Objectworld(rows, cols, cell_size, goal, R_max, noise, n_objects, seed, mode=1)
 
-    #  model = ValueIterationNetworkAttention(l_q=9, n_out=11, k=25)
+    model = ValueIterationNetworkAttention(l_q=9, n_out=11, k=25)
 
-    model = ValueIterationNetwork(l_q=11, n_out=11, k=25)
+    #  model = ValueIterationNetwork(l_q=11, n_out=11, k=25)
     #  model = ValueIterationNetwork(l_q=9, n_out=11, k=20)
     load_model(model, model_path)
     if gpu >= 0:
@@ -148,6 +150,7 @@ def main(width, height, cell_size, resize_size, n_objects, seed, gpu, model_path
         print "position_data : ", position_data
         print "orientation_data : ", orientation_data
         print "orientation_quaternion_data : ", orientation_quaternion_data
+        print "velocity_vector : ", velocity_vector_data
         env.calc_continuous_trajectory()
 
         image = grid2image(env.grid)
@@ -170,7 +173,7 @@ def main(width, height, cell_size, resize_size, n_objects, seed, gpu, model_path
         input_data = cvt_input_data(resize_image, resize_reward_map)
         if gpu >= 0:
             input_data = cuda.to_gpu(input_data)
-        print "input_data : ", input_data.shape
+        #  print "input_data : ", input_data
 
 
         for i_step in xrange(10000):
