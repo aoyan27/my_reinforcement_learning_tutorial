@@ -287,8 +287,8 @@ def get_velocity_and_orientation(env, action_list):
                 orientation_[k] = last_orientation
             orientation[i].append(orientation_)
             #  print "orientation_ : ", orientation_
-    print "velocity : ", velocity
-    print "orientation : ", orientation
+    #  print "velocity : ", velocity
+    #  print "orientation : ", orientation
 
     return velocity, orientation
 
