@@ -218,7 +218,7 @@ def main(rows, cols, n_objects, n_agents, seed, gpu, model_path):
     """
     passing scenario
     """
-    start = {0: [1, 1], 1: [15, 15]}
+    start = {0: [3, 3], 1: [11, 11]}
     goal = {0: [13, 13], 1:[0, 0]}
     
     """
@@ -231,16 +231,17 @@ def main(rows, cols, n_objects, n_agents, seed, gpu, model_path):
     success_times = 0
     failed_times = 0
 
-    max_episode = 1
+    max_episode = 100
     max_step = rows + cols
 
     for i_episode in xrange(max_episode):
         print "================================="
         print "episode : ", i_episode
 
-        #  observation = env.reset(random=True)
-        observation = env.reset(start_position=start, goal_position=goal, random=False)
+        observation = env.reset(random=True)
+        #  observation = env.reset(start_position=start, goal_position=goal, random=False)
         reward_map = get_reward_map(env, agent_id=0)
+        env.set_objects()
         for i_step in xrange(max_step):
             print "-----------------------------"
             print "step : ", i_step
