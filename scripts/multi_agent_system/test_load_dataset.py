@@ -38,7 +38,33 @@ def view_image(array, title):
     #  plt.show()
     plt.pause(0.05)
 
-def view_two_image(fig, array1, array2, state1, state2, action1, action2, title):
+#  def view_two_image(fig, array1, array2, state1, state2, action1, action2, \
+                   #  title='dataset viewer'):
+    #  plt.clf()
+    #  ax1 = fig.add_subplot(121)
+    #  ax2 = fig.add_subplot(122)
+
+    #  image2 = cv.cvtColor(array1.astype(np.uint8), cv.COLOR_GRAY2RGB)
+    #  image1 = cv.cvtColor(array2.astype(np.uint8), cv.COLOR_GRAY2RGB)
+
+    #  ax1.imshow(255 - 255*image1, interpolation="nearest")
+    #  ax2.imshow(255 - 255*image2, interpolation="nearest")
+    #  state_text1 = 'state : [%d, %d]' % (state1[0], state1[1])
+    #  state_text2 = 'state : [%d, %d]' % (state2[0], state2[1])
+    #  ax1.text(image1.shape[0]/4.0, image1.shape[1]+2, state_text1)
+    #  ax2.text(image2.shape[0]/4.0, image2.shape[1]+2, state_text2)
+    #  action_text1 = 'action : %d' % (action1)
+    #  action_text2 = 'action : %d' % (action2)
+    #  ax1.text(image1.shape[0]/4.0, image1.shape[1]+3, action_text1)
+    #  ax2.text(image2.shape[0]/4.0, image2.shape[1]+3, action_text2)
+
+    #  ax1.set_title(title+'1')
+    #  ax2.set_title(title+'2')
+    #  plt.pause(3.0)
+
+def view_two_image(fig, array1, array2, state1, state2, action1, action2, \
+                   velocity1, velocity2, orientation1, orientation2, \
+                   title='dataset viewer'):
     plt.clf()
     ax1 = fig.add_subplot(121)
     ax2 = fig.add_subplot(122)
@@ -50,12 +76,24 @@ def view_two_image(fig, array1, array2, state1, state2, action1, action2, title)
     ax2.imshow(255 - 255*image2, interpolation="nearest")
     state_text1 = 'state : [%d, %d]' % (state1[0], state1[1])
     state_text2 = 'state : [%d, %d]' % (state2[0], state2[1])
-    ax1.text(image1.shape[0]/4.0, image1.shape[1]+3, state_text1)
-    ax2.text(image2.shape[0]/4.0, image2.shape[1]+3, state_text2)
+    ax1.text(image1.shape[0]/4.0, image1.shape[1]+2, state_text1)
+    ax2.text(image2.shape[0]/4.0, image2.shape[1]+2, state_text2)
     action_text1 = 'action : %d' % (action1)
     action_text2 = 'action : %d' % (action2)
-    ax1.text(image1.shape[0]/4.0, image1.shape[1]+5, action_text1)
-    ax2.text(image2.shape[0]/4.0, image2.shape[1]+5, action_text2)
+    ax1.text(image1.shape[0]/4.0, image1.shape[1]+3, action_text1)
+    ax2.text(image2.shape[0]/4.0, image2.shape[1]+3, action_text2)
+
+    velocity_text1 = 'velocity : [%.3f, %.3f]' % (velocity1[0], velocity1[1])
+    velocity_text2 = 'velocity : [%.3f, %.3f]' % (velocity2[0], velocity2[1])
+    ax1.text(image1.shape[0]/4.0, image1.shape[1]+4, velocity_text1)
+    ax2.text(image2.shape[0]/4.0, image2.shape[1]+4, velocity_text2)
+
+    orientation_text1 = 'orientation: %.3f' % (orientation1)
+    orientation_text2 = 'orientation: %.3f' % (orientation2)
+    ax1.text(image1.shape[0]/4.0, image1.shape[1]+5, orientation_text1)
+    ax2.text(image2.shape[0]/4.0, image2.shape[1]+5, orientation_text2)
+
+
     ax1.set_title(title+'1')
     ax2.set_title(title+'2')
     plt.pause(3.0)
@@ -72,13 +110,19 @@ def load_dataset(path):
     state_list_data = data['state']
     #  orientation_list_data = data['orientation']
     action_list_data = data['action']
+    velocity_list_data = data['velocity']
+    orientation_list_data = data['orientation']
 
     #  relative_orientation_list = data['relative_orientation']
     #  relative_velocity_vector_list = data['relative_velocity_vector']
     print "Load %d data!!!" % len(grid_image_data[0])
 
+    #  return grid_image_data, agent_grid_image_data, another_agent_position_image_data, \
+            #  reward_map_data, state_list_data, action_list_data
+
     return grid_image_data, agent_grid_image_data, another_agent_position_image_data, \
-            reward_map_data, state_list_data, action_list_data
+            reward_map_data, state_list_data, action_list_data, \
+            velocity_list_data, orientation_list_data
 
     #  return grid_image_data, agent_grid_image_data, another_agent_position_image_data, \
             #  reward_map_data, state_list_data, orientation_list_data, action_list_data, \
@@ -90,8 +134,13 @@ def main(dataset, n_epoch, batchsize, gpu, model_path):
             #  reward_map_data, state_list_data, orientation_list_data, action_list_data, \
             #  relative_orientation_list_data, relative_velocity_vector_list_data \
             #  = load_dataset(dataset)
+    #  grid_image_data, agent_grid_image_data, another_agent_position_image_data, \
+            #  reward_map_data, state_list_data, action_list_data \
+            #  = load_dataset(dataset)
+
     grid_image_data, agent_grid_image_data, another_agent_position_image_data, \
-            reward_map_data, state_list_data, action_list_data \
+            reward_map_data, state_list_data, action_list_data, \
+            velocity_list_data, orientation_list_data\
             = load_dataset(dataset)
     #  print "grid_image_data : ", len(grid_image_data[0])
     fig = plt.figure()
@@ -108,10 +157,16 @@ def main(dataset, n_epoch, batchsize, gpu, model_path):
         #  view_image(another_agent_position_image_data[0][i], 'map_image')
         #  view_image(agent_grid_image_data[0][i], 'map_image')
         #  view_image(agent_grid_image_data[1][i], 'map_image')
+        #  view_two_image(fig, \
+                       #  agent_grid_image_data[0][i], agent_grid_image_data[1][i],\
+                       #  state_list_data[0][i], state_list_data[1][i], \
+                       #  action_list_data[0][i], action_list_data[1][i])
         view_two_image(fig, \
                        agent_grid_image_data[0][i], agent_grid_image_data[1][i],\
                        state_list_data[0][i], state_list_data[1][i], \
-                       action_list_data[0][i], action_list_data[1][i], 'map_image')
+                       action_list_data[0][i], action_list_data[1][i], \
+                       velocity_list_data[0][i], velocity_list_data[1][i], \
+                       orientation_list_data[0][i], orientation_list_data[1][i])
     #  print "orientation_list_data : ", len(orientation_list_data[0][0])
     #  print orientation_list_data
     print ""
