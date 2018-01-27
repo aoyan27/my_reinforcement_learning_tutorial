@@ -2,7 +2,7 @@
 #coding : utf-8
 
 import numpy as np
-np.set_printoptions(precision=1, suppress=True, threshold=np.inf)
+np.set_printoptions(precision=3, suppress=True, threshold=np.inf)
 
 import chainer 
 from chainer import cuda, Variable, optimizers, serializers
@@ -88,12 +88,29 @@ class ValueIterationNetwork(Chain):
         q_out = self.attention(q, my_state_list)
         
         my_velocity_ = my_velocity_list.astype(np.float32)
-        my_orientation_ = my_orientation_list.astype(np.float32)
+        #  print "my_velocity_ : ", my_velocity_
+        my_orientation_size = my_orientation_list.shape[0]
+        my_orientation_ = my_orientation_list.astype(np.float32).reshape(my_orientation_size, 1)
+        #  print "my_orientation_ : ", my_orientation_
         other_state_ = other_state_list.astype(np.float32)
+        #  print "other_state_ : ", other_state_
         other_velocity_ = other_velocity_list.astype(np.float32)
-        other_orientation_ = other_orientation_list.astype(np.float32)
+        #  print "other_velocity_ : ", other_velocity_
+        other_orientation_size = other_orientation_list.shape[0]
+        other_orientation_ \
+                = other_orientation_list.astype(np.float32).reshape(other_orientation_size, 1)
+        #  print "other_orientation_ : ", other_orientation_
 
-        concat_1 = F.concat((q_out, other_state_), axis=1)
+        my_state = F.concat((q_out, my_velocity_), axis=1)
+        my_state = F.concat((my_state, my_orientation_), axis=1)
+        #  print "my_state : ", my_state
+
+        other_state = F.concat((other_state_, other_velocity_), axis=1)
+        other_state = F.concat((other_state, other_orientation_), axis=1)
+        #  print "other_state : ", other_state
+
+        concat_1 = F.concat((my_state, other_state), axis=1)
+        #  print "concat_1 : ", concat_1
 
         h1 = self.l4(concat_1)
         h2 = self.l5(h1)
