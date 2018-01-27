@@ -89,6 +89,7 @@ class ValueIterationNetwork(Chain):
         position_ = position_list.astype(np.float32)
 
         concat_1 = F.concat((q_out, position_), axis=1)
+        #  print "concat_1 : ", concat_1
 
         h1 = self.l4(concat_1)
         h2 = self.l5(h1)
