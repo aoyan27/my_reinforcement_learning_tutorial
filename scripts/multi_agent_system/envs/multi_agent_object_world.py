@@ -434,12 +434,14 @@ class Objectworld:
 
 
 if __name__=="__main__":
+    sys.path.append('../')
+    from agents.a_star_agent import AstarAgent
     rows = cols = 20
     noise = 0.0
-    n_objects = 12
+    n_objects = 1
     num_agent = 2
     seed = 2
-    mode = 0
+    mode = 1
 
     ow = Objectworld(rows, cols, n_objects, num_agent, noise, seed=seed, mode=mode)
 
@@ -476,29 +478,42 @@ if __name__=="__main__":
         #  print ow.index2state(i)
         #  print ow.state2index(state_list[i])
 
+    start = {0: [3, 3], 1: [11, 11]}
+    goal = {0: [13, 13], 1:[0, 0]}
 
+    action = {}
     for i in xrange(10):
         print "================================="
         print "episode : ", i
-        observation = ow.reset(random=True)
-        for j in xrange(10):
+        #  observation = ow.reset(random=True)
+        observation = ow.reset(start_position=start, goal_position=goal, random=False)
+
+        for j in xrange(100):
             print "-----------------------------"
             print "step : ", j
             print "state : ", observation
-            #  ow.show_objectworld_with_state()
+            ow.show_objectworld_with_state()
             print "ow.agent_grid : "
+            #  for agent_id in xrange(ow.num_agent):
+                #  ow.show_array(ow.agent_grid[agent_id])
+                #  print "++++++++++++++++++++++++++++++"
             for agent_id in xrange(ow.num_agent):
-                ow.show_array(ow.agent_grid[agent_id])
-                print "++++++++++++++++++++++++++++++"
-            action = ow.get_sample_action()
+                a_agent = AstarAgent(ow, agent_id=agent_id)
+                a_agent.get_shortest_path(ow._state[agent_id], ow.agent_grid_future[agent_id])
+                path_data = a_agent.show_path()
+                print "view_path(", agent_id, ") : "
+                a_agent.view_path(path_data['vis_path'])
+                #  print "action_list : ", path_data['action_list']
+                action[agent_id] = int(path_data['action_list'][0])
+            #  action = ow.get_sample_action()
             print "action : ", action
             observation, reward, episode_end, info = ow.step(action)
             print "next_state : ", observation
             print "ow.velocity : ", ow.velocity
             print "ow._future_state : ", ow._future_state
-            for agent_id in xrange(ow.num_agent):
-                ow.show_array(ow.agent_grid_future[agent_id])
-                print "++++++++++++++++++++++++++++++"
+            #  for agent_id in xrange(ow.num_agent):
+                #  ow.show_array(ow.agent_grid_future[agent_id])
+                #  print "++++++++++++++++++++++++++++++"
 
             print "reward : ", reward
             print "episode_end : ", episode_end
