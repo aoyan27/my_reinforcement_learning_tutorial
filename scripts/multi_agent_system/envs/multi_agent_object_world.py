@@ -29,6 +29,7 @@ class Objectworld:
 
         self.grid = np.zeros((self.rows, self.cols))
         self.agent_grid = {0: copy.deepcopy(self.grid), 1: copy.deepcopy(self.grid)}
+        self.agent_grid_future = {0: copy.deepcopy(self.grid), 1: copy.deepcopy(self.grid)}
         # +------------> x
         # |
         # |
@@ -46,6 +47,7 @@ class Objectworld:
         self.set_action()
 
         self._state = {}
+        self._future_state = {}
 
         self.start = {}
         self.start_index = None
@@ -54,6 +56,9 @@ class Objectworld:
         self.goal_index = None
         self.goal = {}
         self.set_goal(goal)
+
+        self.velocity = {}
+        self.set_velocity({0: [0,0], 1: [0,0]})
 
 
         self.objects = []
@@ -64,6 +69,7 @@ class Objectworld:
         self.agent_collision = False
        
         self.episode_end_states = {0: 'continue', 1: 'Success', 2: 'Faild'}
+
 
     def set_action(self):
         if self.mode == 0:    # mode=0 : 行動4パターン
@@ -79,6 +85,17 @@ class Objectworld:
             self.movement \
                 = {0: [0, 1], 1: [0, -1], 2: [1, 0], 3: [-1, 0], \
                    4: [-1, 1], 5: [-1, -1], 6: [1, 1], 7: [1, -1], 8: [0, 0]}
+
+    def set_velocity(self, input_velocity):
+        self.velocity = input_velocity
+
+
+    def set_agent_grid_future(self):
+        self.agent_grid_future = {0: copy.deepcopy(self.grid), 1: copy.deepcopy(self.grid)}
+        for i in xrange(self.num_agent):
+            for j in xrange(self.num_agent):
+                if i != j:
+                    self.agent_grid_future[i][tuple(self._future_state[j])] = -1
     
     def set_agent_grid(self):
         self.agent_grid = {0: copy.deepcopy(self.grid), 1: copy.deepcopy(self.grid)}
@@ -90,7 +107,9 @@ class Objectworld:
     def set_start(self, start):
         self.start = copy.deepcopy(start)
         self._state = copy.deepcopy(start)
+        self._future_state = copy.deepcopy(start)
         self.set_agent_grid()
+        self.set_agent_grid_future()
 
     def set_start_random(self, check_goal=False):
         start_ = {}
@@ -179,6 +198,7 @@ class Objectworld:
             self.objects = self.object_list
 
         self.set_agent_grid()
+        self.set_agent_grid_future()
         #  print self.objects
 
 
@@ -290,6 +310,10 @@ class Objectworld:
         #  print P
         #  print P.shape
         return P
+    
+    def get_future_state(self, state, action):
+        future_state, out_of_range, collisions = self.move(state, action)
+        return future_state
 
     def reset(self, start_position={0: [0, 0], 1: [4, 4]}, goal_position={0: [4, 4], 1: [0, 0]}, \
 			random=False):
@@ -297,9 +321,11 @@ class Objectworld:
         if not random:
             self.set_start(start_position)
             self.set_goal(goal_position)
+            self.set_velocity({0: [0,0], 1: [0,0]})
         else:
             self.set_start_random()
             self.set_goal_random()
+            self.set_velocity({0: [0,0], 1: [0,0]})
         #  self.set_objects()
         self.agent_collision = False
 
@@ -333,7 +359,10 @@ class Objectworld:
             #  print "next_state_list[i] : ", next_state_list[i]
             #  print "probs[i] : ", probs[i]
             self._state[i] = next_state_list[i][action_index]
+            self.velocity[i] = self.movement[action_index]
+            self._future_state[i] = self.get_future_state(self._state[i], action_index)
         self.set_agent_grid()
+        self.set_agent_grid_future()
         
         reward = self.reward_function(self._state, self.goal, collisions, action)
 
@@ -392,6 +421,15 @@ class Objectworld:
             for i in row:
                 print "%2d" % i,
             print "|"
+    
+    def show_array(self, input_array):
+        array = copy.deepcopy(input_array)
+        for row in array:
+            print "|",
+            for i in row:
+                print "%2d" % i,
+            print "|"
+
 
 
 
@@ -447,11 +485,21 @@ if __name__=="__main__":
             print "-----------------------------"
             print "step : ", j
             print "state : ", observation
-            ow.show_objectworld_with_state()
+            #  ow.show_objectworld_with_state()
+            print "ow.agent_grid : "
+            for agent_id in xrange(ow.num_agent):
+                ow.show_array(ow.agent_grid[agent_id])
+                print "++++++++++++++++++++++++++++++"
             action = ow.get_sample_action()
             print "action : ", action
             observation, reward, episode_end, info = ow.step(action)
             print "next_state : ", observation
+            print "ow.velocity : ", ow.velocity
+            print "ow._future_state : ", ow._future_state
+            for agent_id in xrange(ow.num_agent):
+                ow.show_array(ow.agent_grid_future[agent_id])
+                print "++++++++++++++++++++++++++++++"
+
             print "reward : ", reward
             print "episode_end : ", episode_end
             episode_end_flag_list = []
