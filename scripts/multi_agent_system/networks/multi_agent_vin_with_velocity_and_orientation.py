@@ -110,7 +110,8 @@ class ValueIterationNetwork(Chain):
         #  print "other_state : ", other_state
 
         concat_1 = F.concat((my_state, other_state), axis=1)
-        #  print "concat_1 : ", concat_1
+        #  #  print "concat_1 : ", concat_1
+        #  concat_1 = F.concat((q_out, other_state_), axis=1)
 
         h1 = self.l4(concat_1)
         h2 = self.l5(h1)
