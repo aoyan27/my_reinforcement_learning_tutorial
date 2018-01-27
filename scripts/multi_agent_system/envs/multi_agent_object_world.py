@@ -88,8 +88,8 @@ class Objectworld:
                     self.agent_grid[i][tuple(self._state[j])] = -1
 
     def set_start(self, start):
-        self.start = start
-        self._state = start
+        self.start = copy.deepcopy(start)
+        self._state = copy.deepcopy(start)
         self.set_agent_grid()
 
     def set_start_random(self, check_goal=False):
@@ -396,8 +396,7 @@ class Objectworld:
 
 
 if __name__=="__main__":
-    rows = 5
-    cols = 5
+    rows = cols = 20
     noise = 0.0
     n_objects = 12
     num_agent = 2
