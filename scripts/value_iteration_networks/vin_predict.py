@@ -115,8 +115,8 @@ def view_traj(env, state_list):
 
 
 def main(rows, cols, n_objects, seed, gpu, model_path):
-    model = ValueIterationNetwork(l_q=9, n_out=9, k=20)
-    #  model = ValueIterationNetwork(l_h=200, l_q=9, n_out=9, k=20)
+    #  model = ValueIterationNetwork(l_q=9, n_out=9, k=20)
+    model = ValueIterationNetwork(l_q=9, n_out=9, k=50)
     load_model(model, model_path)
     if gpu >= 0:
         cuda.get_device(gpu).use()
@@ -161,6 +161,7 @@ def main(rows, cols, n_objects, seed, gpu, model_path):
         print "=============================="
         print "episode : ", i_episode
         start, goal = set_start_and_goal(env)
+        start = [int(rows/2), int(cols/2)]
         state_data = np.expand_dims(np.asarray(start), 0)
         state_data[0] = start
         
