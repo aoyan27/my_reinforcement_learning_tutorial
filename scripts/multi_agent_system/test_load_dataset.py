@@ -68,9 +68,14 @@ def view_two_image(fig, array1, array2, state1, state2, action1, action2, \
     plt.clf()
     ax1 = fig.add_subplot(121)
     ax2 = fig.add_subplot(122)
-
+    
     image2 = cv.cvtColor(array1.astype(np.uint8), cv.COLOR_GRAY2RGB)
+    print "image2 : ", image2[int(state2[0]), int(state2[1])]
+    image2[int(state2[0]), int(state2[1]), :] = [1, 0, 0]
     image1 = cv.cvtColor(array2.astype(np.uint8), cv.COLOR_GRAY2RGB)
+    print "image1 : ", image1.shape
+    image1[int(state1[0]), int(state1[1]), :] = [1, 0, 0]
+
 
     ax1.imshow(255 - 255*image1, interpolation="nearest")
     ax2.imshow(255 - 255*image2, interpolation="nearest")
@@ -96,7 +101,13 @@ def view_two_image(fig, array1, array2, state1, state2, action1, action2, \
 
     ax1.set_title(title+'1')
     ax2.set_title(title+'2')
-    plt.pause(3.0)
+    plt.pause(1.0)
+
+def get_diff_image(array1, array2):
+    diff = array1 - array2
+    index = np.where(diff == -1)
+    diff[index] = 2
+    print diff
 
 
 def load_dataset(path):
@@ -154,6 +165,7 @@ def main(dataset, n_epoch, batchsize, gpu, model_path):
         print "state_list[0] : ", state_list_data[0][i]
         #  print "orientation_list[0] : ", quaternion2euler(orientation_list_data[0][i])
         #  print "relative_velocity_vector_list[0] : ", relative_velocity_vector_list_data[0][i]
+        get_diff_image(agent_grid_image_data[0][i], agent_grid_image_data[1][i])
         #  view_image(another_agent_position_image_data[0][i], 'map_image')
         #  view_image(agent_grid_image_data[0][i], 'map_image')
         #  view_image(agent_grid_image_data[1][i], 'map_image')
