@@ -30,6 +30,8 @@ class AstarAgent:
 
         self.found = False
         self.resign = False
+
+        self.f_list = []
     
     def create_heuristic(self):
         self.heuristic = np.zeros([self.env.rows, self.env.cols])
@@ -59,6 +61,8 @@ class AstarAgent:
         self.open_list.append([f, g, h, start_position[0], start_position[1]])
         self.closed_list[tuple(start_position)] = 1
 
+        self.f_list.append([f])
+
         found = False
         resign = False
 
@@ -71,9 +75,32 @@ class AstarAgent:
                 self.resign = resign
             else:
                 #  print "self.open_list : ", self.open_list
+                #  print "self.f_list : ", self.f_list
                 self.open_list.sort()
+                self.f_list.sort()
+                #  print "self.open_list(sort) : ", self.open_list
+                #  print "self.f_list(sort) : ", self.f_list
+
+                min_f_value = self.f_list[0][0]
+                #  print "min_f_value : ", min_f_value
+
                 self.open_list.reverse()
-                current = self.open_list.pop()
+                self.f_list.reverse()
+                #  print "self.open_list(reverse) : ", self.open_list
+                #  print "self.f_list(reverse) : ", self.f_list
+
+                min_index = np.where(self.f_list == min_f_value)
+                #  print "min_index : ", min_index
+                #  print "len(min_index[0]) : ", len(min_index[0])
+                pick_up_index = len(self.f_list)-1
+                if len(min_index[0]) !=  1:
+                    pick_up_index = np.random.choice(min_index[0])
+                    #  print "pick_up_index : ", pick_up_index
+
+                current = self.open_list[pick_up_index]
+                del self.open_list[pick_up_index]
+                current_f = self.f_list[pick_up_index]
+                del self.f_list[pick_up_index]
                 #  print "current : ", current
                 f = current[0]
                 g = current[1]
@@ -108,6 +135,7 @@ class AstarAgent:
                             next_f = next_g + next_h
                             self.open_list.append\
                                     ([next_f, next_g, next_h, next_state[0], next_state[1]])
+                            self.f_list.append([next_f])
                             self.closed_list[tuple(next_state)] = 1
                             # self.action_listは、その状態に最初に訪れるときに、
                             # 直前の状態において実行した行動が格納される

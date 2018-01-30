@@ -91,7 +91,8 @@ class Objectworld:
 
 
     def set_agent_grid_future(self):
-        self.agent_grid_future = {0: copy.deepcopy(self.grid), 1: copy.deepcopy(self.grid)}
+        self.agent_grid_future \
+                = {0: copy.deepcopy(self.agent_grid[0]), 1: copy.deepcopy(self.agent_grid[1])}
         for i in xrange(self.num_agent):
             for j in xrange(self.num_agent):
                 if i != j:
