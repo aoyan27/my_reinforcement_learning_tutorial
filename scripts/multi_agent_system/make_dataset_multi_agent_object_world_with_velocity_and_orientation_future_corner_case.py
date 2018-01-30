@@ -12,10 +12,20 @@ import copy
 import pickle
 import time
 import math
+import random
+import itertools
 
 #  from envs.multi_agent_grid_world import Gridworld
 from envs.multi_agent_object_world import Objectworld
 from agents.a_star_agent import AstarAgent
+
+
+
+def save_dataset(data, filename):
+    print "Save %d-%d multi_agent_map_dataset.pkl!!!!!" \
+            % (len(data['grid_image'][0]), len(data['grid_image'][1]))
+    with open(filename, mode='wb') as f:
+        pickle.dump(data, f)
 
 
 def grid2image(array):
@@ -38,7 +48,166 @@ def view_image(array, title):
     plt.title(title)
     plt.show()
 
-def get_input_image_and_traj(env, n_agents, n_trajs):
+def check_quadrant_and_diagonal_area(env, position):
+    rows = env.rows
+    cols = env.cols
+
+    quadrant_y = position[0] / (rows / 2.0)
+    quadrant_x = position[1] / (cols / 2.0)
+    #  print "quadrant_y, quadrant_x : ", quadrant_y, quadrant_x
+    
+    num_quadrant = 0
+    diagonal_area = [[0, rows-1], [0, cols-1]]
+    if quadrant_y < 1 and quadrant_x >= 1:
+        #  print "quadrant 0"
+        num_quadrant = 0
+        diagonal_area = [[rows/2, rows-1], [0, cols/2-1]]
+    elif quadrant_y >= 1 and quadrant_x >= 1:
+        #  print "quadrant 1"
+        num_quadrant = 1
+        diagonal_area = [[0, rows/2-1], [0, cols/2-1]]
+    elif quadrant_y >= 1 and quadrant_x < 1:
+        #  print "quadrant 2"
+        num_quadrant = 2
+        diagonal_area = [[0, rows/2-1], [cols/2, cols-1]]
+    elif quadrant_y < 1 and quadrant_x < 1:
+        #  print "quadrant 3"
+        num_quadrant = 3
+        diagonal_area = [[rows/2, rows-1], [cols/2, cols-1]]
+
+    return num_quadrant, diagonal_area
+
+def check_no_obs(env, position):
+    #  print "env.grid : ", env.grid
+    #  print "posirion : ", position
+    #  print "env.grid[position] : ", env.grid[position[0], position[1]]
+    if env.grid[position[0], position[1]] == -1:
+        return False
+    else:
+        return True
+
+def get_position_on_line(goal, x):
+    a = float(goal[0][0]-goal[1][0])/float(goal[0][1]-goal[1][1])
+    #  print "a : ", a
+    y = a * (x - goal[0][1]) + goal[0][0]
+    #  print "y : ", y
+    return y
+
+def check_start_candidate(env, goal, type=0):
+    num_agent = len(goal)
+    #  print "num_agent : ", num_agent
+    if type == 0:
+        """
+        passing senario
+        """
+        #  print "goal : ", goal
+        tmp_start_range_x = []
+        tmp_start_range_y = []
+        for agent_id in xrange(num_agent):
+            tmp_start_range_x.append(goal[agent_id][1])
+            tmp_start_range_y.append(goal[agent_id][0])
+        start_range_x = [min(tmp_start_range_x), max(tmp_start_range_x)]
+        start_range_y = [min(tmp_start_range_y), max(tmp_start_range_y)]
+        #  print "start_range_x. start_range_y : ", start_range_x, start_range_y
+        start_candidate_list = []
+        if start_range_x[0] != start_range_x[1]:
+            for x in xrange(start_range_x[0]+1, start_range_x[1], 1):
+                y = int(round(get_position_on_line(goal, x), 0))
+                start_candidate_list.append([y, x])
+        else:
+            for y in xrange(start_range_y[0]+1, start_range_y[1], 1):
+                x = start_range_x[0]
+                start_candidate_list.append([y, x])
+
+        #  print "start_candidate_list : ", start_candidate_list
+
+    return len(start_candidate_list), start_candidate_list
+
+def calc_all_goal_dist(p, goal):
+    all_dist = [math.sqrt((p[0]-goal[i][0])**2+(p[1]-goal[i][1])**2) for i in xrange(len(goal))]
+    #  print "all_dist : ", all_dist
+    return all_dist
+
+
+#  def get_corner_case_start(env, goal, start_candidate_list=None):
+    #  num_agent = len(goal)
+    #  #  print "num_agent : ", num_agent
+    #  start = {}
+
+    #  if start_candidate_list is not None:
+        #  """
+        #  passing senario
+        #  """
+        #  print "goal : ", goal
+        #  print "start_candidate_list : ", start_candidate_list
+        #  while 1:
+            #  candidate_index = random.sample(xrange(len(start_candidate_list)), num_agent)
+            #  #  print "candidate_index : ", candidate_index
+            #  candidate_position_list = []
+            #  for agent_id in xrange(num_agent):
+                #  candidate_position_list.append(start_candidate_list[candidate_index[agent_id]])
+            #  #  print "candidate_position_list : ", candidate_position_list
+            #  dist_list = [calc_all_goal_dist(p, goal) for p in candidate_position_list]
+            #  #  print "dist_list : ", dist_list
+            #  argmax_list = np.argmax(dist_list, axis=0)
+            #  #  print "argmax_list : ", argmax_list
+            #  tmp_argmax_list = copy.deepcopy(argmax_list)
+            #  #  print "tmp_argmax_list : ", set(tmp_argmax_list)
+            #  if len(set(tmp_argmax_list)) == len(argmax_list):
+                #  for agent_id in xrange(num_agent):
+                    #  start[agent_id] = candidate_position_list[argmax_list[agent_id]]
+                #  break
+        #  #  print "start : ", start
+    #  else:
+        #  num_quadrant = 0
+        #  start_area = 0
+        #  for agent_id in xrange(num_agent):
+            #  #  print "============== agent_id : ", agent_id, "==============="
+            #  num_quadrant, start_area = check_quadrant_and_diagonal_area(env, goal[agent_id])
+            #  #  print "num_quadrant : ", num_quadrant
+            #  #  print "start_area : ", start_area
+            
+            #  while 1:
+                #  tmp_start = [np.random.randint(start_area[0][0], start_area[0][1]), \
+                             #  np.random.randint(start_area[1][0], start_area[1][1])]
+                #  #  print "tmp_start : ", tmp_start
+                #  if check_no_obs(env, tmp_start):
+                    #  start[agent_id] = tmp_start
+                    #  break
+
+        #  #  print "start : ", start
+        #  #  print "goal : ", goal
+
+    #  return start
+
+def get_corner_case_start(env, goal, i_traj, start_pair_list=None):
+    num_agent = len(goal)
+    #  print "num_agent : ", num_agent
+    start = {}
+
+    if start_pair_list is not None:
+        """
+        passing senario
+        """
+        #  print "goal : ", goal
+        #  print "start_pair_list : ", start_pair_list
+        candidate_position_list = list(start_pair_list[i_traj])
+        #  print "candidate_position_list : ", candidate_position_list
+        dist_list = [calc_all_goal_dist(p, goal) for p in candidate_position_list]
+        #  print "dist_list : ", dist_list
+        argmax_list = np.argmax(dist_list, axis=0)
+        #  print "argmax_list : ", argmax_list
+        tmp_argmax_list = copy.deepcopy(argmax_list)
+        #  print "tmp_argmax_list : ", set(tmp_argmax_list)
+        if len(set(tmp_argmax_list)) == len(argmax_list):
+            for agent_id in xrange(num_agent):
+                start[agent_id] = candidate_position_list[argmax_list[agent_id]]
+        #  print "start : ", start
+
+    return start
+
+
+def get_input_image_and_traj(env, n_agents, n_trajs, goal, start_candidate=None):
     stay_action = int(env.action_list[-1])
 
     domain_grid_list = {}
@@ -58,8 +227,9 @@ def get_input_image_and_traj(env, n_agents, n_trajs):
     i_traj = 0
     #  print "env.grid : "
     #  env.show_array(env.grid)
+    challenge_times = 0
     while i_traj < n_trajs:
-        #  print "++++++++++++++++++++++ i_traj : ", i_traj, " ++++++++++++++++++++++++++++"
+        print "++++++++++++++++++++++ i_traj : ", i_traj, " ++++++++++++++++++++++++++++"
         traj_grid_list = {}
         traj_agent_grid_list = {}
         traj_another_agent_position_with_grid_list = {}
@@ -74,10 +244,18 @@ def get_input_image_and_traj(env, n_agents, n_trajs):
 
         max_step = 2*env.rows*env.cols
         #  print "max_step : ", max_step
-        env.set_start_random(check_goal=True)
-        observation = env.reset(start_position=env.start, goal_position=env.goal)
+        #  env.set_start_random(check_goal=True)
+        #  print "env_start : ", env.start
+        #  start_position = get_corner_case_start(env, goal, start_candidate_list=start_candidate)
+        start_position = get_corner_case_start(env, goal, i_traj, start_pair_list=start_candidate)
+        print "start_position : ", start_position
+        print "goal_position : ", goal
+        #  observation = env.reset(start_position=env.start, goal_position=env.goal)
+        observation = env.reset(start_position=start_position, goal_position=goal)
         #  print "observation : ", observation
         #  print "env.goal : ", env.goal
+        env.show_objectworld_with_state()
+        #  print "env.grid : ", env.grid
         
         #  initialize
         for agent_id in xrange(n_agents):
@@ -99,17 +277,19 @@ def get_input_image_and_traj(env, n_agents, n_trajs):
         
         failed = True
         for i_step in xrange(max_step):
-            #  print "--------------- i_step : ", i_step, " -----------------"
+            print "--------------- i_step : ", i_step, " -----------------"
+            #  print env.grid
+            env.show_objectworld_with_state()
             for agent_id in xrange(n_agents):
                 _, actions[agent_id], _ = get_agent_state_and_action(env, agent_id)
                 action[agent_id] = int(actions[agent_id][0])
                 traj_action_list[agent_id].append(action[agent_id])
             #  print "actions : ", actions
-            #  print "action : ", action
+            print "action : ", action
             observation, reward, episode_end, info = env.step(action)
-            #  print "observation : ", observation
-            #  print "reward : ", reward
-            #  print "episode_end : ", episode_end
+            print "observation : ", observation
+            print "reward : ", reward
+            print "episode_end : ", episode_end
 
             for agent_id in xrange(n_agents):
                 traj_grid_list[agent_id].append(grid2image(env.grid))
@@ -134,6 +314,7 @@ def get_input_image_and_traj(env, n_agents, n_trajs):
             #  print "episode_end_flag_list : ", episode_end_flag_list
             if np.asarray(episode_end_flag_list).all():
                 #  print "Success!!"
+                challege_times = 0
                 for agent_id in xrange(n_agents):
                     traj_action_list[agent_id].append(stay_action)
 
@@ -142,13 +323,27 @@ def get_input_image_and_traj(env, n_agents, n_trajs):
 
         if failed:
             #  print "failed!!"
+            challenge_times += 1
+            if challenge_times >= 20:
+                grid_list = []
+                agent_grid_list = []
+                another_agent_position_with_grid_list = []
+                state_list = []
+                action_list = []
+
+                return grid_list, agent_grid_list, another_agent_position_with_grid_list, \
+                       state_list, action_list
             continue
 
         if not check_agent_collision(n_agents, traj_state_list):
-            #  print "agent collision!!"
+            print "agent collision!!"
+            #  challenge_times += 1
+            i_traj += 1
             continue
 
         i_traj += 1
+        #  print "start_position : ", start_position
+        #  print "goal_position : ", goal
             
         #  print "traj_grid_list[0] : ", np.asarray(traj_grid_list[0]).shape
         #  print "traj_state_list : ", np.asarray(traj_state_list[0]).shape
@@ -287,15 +482,65 @@ def get_velocity_and_orientation(env, action_list):
 
     return velocity, orientation
 
+def get_goal_y(x, p):
+    y = None
+    a = None
+    mode = np.random.randint(0, 3)
+    #  mode = 0
+    #  print "mode : ", mode
+    if mode == 0:
+        """
+        a = 0 (any x is ok)
+        """
+        a = 0
+    elif mode == 1:
+        """
+        a = 1
+        """
+        a = 1
+    elif mode == 2:
 
-def save_dataset(data, filename):
-    print "Save %d-%d multi_agent_map_dataset.pkl!!!!!" \
-            % (len(data['grid_image'][0]), len(data['grid_image'][1]))
-    with open(filename, mode='wb') as f:
-        pickle.dump(data, f)
+        """
+        a = -1
+        """
+        a = -1
+
+    y = a * (x - p[1]) + p[0]
+
+    return y
+
+
+def get_corner_case_goal(env):
+    goal = {}
+    while 1:
+        goal[0] = [np.random.randint(0, env.rows), np.random.randint(0, env.cols)]
+        #  print "goal[0] : ", goal[0]
+        goal_x = np.random.randint(0, env.cols)
+        #  print "goal_x  : ", goal_x
+        goal_y = None
+        if goal_x == goal[0][1]:
+            goal_y = np.random.randint(0, env.rows)
+        else:
+            goal_y = get_goal_y(goal_x, goal[0])
+        #  print "goal_y : ", goal_y
+        goal[1] = [goal_y, goal_x]
+        
+        #  print "goal[1] : ", goal[1]
+        range_flag = ([0, 0] <= np.asarray(goal[1])).all() \
+                        and (np.asarray(goal[1]) < [env.rows, env.cols]).all()
+        #  print "range_flag : ", range_flag
+        if range_flag:
+            no_obs_flags = np.array([check_no_obs(env, goal[i]) for i in xrange(env.num_agent)])
+            #  print "no_obs_flags : ", no_obs_flags
+            if no_obs_flags.all():
+                break
+    #  print "goal : ", goal
+    return goal
 
 
 def main(rows, cols, n_objects, n_agents, n_domains, n_trajs, seed, save_dirs):
+    random.seed(seed)
+
     n_state = rows * cols
     
     goal = [rows-1, cols-1]
@@ -344,7 +589,20 @@ def main(rows, cols, n_objects, n_agents, n_domains, n_trajs, seed, save_dirs):
     while dom < n_domains:
         #  print "===================================================="
         #  print "dom : ", dom
-        env.set_goal_random(check_start=False)
+        #  env.set_goal_random(check_start=False)
+        goal = get_corner_case_goal(env)
+        #  num_start_candidate, start_candidate_list = check_start_candidate(env, env.goal)
+        num_start_candidate, start_candidate_list = check_start_candidate(env, goal)
+        #  print "num_start_candidate : ", num_start_candidate
+        #  print "start_candiate_list : ", start_candidate_list
+        if num_start_candidate < n_agents+1:
+            continue
+
+        start_pair_list = list(itertools.combinations(start_candidate_list, 2))
+        n_trajs = len(start_pair_list)
+        print "n_trajs : ", n_trajs
+        
+        env.set_goal(goal)
         env.set_objects()
         #  env.set_objects(n_objects_random=False)
         #  print "env._state : ", env._state
@@ -353,9 +611,14 @@ def main(rows, cols, n_objects, n_agents, n_domains, n_trajs, seed, save_dirs):
         #  print env.grid
 
         #  state_list, action_list = get_trajs(env, n_agents, n_trajs)
+        #  grid_image_list, agent_grid_image_list, another_agent_position_with_grid_image_list, \
+        #  state_list, action_list \
+                #  = get_input_image_and_traj(env, n_agents, n_trajs, goal, \
+                                           #  start_candidate=start_candidate_list)
         grid_image_list, agent_grid_image_list, another_agent_position_with_grid_image_list, \
         state_list, action_list \
-                = get_input_image_and_traj(env, n_agents, n_trajs)
+                = get_input_image_and_traj(env, n_agents, n_trajs, goal, \
+                                           start_candidate=start_pair_list)
         #  print "gri_image_list : "
         #  print grid_image_list
         #  view_image(image, 'Gridworld')
@@ -369,14 +632,15 @@ def main(rows, cols, n_objects, n_agents, n_domains, n_trajs, seed, save_dirs):
         #  print reward_map_list
 
 
-
         ns = 0
         for j in xrange(n_agents):
             #  print "num_sample[j] : ", num_sample[j]
             #  print "j : ", j
             #  print "len(state_list) : ", len(state_list)
+
+            num_traj = len(state_list[j])
             
-            for i in xrange(n_trajs):
+            for i in xrange(num_traj):
                 #  print "i : ", i
                 ns = len(state_list[j][i])
                 #  print "ns : ", ns
@@ -414,7 +678,7 @@ def main(rows, cols, n_objects, n_agents, n_domains, n_trajs, seed, save_dirs):
         data['velocity'].append(velocity_list_data[i][0:num_sample[i]])
         data['orientation'].append(orientation_list_data[i][0:num_sample[i]])
     
-    dataset_name ='multi_agent_object_world_velocity_orientation_future_map_dataset.pkl'
+    dataset_name ='multi_agent_object_world_velocity_orientation_future_corner_case_map_dataset.pkl'
     save_dataset(data, save_dirs+dataset_name)
 
 
