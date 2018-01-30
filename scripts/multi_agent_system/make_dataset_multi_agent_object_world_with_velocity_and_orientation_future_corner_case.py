@@ -202,6 +202,7 @@ def get_corner_case_start(env, goal, i_traj, start_pair_list=None):
         if len(set(tmp_argmax_list)) == len(argmax_list):
             for agent_id in xrange(num_agent):
                 start[agent_id] = candidate_position_list[argmax_list[agent_id]]
+        
         #  print "start : ", start
 
     return start
@@ -229,7 +230,7 @@ def get_input_image_and_traj(env, n_agents, n_trajs, goal, start_candidate=None)
     #  env.show_array(env.grid)
     challenge_times = 0
     while i_traj < n_trajs:
-        print "++++++++++++++++++++++ i_traj : ", i_traj, " ++++++++++++++++++++++++++++"
+        #  print "++++++++++++++++++++++ i_traj : ", i_traj, " ++++++++++++++++++++++++++++"
         traj_grid_list = {}
         traj_agent_grid_list = {}
         traj_another_agent_position_with_grid_list = {}
@@ -248,13 +249,13 @@ def get_input_image_and_traj(env, n_agents, n_trajs, goal, start_candidate=None)
         #  print "env_start : ", env.start
         #  start_position = get_corner_case_start(env, goal, start_candidate_list=start_candidate)
         start_position = get_corner_case_start(env, goal, i_traj, start_pair_list=start_candidate)
-        print "start_position : ", start_position
-        print "goal_position : ", goal
+        #  print "start_position : ", start_position
+        #  print "goal_position : ", goal
         #  observation = env.reset(start_position=env.start, goal_position=env.goal)
         observation = env.reset(start_position=start_position, goal_position=goal)
         #  print "observation : ", observation
         #  print "env.goal : ", env.goal
-        env.show_objectworld_with_state()
+        #  env.show_objectworld_with_state()
         #  print "env.grid : ", env.grid
         
         #  initialize
@@ -277,19 +278,27 @@ def get_input_image_and_traj(env, n_agents, n_trajs, goal, start_candidate=None)
         
         failed = True
         for i_step in xrange(max_step):
-            print "--------------- i_step : ", i_step, " -----------------"
+            #  print "--------------- i_step : ", i_step, " -----------------"
             #  print env.grid
-            env.show_objectworld_with_state()
-            for agent_id in xrange(n_agents):
-                _, actions[agent_id], _ = get_agent_state_and_action(env, agent_id)
-                action[agent_id] = int(actions[agent_id][0])
-                traj_action_list[agent_id].append(action[agent_id])
+            #  env.show_objectworld_with_state()
+            #  for agent_id in xrange(n_agents):
+            agent_id = 0
+            _, actions[agent_id], _ = get_agent_state_and_action(env, agent_id)
+            action[agent_id] = int(actions[agent_id][0])
+            traj_action_list[agent_id].append(action[agent_id])
+            for another_agent_id in xrange(n_agents):
+                if another_agent_id != agent_id:
+                    _, actions[another_agent_id], _ \
+                            = get_enemy_agent_state_and_action(env, another_agent_id)
+                    action[another_agent_id] = int(actions[another_agent_id][0])
+                    traj_action_list[another_agent_id].append(action[another_agent_id])
+
             #  print "actions : ", actions
-            print "action : ", action
+            #  print "action : ", action
             observation, reward, episode_end, info = env.step(action)
-            print "observation : ", observation
-            print "reward : ", reward
-            print "episode_end : ", episode_end
+            #  print "observation : ", observation
+            #  print "reward : ", reward
+            #  print "episode_end : ", episode_end
 
             for agent_id in xrange(n_agents):
                 traj_grid_list[agent_id].append(grid2image(env.grid))
@@ -336,7 +345,7 @@ def get_input_image_and_traj(env, n_agents, n_trajs, goal, start_candidate=None)
             continue
 
         if not check_agent_collision(n_agents, traj_state_list):
-            print "agent collision!!"
+            #  print "agent collision!!"
             #  challenge_times += 1
             i_traj += 1
             continue
@@ -398,6 +407,33 @@ def get_agent_state_and_action(env, agent_id):
     #  a_agent.get_shortest_path(env._state[agent_id], env.grid)
     #  a_agent.get_shortest_path(env._state[agent_id], env.agent_grid[agent_id])
     a_agent.get_shortest_path(env._state[agent_id], env.agent_grid_future[agent_id])
+    #  print "a_agent.found : ", a_agent.found
+    if a_agent.found:
+        #  pass
+        #  print "a_agent.state_list : "
+        #  print a_agent.state_list
+        #  print "a_agent.shrotest_action_list : "
+        #  print a_agent.shortest_action_list
+        #  env.show_policy(a_agent.policy.transpose().reshape(-1))
+        path_data = a_agent.show_path()
+        #  print "agent_id : ", agent_id
+        #  print "view_path_my : "
+        #  a_agent.view_path(path_data['vis_path'])
+    #  print "a_agent.shortest_action_list[0] : "
+    #  print a_agent.shortest_action_list[0]
+    state_list = a_agent.state_list
+    action_list = a_agent.shortest_action_list
+
+    return state_list, action_list, a_agent.found
+
+def get_enemy_agent_state_and_action(env, agent_id):
+    a_agent = AstarAgent(env, agent_id)
+    #  print "env.agent_grid[agent_id] : "
+    #  print env.agent_grid[agent_id]
+    #  print "env._state[agent_id] : ", env._state[agent_id]
+    a_agent.get_shortest_path(env._state[agent_id], env.grid)
+    #  a_agent.get_shortest_path(env._state[agent_id], env.agent_grid[agent_id])
+    #  a_agent.get_shortest_path(env._state[agent_id], env.agent_grid_future[agent_id])
     #  print "a_agent.found : ", a_agent.found
     if a_agent.found:
         #  pass
@@ -595,15 +631,16 @@ def main(rows, cols, n_objects, n_agents, n_domains, n_trajs, seed, save_dirs):
         num_start_candidate, start_candidate_list = check_start_candidate(env, goal)
         #  print "num_start_candidate : ", num_start_candidate
         #  print "start_candiate_list : ", start_candidate_list
-        if num_start_candidate < n_agents+1:
+        if num_start_candidate < n_agents+3:
             continue
 
         start_pair_list = list(itertools.combinations(start_candidate_list, 2))
         n_trajs = len(start_pair_list)
-        print "n_trajs : ", n_trajs
+        #  print "n_trajs : ", n_trajs
         
         env.set_goal(goal)
-        env.set_objects()
+        #  env.set_objects()
+        env.set_objects(no_object_list=start_candidate_list)
         #  env.set_objects(n_objects_random=False)
         #  print "env._state : ", env._state
         #  print "env.goal : ", env.goal
