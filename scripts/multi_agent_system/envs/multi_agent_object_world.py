@@ -161,7 +161,7 @@ class Objectworld:
         #  print "self.goal", self.goal
         self.set_goal(goal_)
 
-    def set_objects(self, n_objects_random=True):
+    def set_objects(self, n_objects_random=True, no_object_list=None):
         self.objects = []
         self.grid = np.zeros([self.rows, self.cols])
         #  self.set_goal(self.goal)
@@ -184,6 +184,10 @@ class Objectworld:
                 for j in xrange(self.num_agent):
                     check_list.append(self.start[j])
                     check_list.append(self.goal[j])
+
+                if no_object_list is not None:
+                    for no_obs in no_object_list:
+                        check_list.append(no_obs)
                 #  print "check_list : ", check_list
                 matched_list = []
                 for check in check_list:
@@ -343,8 +347,8 @@ class Objectworld:
         reward = {}
         episode_end = {}
         for i in xrange(self.num_agent):
-            next_state_list[i], probs[i], collisions[i] = \
-                    self.get_next_state_and_probs(self._state[i], action[i], self.goal[i])
+            next_state_list[i], probs[i], collisions[i] \
+                    = self.get_next_state_and_probs(self._state[i], action[i], self.goal[i])
 
             #  print next_state_list
             #  print probs
