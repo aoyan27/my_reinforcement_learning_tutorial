@@ -21,9 +21,14 @@ class ValueIterationNetworkFineTuning(Chain):
             conv3b = L.Convolution2D(1, l_q, 3, stride=1, pad=1, \
                             initialW=net.conv3b.W.data, nobias=True),
 
-            l4 = L.Linear(None, 128, nobias=True),
-            l5 = L.Linear(128, 128, nobias=True),
-            l6 = L.Linear(128, n_out, nobias=True),
+            #  l4 = l.linear(none, 128, nobias=true),
+            #  l5 = l.linear(128, 128, nobias=true),
+            #  l6 = l.linear(128, n_out, nobias=true),
+
+            l4 = L.Linear(None, 128, initialW=net.l4.W.data, nobias=True),
+            l5 = L.Linear(128, 128, initialW=net.l5.W.data, nobias=True),
+            l6 = L.Linear(128, n_out, initialW=net.l6.W.data, nobias=True),
+
         )
 
         self.k = k
@@ -115,8 +120,12 @@ class ValueIterationNetworkFineTuning(Chain):
         #  #  print "concat_1 : ", concat_1
         #  concat_1 = F.concat((q_out, other_state_), axis=1)
 
-        h1 = self.l4(concat_1)
-        h2 = self.l5(h1)
+        #  h1 = self.l4(concat_1)
+        #  h2 = self.l5(h1)
+        #  y = self.l6(h2)
+
+        h1 = F.relu(self.l4(concat_1))
+        h2 = F.relu(self.l5(h1))
         y = self.l6(h2)
 
         return y
