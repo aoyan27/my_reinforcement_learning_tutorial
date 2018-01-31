@@ -267,6 +267,8 @@ def main(rows, cols, n_objects, n_agents, seed, gpu, model_path):
 
     success_times = 0
     failed_times = 0
+    collision_times = 0
+    agent_collision_times = 0
 
     max_episode = 100
     max_step = rows + cols
@@ -275,8 +277,8 @@ def main(rows, cols, n_objects, n_agents, seed, gpu, model_path):
         print "================================="
         print "episode : ", i_episode
 
-        #  observation = env.reset(random=True)
-        observation = env.reset(start_position=start, goal_position=goal, random=False)
+        observation = env.reset(random=True)
+        #  observation = env.reset(start_position=start, goal_position=goal, random=False)
         reward_map = get_reward_map(env, agent_id=0)
         env.set_objects()
         velocities = {0: env.movement[stay_action], 1: env.movement[stay_action]}
@@ -320,19 +322,26 @@ def main(rows, cols, n_objects, n_agents, seed, gpu, model_path):
             print "next_orientations : ", orientations
             print "reward : ", reward
             print "episode_end : ", episode_end
-            time.sleep(0.5)
+            #  time.sleep(0.5)
 
             if (episode_end[0]==1 and episode_end[1]==1) \
                     or (episode_end[0]==2) or (episode_end[0] == 3):
                 if episode_end[0]==1 and episode_end[1]==1:
                     success_times += 1
+                elif episode_end[0]==2:
+                    agent_collision_times += 1
+                elif episode_end[0]==3:
+                    collision_times += 1
                 break
 
         if episode_end[0]!=1 or episode_end[1]!=1:
             failed_times += 1
 
+    print "-------------------------------------"
     print "success_times : ", success_times
     print "failed_times : ", failed_times
+    print "agent_collision_times : ", agent_collision_times
+    print "collision_times : ", collision_times
 
 
 if __name__ == "__main__":
