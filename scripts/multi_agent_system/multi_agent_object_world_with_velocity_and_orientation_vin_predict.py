@@ -268,7 +268,7 @@ def main(rows, cols, n_objects, n_agents, seed, gpu, model_path):
     success_times = 0
     failed_times = 0
 
-    max_episode = 1
+    max_episode = 100
     max_step = rows + cols
 
     for i_episode in xrange(max_episode):
@@ -322,7 +322,8 @@ def main(rows, cols, n_objects, n_agents, seed, gpu, model_path):
             print "episode_end : ", episode_end
             time.sleep(0.5)
 
-            if (episode_end[0]==1 and episode_end[1]==1) or (episode_end[0]==2):
+            if (episode_end[0]==1 and episode_end[1]==1) \
+                    or (episode_end[0]==2) or (episode_end[0] == 3):
                 if episode_end[0]==1 and episode_end[1]==1:
                     success_times += 1
                 break
