@@ -118,10 +118,10 @@ def get_my_agent_action(env, model, grid_map, reward_map, \
     p = model(input_data, \
               state_data, velocity_data, orientation_data, \
               another_state_data, another_velocity_data, another_orientation_data)
-    print "p : ", p.data
+    #  print "p : ", p.data
 
     action = np.argmax(p.data)
-    print "action : ", action
+    #  print "action : ", action
 
     #  state_list, action_list, resign = \
             #  get_path(env, model, input_data, state_data, \
@@ -249,14 +249,17 @@ def main(rows, cols, n_objects, n_agents, seed, gpu, model_path):
     """
     passing scenario
     """
-    start = {0: [3, 3], 1: [11, 11]}
-    goal = {0: [13, 13], 1:[0, 0]}
+    #  start = {0: [3, 3], 1: [11, 11]}
+    #  goal = {0: [13, 13], 1:[0, 0]}
     
     """
     overtaking scenario
     """
     #  start = {0: [0, 0], 1: [1, 1]}
     #  goal = {0: [8, 8], 1:[5, 5]}
+
+    start = {0: [10, 10], 1: [9, 3]}
+    goal = {0: [10, 19], 1:[10, 18]}
     
     stay_action = env.action_list[-1]
     print "stay_action : ", stay_action
@@ -277,18 +280,19 @@ def main(rows, cols, n_objects, n_agents, seed, gpu, model_path):
         print "================================="
         print "episode : ", i_episode
 
-        observation = env.reset(random=True)
-        #  observation = env.reset(start_position=start, goal_position=goal, random=False)
+        #  observation = env.reset(random=True)
+        observation = env.reset(start_position=start, goal_position=goal, random=False)
         reward_map = get_reward_map(env, agent_id=0)
-        env.set_objects()
+        #  env.set_objects()
+        env.set_objects(n_objects_random=False)
         velocities = {0: env.movement[stay_action], 1: env.movement[stay_action]}
         orientations = {0: get_goal_heading(start[0], goal[0]), 1: get_goal_heading(start[1], goal[1])}
 
         for i_step in xrange(max_step):
             print "-----------------------------"
             print "step : ", i_step
-            #  print "start : ", env.start
-            #  print "goal : ", env.goal
+            print "start : ", env.start
+            print "goal : ", env.goal
             print "state : ", observation
             print "velocities : ", velocities
             print "orientations : ", orientations
@@ -311,7 +315,7 @@ def main(rows, cols, n_objects, n_agents, seed, gpu, model_path):
             actions[1] = get_enemy_agent_action(env)
             velocities[1] = env.movement[actions[1]]
             orientations[1] = math.atan2(velocities[1][0], velocities[1][1])
-            print "actions : ", actions
+            #  print "actions : ", actions
 
             
             #  #  actions = env.get_sample_action()
@@ -322,11 +326,10 @@ def main(rows, cols, n_objects, n_agents, seed, gpu, model_path):
             print "next_orientations : ", orientations
             print "reward : ", reward
             print "episode_end : ", episode_end
-            #  time.sleep(0.5)
+            time.sleep(0.5)
 
-            if (episode_end[0]==1 and episode_end[1]==1) \
-                    or (episode_end[0]==2) or (episode_end[0] == 3):
-                if episode_end[0]==1 and episode_end[1]==1:
+            if (episode_end[0]==1) or (episode_end[0]==2) or (episode_end[0] == 3):
+                if episode_end[0]==1:
                     success_times += 1
                 elif episode_end[0]==2:
                     agent_collision_times += 1
@@ -334,7 +337,7 @@ def main(rows, cols, n_objects, n_agents, seed, gpu, model_path):
                     collision_times += 1
                 break
 
-        if episode_end[0]!=1 or episode_end[1]!=1:
+        if episode_end[0]!=1:
             failed_times += 1
 
     print "-------------------------------------"
