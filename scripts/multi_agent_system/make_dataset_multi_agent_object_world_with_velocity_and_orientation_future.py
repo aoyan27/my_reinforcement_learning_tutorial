@@ -13,8 +13,39 @@ import pickle
 import time
 import math
 
-#  from envs.multi_agent_grid_world import Gridworld
-from envs.multi_agent_object_world import Objectworld
+parser = argparse.ArgumentParser(description='This script is make_dataset_multi_agent ...')
+
+parser.add_argument('-r', '--rows', default=16, type=int, help='row of global gridworld')
+parser.add_argument('-c', '--cols', default=16, type=int, help='column of global gridworld')
+
+parser.add_argument('-o', '--n_objects', default=40, type=int, help='number of objects')
+parser.add_argument('-a', '--n_agents', default=2, type=int, help='number of agents')
+
+parser.add_argument('-d', '--n_domains', default=5000, type=int, help='number of domains')
+parser.add_argument('-t', '--n_trajs', default=10, type=int, help='number of trajs')
+
+
+parser.add_argument('-s', '--seed', default=0, type=int, help='number of seed')
+
+parser.add_argument('-m', '--dataset_dirs', default='datasets/', \
+        type=str, help="save dataset directory")
+
+args = parser.parse_args()
+print args
+
+if args.n_agents == 2:
+    print "import --->  2 agents object world!!"
+    from envs.multi_agent_object_world import Objectworld
+elif args.n_agents == 3:
+    print "import --->  3 agents object world!!"
+    from envs.multi_agent_object_world_three_agent import Objectworld
+elif args.n_agents == 4:
+    print "import --->  4 agents object world!!"
+    from envs.multi_agent_object_world_four_agent import Objectworld
+else:
+    from envs.multi_agent_object_world import Objectworld
+
+
 from agents.a_star_agent import AstarAgent
 
 
@@ -289,8 +320,14 @@ def get_velocity_and_orientation(env, action_list):
 
 
 def save_dataset(data, filename):
-    print "Save %d-%d multi_agent_map_dataset.pkl!!!!!" \
-            % (len(data['grid_image'][0]), len(data['grid_image'][1]))
+    n_agents = len(data['grid_image'])
+    print "n_agents : ", n_agents
+    for agent_id in xrange(n_agents):
+        print "data_size[", agent_id, "] : ", len(data['grid_image'][agent_id])
+    print "=========================="
+    print "Now Saving ..."
+    print "to ", filename
+
     with open(filename, mode='wb') as f:
         pickle.dump(data, f)
 
@@ -419,26 +456,6 @@ def main(rows, cols, n_objects, n_agents, n_domains, n_trajs, seed, save_dirs):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description='This script is make_dataset_multi_agent ...')
-    
-    parser.add_argument('-r', '--rows', default=16, type=int, help='row of global gridworld')
-    parser.add_argument('-c', '--cols', default=16, type=int, help='column of global gridworld')
-
-    parser.add_argument('-o', '--n_objects', default=40, type=int, help='number of objects')
-    parser.add_argument('-a', '--n_agents', default=2, type=int, help='number of agents')
-    
-    parser.add_argument('-d', '--n_domains', default=5000, type=int, help='number of domains')
-    parser.add_argument('-t', '--n_trajs', default=10, type=int, help='number of trajs')
-    
-
-    parser.add_argument('-s', '--seed', default=0, type=int, help='number of seed')
-
-    parser.add_argument('-m', '--dataset_dirs', default='datasets/', \
-            type=str, help="save dataset directory")
-
-    args = parser.parse_args()
-    print args
-
     main(args.rows, args.cols, args.n_objects, args.n_agents, args.n_domains, \
             args.n_trajs, args.seed, args.dataset_dirs)
     
