@@ -451,7 +451,7 @@ def main(rows, cols, n_objects, n_agents, n_domains, n_trajs, seed, save_dirs):
         data['velocity'].append(velocity_list_data[i][0:num_sample[i]])
         data['orientation'].append(orientation_list_data[i][0:num_sample[i]])
     
-    dataset_name ='multi_agent_object_world_velocity_orientation_future_map_dataset.pkl'
+    dataset_name ='multi_agent_object_world_velocity_orientation_future_%d_agents_map_dataset.pkl' % n_agents
     save_dataset(data, save_dirs+dataset_name)
 
 

@@ -69,10 +69,10 @@ def view_two_image(fig, array1, array2, state1, state2, action1, action2, \
     ax1 = fig.add_subplot(121)
     ax2 = fig.add_subplot(122)
     
-    image2 = cv.cvtColor(array1.astype(np.uint8), cv.COLOR_GRAY2RGB)
+    image2 = cv.cvtColor(array2.astype(np.uint8), cv.COLOR_GRAY2RGB)
     print "image2 : ", image2[int(state2[0]), int(state2[1])]
     image2[int(state2[0]), int(state2[1]), :] = [1, 0, 0]
-    image1 = cv.cvtColor(array2.astype(np.uint8), cv.COLOR_GRAY2RGB)
+    image1 = cv.cvtColor(array1.astype(np.uint8), cv.COLOR_GRAY2RGB)
     print "image1 : ", image1.shape
     image1[int(state1[0]), int(state1[1]), :] = [1, 0, 0]
 
