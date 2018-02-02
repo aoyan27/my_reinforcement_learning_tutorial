@@ -328,6 +328,8 @@ def main(rows, cols, n_objects, n_agents, seed, gpu, model_path):
             print "episode_end : ", episode_end
             time.sleep(0.5)
 
+            #  env.set_objects(n_objects_random=False)
+
             if (episode_end[0]==1) or (episode_end[0]==2) or (episode_end[0] == 3):
                 if episode_end[0]==1:
                     success_times += 1
