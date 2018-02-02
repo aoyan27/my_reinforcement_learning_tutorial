@@ -443,9 +443,9 @@ if __name__=="__main__":
     from agents.a_star_agent import AstarAgent
     rows = cols = 20
     noise = 0.0
-    n_objects = 1
+    n_objects = 50
     num_agent = 2
-    seed = 2
+    seed = 0
     mode = 1
 
     ow = Objectworld(rows, cols, n_objects, num_agent, noise, seed=seed, mode=mode)
@@ -487,18 +487,20 @@ if __name__=="__main__":
     goal = {0: [13, 13], 1:[0, 0]}
 
     action = {}
-    for i in xrange(10):
+    success_times = 0
+    collision_times = 0
+    for i in xrange(100):
         print "================================="
         print "episode : ", i
-        #  observation = ow.reset(random=True)
-        observation = ow.reset(start_position=start, goal_position=goal, random=False)
+        observation = ow.reset(random=True)
+        #  observation = ow.reset(start_position=start, goal_position=goal, random=False)
 
         for j in xrange(100):
-            print "-----------------------------"
-            print "step : ", j
-            print "state : ", observation
-            ow.show_objectworld_with_state()
-            print "ow.agent_grid : "
+            #  print "-----------------------------"
+            #  print "step : ", j
+            #  print "state : ", observation
+            #  ow.show_objectworld_with_state()
+            #  print "ow.agent_grid : "
             #  for agent_id in xrange(ow.num_agent):
                 #  ow.show_array(ow.agent_grid[agent_id])
                 #  print "++++++++++++++++++++++++++++++"
@@ -506,25 +508,32 @@ if __name__=="__main__":
                 a_agent = AstarAgent(ow, agent_id=agent_id)
                 a_agent.get_shortest_path(ow._state[agent_id], ow.agent_grid_future[agent_id])
                 path_data = a_agent.show_path()
-                print "view_path(", agent_id, ") : "
-                a_agent.view_path(path_data['vis_path'])
+                #  print "view_path(", agent_id, ") : "
+                #  a_agent.view_path(path_data['vis_path'])
                 #  print "action_list : ", path_data['action_list']
                 action[agent_id] = int(path_data['action_list'][0])
             #  action = ow.get_sample_action()
-            print "action : ", action
+            #  print "action : ", action
             observation, reward, episode_end, info = ow.step(action)
-            print "next_state : ", observation
-            print "ow.velocity : ", ow.velocity
-            print "ow._future_state : ", ow._future_state
+            #  print "next_state : ", observation
+            #  print "ow.velocity : ", ow.velocity
+            #  print "ow._future_state : ", ow._future_state
             #  for agent_id in xrange(ow.num_agent):
                 #  ow.show_array(ow.agent_grid_future[agent_id])
                 #  print "++++++++++++++++++++++++++++++"
 
-            print "reward : ", reward
-            print "episode_end : ", episode_end
+            #  print "reward : ", reward
+            #  print "episode_end : ", episode_end
             episode_end_flag_list = []
             for i in xrange(ow.num_agent):
                 episode_end_flag_list.append(episode_end[i]!=0)
-            print "episode_end_flag_list : ", episode_end_flag_list
-            if np.asarray(episode_end_flag_list).any():
+            #  print "episode_end_flag_list : ", episode_end_flag_list
+            if np.asarray(episode_end_flag_list).all():
+                if episode_end[0] == 1:
+                    success_times += 1
+                if episode_end[0] == 2:
+                    collision_times += 1
                 break
+
+        print "success_times : ", success_times
+        print "collision_times : ", collision_times
