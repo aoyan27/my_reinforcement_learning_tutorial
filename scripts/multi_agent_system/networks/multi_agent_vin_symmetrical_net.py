@@ -19,9 +19,19 @@ class ValueIterationNetwork(Chain):
             conv3a = L.Convolution2D(1, l_q, 3, stride=1, pad=1, nobias=True),
             conv3b = L.Convolution2D(1, l_q, 3, stride=1, pad=1, nobias=True),
 
-            l4 = L.Linear(None, 128, nobias=True),
-            l5 = L.Linear(128, 128, nobias=True),
-            l6 = L.Linear(128, n_out, nobias=True),
+            l4a = L.Linear(None, 32, nobias=True),
+            l4b = L.Linear(None, 32, nobias=True),
+            l4c = L.Linear(None, 32, nobias=True),
+            
+            l5a = L.Linear(None, 128, nobias=True),
+            l5b = L.Linear(None, 128, nobias=True),
+            l5c = L.Linear(None, 128, nobias=True),
+
+            l6a = L.Linear(None, 64, nobias=True),
+            l6b = L.Linear(None, 64, nobias=True),
+
+            l7 = L.Linear(None, 32, nobias=True),
+            l8 = L.Linear(None, n_out, nobias=True),
         )
 
         self.k = k
@@ -61,7 +71,9 @@ class ValueIterationNetwork(Chain):
 
 
     def __call__(self, input_data, my_state_list, my_velocity_list, my_orientation_list, \
-                 other_state_list, other_velocity_list, other_orientation_list):
+                 other_state_list, other_velocity_list, other_orientation_list, \
+                 other_state_list2, other_velocity_list2, other_orientation_list2):
+
         input_data = Variable(input_data.astype(np.float32))
 
         h = F.relu(self.conv1(input_data))
@@ -70,6 +82,9 @@ class ValueIterationNetwork(Chain):
         #  print "self.r : ", self.r
         #  print "self.r : ", self.r.data.shape
 
+        """
+        VI-Module
+        """
         q = self.conv3a(self.r)
         #  print "q : ", q.data.shape
         
@@ -86,12 +101,23 @@ class ValueIterationNetwork(Chain):
         
         q = self.conv3a(self.r) + self.conv3b(self.v)
         q_out = self.attention(q, my_state_list)
+
         
+        """
+        my_state
+        """
         my_velocity_ = my_velocity_list.astype(np.float32)
         #  print "my_velocity_ : ", my_velocity_
         my_orientation_size = my_orientation_list.shape[0]
         my_orientation_ = my_orientation_list.astype(np.float32).reshape(my_orientation_size, 1)
         #  print "my_orientation_ : ", my_orientation_
+        my_state = F.concat((q_out, my_velocity_), axis=1)
+        my_state = F.concat((my_state, my_orientation_), axis=1)
+        #  print "my_state : ", my_state
+
+        """
+        other_state
+        """
         other_state_ = other_state_list.astype(np.float32)
         #  print "other_state_ : ", other_state_
         other_velocity_ = other_velocity_list.astype(np.float32)
@@ -100,31 +126,78 @@ class ValueIterationNetwork(Chain):
         other_orientation_ \
                 = other_orientation_list.astype(np.float32).reshape(other_orientation_size, 1)
         #  print "other_orientation_ : ", other_orientation_
-
-        my_state = F.concat((q_out, my_velocity_), axis=1)
-        my_state = F.concat((my_state, my_orientation_), axis=1)
-        #  print "my_state : ", my_state
-
         other_state = F.concat((other_state_, other_velocity_), axis=1)
         other_state = F.concat((other_state, other_orientation_), axis=1)
         #  print "other_state : ", other_state
 
-        concat_1 = F.concat((my_state, other_state), axis=1)
-        #  #  print "concat_1 : ", concat_1
-        #  concat_1 = F.concat((q_out, other_state_), axis=1)
+        """
+        other_state_2
+        """
+        other_state2_ = other_state_list2.astype(np.float32)
+        #  print "other_state2_ : ", other_state2_
+        other_velocity2_ = other_velocity_list2.astype(np.float32)
+        #  print "other_velocity2_ : ", other_velocity2_
+        other_orientation_size2 = other_orientation_list2.shape[0]
+        other_orientation2_ \
+                = other_orientation_list2.astype(np.float32).reshape(other_orientation_size2, 1)
+        #  print "other_orientation2_ : ", other_orientation2_
+        other_state2 = F.concat((other_state2_, other_velocity2_), axis=1)
+        other_state2 = F.concat((other_state2, other_orientation2_), axis=1)
+        #  print "other_state2 : ", other_state2
 
-        h1 = self.l4(concat_1)
-        h2 = self.l5(h1)
-        y = self.l6(h2)
+        
+        """
+        Policy
+        """
+        concat_1a = F.concat((my_state, other_state), axis=1)
+        concat_1a = F.concat((concat_1a, other_state2), axis=1)
+        #  print "concat_1a : ", concat_1a
+        concat_1b = F.concat((my_state, other_state), axis=1)
+        #  print "concat_1b : ", concat_1b
+        concat_1c = F.concat((my_state, other_state2), axis=1)
+        #  print "concat_1c : ", concat_1c
+
+        h1a = F.relu(self.l4a(concat_1a))
+        h1b = F.relu(self.l4b(concat_1b))
+        h1c = F.relu(self.l4c(concat_1c))
+
+        concat_2a = F.concat((h1a, h1b), axis=1)
+        concat_2a = F.concat((concat_2a, h1c), axis=1)
+        #  print "concat_2a : ", concat_2a
+        concat_2b = F.concat((h1a, h1b), axis=1)
+        #  print "concat_2b : ", concat_2b
+        concat_2c = F.concat((h1a, h1c), axis=1)
+        #  print "concat_2c : ", concat_2c
+
+        h2a = F.relu(self.l5a(concat_2a))
+        h2b = F.relu(self.l5b(concat_2b))
+        h2c = F.relu(self.l5c(concat_2c))
+
+        #  print "h2a : ", h2a
+        concat_3b = F.concat((h2b, h2c), axis=1)
+        #  print "concat_3b : ", concat_3b
+
+        h3a = F.relu(self.l6a(h2a))
+        h3b = F.relu(self.l6b(concat_3b))
+        
+        concat_4 = F.concat((h3a, h3b), axis=1)
+        #  print "concat_4 : ", concat_4
+
+        h4 = F.relu(self.l7(concat_4))
+
+        y = self.l8(h4)
 
         return y
 
+
     def forward(self, input_data, my_state_list, my_velocity_list, my_orientation_list, \
                 other_state_list, other_velocity_list, other_orientation_list, \
+                other_state_list2, other_velocity_list2, other_orientation_list2, \
                 action_list):
 
         y = self.__call__(input_data, my_state_list, my_velocity_list, my_orientation_list, \
-                          other_state_list, other_velocity_list, other_orientation_list)
+                          other_state_list, other_velocity_list, other_orientation_list, \
+                          other_state_list2, other_velocity_list2, other_orientation_list2)
         #  print "y : ", y
         
         t = Variable(action_list.astype(np.int32))
