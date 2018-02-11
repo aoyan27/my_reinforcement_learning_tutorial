@@ -21,6 +21,9 @@ import sys
 
 import tf
 
+state_list1 = []
+state_list2 = []
+state_list3 = []
 
 
 def euler2quaternion(roll, pitch, yaw):
@@ -37,24 +40,52 @@ def view_three_image(fig, array1, array2, array3, \
                      action1, action2, action3, \
                      velocity1, velocity2, velocity3,\
                      orientation1, orientation2, orientation3,\
-                     title='dataset viewer'):
+                     title='Dataset Agent_ID='):
     plt.clf()
+    #  ax0 = fig.add_subplot(232)
+    #  ax1 = fig.add_subplot(234)
+    #  ax2 = fig.add_subplot(235)
+    #  ax3 = fig.add_subplot(236)
+
     ax1 = fig.add_subplot(131)
     ax2 = fig.add_subplot(132)
     ax3 = fig.add_subplot(133)
 
+    
+    image0 = cv.cvtColor(array1.astype(np.uint8), cv.COLOR_GRAY2RGB)
+
     image1 = cv.cvtColor(array1.astype(np.uint8), cv.COLOR_GRAY2RGB)
     print "image1 : ", image1.shape
-    image1[int(state1[0]), int(state1[1]), :] = [1, 0, 0]
     image2 = cv.cvtColor(array2.astype(np.uint8), cv.COLOR_GRAY2RGB)
     print "image2 : ", image2[int(state2[0]), int(state2[1])]
-    image2[int(state2[0]), int(state2[1]), :] = [1, 0, 0]
     image3 = cv.cvtColor(array3.astype(np.uint8), cv.COLOR_GRAY2RGB)
     print "image3 : ", image3[int(state3[0]), int(state3[1])]
-    image3[int(state3[0]), int(state3[1]), :] = [1, 0, 0]
+    print "state_list1 : ", state_list1
+    for i in xrange(len(state_list1)):
+        image1[int(state_list1[i][0]), int(state_list1[i][1]), :] = [1, 1, 0]
+        image2[int(state_list2[i][0]), int(state_list2[i][1]), :] = [0, 1, 1]
+        image3[int(state_list3[i][0]), int(state_list3[i][1]), :] = [1, 0, 1]
+
+        image0[int(state_list1[i][0]), int(state_list1[i][1]), :] = [1, 1, 0]
+        image0[int(state_list2[i][0]), int(state_list2[i][1]), :] = [0, 1, 1]
+        image0[int(state_list3[i][0]), int(state_list3[i][1]), :] = [1, 0, 1]
+
+
+    image0[int(state1[0]), int(state1[1]), :] = [1, 1, 0]
+    image0[int(state2[0]), int(state2[1]), :] = [0, 1, 1]
+    image0[int(state3[0]), int(state3[1]), :] = [1, 0, 1]
+                                                         
+    image1[int(state1[0]), int(state1[1]), :] = [1, 1, 0]
+    image2[int(state2[0]), int(state2[1]), :] = [0, 1, 1]
+    image3[int(state3[0]), int(state3[1]), :] = [1, 0, 1]
+    #  ax0.imshow(255 - 255*image0, interpolation="nearest")
     ax1.imshow(255 - 255*image1, interpolation="nearest")
     ax2.imshow(255 - 255*image2, interpolation="nearest")
     ax3.imshow(255 - 255*image3, interpolation="nearest")
+
+    state_list1.append(state1)
+    state_list2.append(state2)
+    state_list3.append(state3)
 
     state_text1 = 'state : [%d, %d]' % (state1[0], state1[1])
     state_text2 = 'state : [%d, %d]' % (state2[0], state2[1])
@@ -84,6 +115,7 @@ def view_three_image(fig, array1, array2, array3, \
     ax2.text(image2.shape[0]/4.0, image2.shape[1]+5, orientation_text2)
     ax3.text(image3.shape[0]/4.0, image3.shape[1]+5, orientation_text3)
 
+    #  ax0.set_title('Occupancy Grid Environment')
     ax1.set_title(title+'1')
     ax2.set_title(title+'2')
     ax3.set_title(title+'3')

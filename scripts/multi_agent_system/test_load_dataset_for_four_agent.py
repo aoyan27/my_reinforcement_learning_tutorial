@@ -37,7 +37,7 @@ def view_three_image(fig, array1, array2, array3, array4, \
                      action1, action2, action3, action4, \
                      velocity1, velocity2, velocity3, velocity4, \
                      orientation1, orientation2, orientation3, orientation4, \
-                     title='dataset viewer'):
+                     title='Dataset Agent_Id='):
     plt.clf()
     ax1 = fig.add_subplot(141)
     ax2 = fig.add_subplot(142)
