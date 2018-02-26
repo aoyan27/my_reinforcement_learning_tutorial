@@ -21,6 +21,8 @@ import pickle
 import tf
 
 
+state_list1 = []
+state_list2 = []
 
 def euler2quaternion(roll, pitch, yaw):
     q = tf.transformations.quaternion_from_euler(roll, pitch, yaw)
@@ -62,23 +64,86 @@ def view_image(array, title):
     #  ax2.set_title(title+'2')
     #  plt.pause(3.0)
 
+#  def view_two_image(fig, array1, array2, state1, state2, action1, action2, \
+                   #  velocity1, velocity2, orientation1, orientation2, \
+                   #  title='dataset viewer'):
+    #  plt.clf()
+    #  ax1 = fig.add_subplot(121)
+    #  ax2 = fig.add_subplot(122)
+    
+    #  image2 = cv.cvtColor(array2.astype(np.uint8), cv.COLOR_GRAY2RGB)
+    #  print "image2 : ", image2[int(state2[0]), int(state2[1])]
+    #  image2[int(state2[0]), int(state2[1]), :] = [1, 0, 0]
+    #  image1 = cv.cvtColor(array1.astype(np.uint8), cv.COLOR_GRAY2RGB)
+    #  print "image1 : ", image1.shape
+    #  image1[int(state1[0]), int(state1[1]), :] = [1, 0, 0]
+
+
+    #  ax1.imshow(255 - 255*image1, interpolation="nearest")
+    #  ax2.imshow(255 - 255*image2, interpolation="nearest")
+    #  state_text1 = 'state : [%d, %d]' % (state1[0], state1[1])
+    #  state_text2 = 'state : [%d, %d]' % (state2[0], state2[1])
+    #  ax1.text(image1.shape[0]/4.0, image1.shape[1]+2, state_text1)
+    #  ax2.text(image2.shape[0]/4.0, image2.shape[1]+2, state_text2)
+    #  action_text1 = 'action : %d' % (action1)
+    #  action_text2 = 'action : %d' % (action2)
+    #  ax1.text(image1.shape[0]/4.0, image1.shape[1]+3, action_text1)
+    #  ax2.text(image2.shape[0]/4.0, image2.shape[1]+3, action_text2)
+
+    #  velocity_text1 = 'velocity : [%.3f, %.3f]' % (velocity1[0], velocity1[1])
+    #  velocity_text2 = 'velocity : [%.3f, %.3f]' % (velocity2[0], velocity2[1])
+    #  ax1.text(image1.shape[0]/4.0, image1.shape[1]+4, velocity_text1)
+    #  ax2.text(image2.shape[0]/4.0, image2.shape[1]+4, velocity_text2)
+
+    #  orientation_text1 = 'orientation: %.3f' % (orientation1)
+    #  orientation_text2 = 'orientation: %.3f' % (orientation2)
+    #  ax1.text(image1.shape[0]/4.0, image1.shape[1]+5, orientation_text1)
+    #  ax2.text(image2.shape[0]/4.0, image2.shape[1]+5, orientation_text2)
+
+
+    #  ax1.set_title(title+'1')
+    #  ax2.set_title(title+'2')
+    #  plt.pause(1.0)
+
 def view_two_image(fig, array1, array2, state1, state2, action1, action2, \
                    velocity1, velocity2, orientation1, orientation2, \
                    title='dataset viewer'):
     plt.clf()
-    ax1 = fig.add_subplot(121)
-    ax2 = fig.add_subplot(122)
+    ax0 = fig.add_subplot(232)
+    ax1 = fig.add_subplot(234)
+    ax2 = fig.add_subplot(235)
+    #  ax3 = fig.add_subplot(236)
+
+    #  ax1 = fig.add_subplot(121)
+    #  ax2 = fig.add_subplot(122)
+
+    image0 = cv.cvtColor(array1.astype(np.uint8), cv.COLOR_GRAY2RGB)
     
     image2 = cv.cvtColor(array2.astype(np.uint8), cv.COLOR_GRAY2RGB)
     print "image2 : ", image2[int(state2[0]), int(state2[1])]
-    image2[int(state2[0]), int(state2[1]), :] = [1, 0, 0]
     image1 = cv.cvtColor(array1.astype(np.uint8), cv.COLOR_GRAY2RGB)
     print "image1 : ", image1.shape
-    image1[int(state1[0]), int(state1[1]), :] = [1, 0, 0]
+    #  for i in xrange(len(state_list1)):
+        #  image1[int(state_list1[i][0]), int(state_list1[i][1]), :] = [1, 1, 0]
+        #  image2[int(state_list2[i][0]), int(state_list2[i][1]), :] = [0, 1, 1]
 
+        #  image0[int(state_list1[i][0]), int(state_list1[i][1]), :] = [1, 1, 0]
+        #  image0[int(state_list2[i][0]), int(state_list2[i][1]), :] = [0, 1, 1]
+
+    #  image2[int(state2[0]), int(state2[1]), :] = [1, 0, 0]
+    #  image1[int(state1[0]), int(state1[1]), :] = [1, 0, 0]
+
+    #  image0[int(state1[0]), int(state1[1]), :] = [1, 0, 0]
+    #  image0[int(state2[0]), int(state2[1]), :] = [0, 1, 0]
+
+    ax0.imshow(255 - 255*image0, interpolation="nearest")
 
     ax1.imshow(255 - 255*image1, interpolation="nearest")
     ax2.imshow(255 - 255*image2, interpolation="nearest")
+
+    #  state_list1.append(state1)
+    #  state_list2.append(state2)
+
     state_text1 = 'state : [%d, %d]' % (state1[0], state1[1])
     state_text2 = 'state : [%d, %d]' % (state2[0], state2[1])
     ax1.text(image1.shape[0]/4.0, image1.shape[1]+2, state_text1)
@@ -99,6 +164,7 @@ def view_two_image(fig, array1, array2, state1, state2, action1, action2, \
     ax2.text(image2.shape[0]/4.0, image2.shape[1]+5, orientation_text2)
 
 
+    ax0.set_title('Occupancy Grid Environment')
     ax1.set_title(title+'1')
     ax2.set_title(title+'2')
     plt.pause(1.0)

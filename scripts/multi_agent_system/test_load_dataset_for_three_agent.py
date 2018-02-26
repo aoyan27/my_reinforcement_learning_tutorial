@@ -75,9 +75,9 @@ def view_three_image(fig, array1, array2, array3, \
     image0[int(state2[0]), int(state2[1]), :] = [0, 1, 1]
     image0[int(state3[0]), int(state3[1]), :] = [1, 0, 1]
                                                          
-    image1[int(state1[0]), int(state1[1]), :] = [1, 1, 0]
-    image2[int(state2[0]), int(state2[1]), :] = [0, 1, 1]
-    image3[int(state3[0]), int(state3[1]), :] = [1, 0, 1]
+    image1[int(state1[0]), int(state1[1]), :] = [1, 0, 0]
+    image2[int(state2[0]), int(state2[1]), :] = [0, 1, 0]
+    image3[int(state3[0]), int(state3[1]), :] = [0, 0, 1]
     #  ax0.imshow(255 - 255*image0, interpolation="nearest")
     ax1.imshow(255 - 255*image1, interpolation="nearest")
     ax2.imshow(255 - 255*image2, interpolation="nearest")
