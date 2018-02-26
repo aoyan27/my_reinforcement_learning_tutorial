@@ -297,7 +297,7 @@ def train_and_test(model, optimizer, gpu, model_path, train_data, test_data, n_e
         model_name = 'multi_agent_vin_model_%d.model' % epoch
         print model_name
 
-        #  save_model(model, model_path+model_name)
+        save_model(model, model_path+model_name)
 
         epoch += 1
 
