@@ -1,4 +1,4 @@
-# my\_reinforcement\_learning\_tutorial
+# reinforcement\_learning
 This repositpry created for "Reinforcement Learning Tutorial". For example, 'Value Iteration(state value)', 'Q-Learing', 'Actor-Critic', 'Inverse Reinforcement Learning', 'Deep Q-Learing', and 'Deep Actor-Critic'.
 
 'Deep Q-Learning' implementations are influenced by [EnsekiTT's blog](http://ensekitt.hatenablog.com/entry/2016/11/28/035827) and [trtd56's blog](https://qiita.com/trtd56/items/3a09d37788d8d13ff131).
